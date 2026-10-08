@@ -14,7 +14,19 @@ namespace LegendsFC.Core.Model
     {
         public const int Count = 15;
         public const int Min = 1, Max = 99;
-        private readonly int[] _values = new int[Count];
+        private int[] _values = new int[Count];
+
+        /// <summary>Raw values in <see cref="Attr"/> order (used by saves/JSON). Always 15 values, each 1-99.</summary>
+        public int[] Values
+        {
+            get => (int[])_values.Clone();
+            set
+            {
+                if (value == null || value.Length != Count) throw new ArgumentException("Need exactly 15 attribute values");
+                foreach (var v in value) if (v < Min || v > Max) throw new ArgumentOutOfRangeException(nameof(value), "Attributes must be 1-99");
+                _values = (int[])value.Clone();
+            }
+        }
 
         public int this[Attr a]
         {
