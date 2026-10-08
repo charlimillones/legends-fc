@@ -1,0 +1,175 @@
+{
+  "_source": "World generation settings. All values are PROPOSALS (Oct 8) unless marked confirmed; tune freely.",
+  "cupOnlyClubsPerCountry": 5,
+  "clubRatings": {
+    "_note": "Average squad rating of the best and worst club per league/country; clubs in between follow a curve (few strong clubs at the top).",
+    "curveExponent": 1.5,
+    "ENG-1": [
+      84,
+      70
+    ],
+    "ESP-1": [
+      84,
+      69
+    ],
+    "BRA-1": [
+      78,
+      66
+    ],
+    "ARG-1": [
+      76,
+      62
+    ],
+    "ENG-2": [
+      70,
+      62
+    ],
+    "ESP-2": [
+      68,
+      60
+    ],
+    "BRA-2": [
+      66,
+      58
+    ],
+    "ARG-2": [
+      63,
+      54
+    ],
+    "POR": [
+      76,
+      64
+    ],
+    "NED": [
+      75,
+      63
+    ],
+    "MEX": [
+      70,
+      62
+    ],
+    "USA": [
+      68,
+      60
+    ],
+    "URU": [
+      68,
+      60
+    ],
+    "COL": [
+      69,
+      61
+    ]
+  },
+  "squad": {
+    "_note": "First-team slots per position (25 players), plus academy youngsters. Young (<23) and older (>31) players start a bit lower than the club level.",
+    "slots": {
+      "GK": 3,
+      "CB": 4,
+      "LB": 2,
+      "RB": 2,
+      "DM": 2,
+      "CM": 3,
+      "AM": 1,
+      "LM": 1,
+      "RM": 1,
+      "LW": 2,
+      "RW": 1,
+      "ST": 3
+    },
+    "starterSlots": {
+      "GK": 1,
+      "CB": 2,
+      "LB": 1,
+      "RB": 1,
+      "DM": 1,
+      "CM": 2,
+      "AM": 1,
+      "LM": 0,
+      "RM": 0,
+      "LW": 1,
+      "RW": 1,
+      "ST": 1
+    },
+    "ratingSpread": 4.0,
+    "benchPenalty": 3.0,
+    "reservePenalty": 6.0,
+    "academyPlayers": 5,
+    "ageMean": 26.0,
+    "ageSd": 4.0,
+    "ageMin": 18,
+    "ageMax": 35,
+    "youngUntilAge": 23,
+    "youngPenaltyPerYear": 1.5,
+    "oldFromAge": 31,
+    "oldPenaltyPerYear": 1.0
+  },
+  "feet": {
+    "_note": "Share of left-footed players for central positions; sided positions use the matching foot, except wrong-foot-exempt archetypes which usually use the opposite (inverted) foot.",
+    "centralLeftShare": 0.25,
+    "invertedOppositeFootShare": 0.75
+  },
+  "attributes": {
+    "plusMin": 8,
+    "plusMax": 14,
+    "minusMin": 10,
+    "minusMax": 16,
+    "noiseSd": 4.0,
+    "balancedNoiseSd": 3.0,
+    "gkBackupForOutfield": [
+      10,
+      30
+    ],
+    "outfieldBackupForGk": [
+      20,
+      45
+    ],
+    "aKeeperGkBackup": [
+      45,
+      60
+    ]
+  },
+  "potential": {
+    "_note": "Senior players: potential above current rating for the young. Academy: confirmed formula 52 + 3.5 x level, sd 6, range 45-95 (Oct 8).",
+    "youngGapPerYearUnder24": 2.2,
+    "youngGapSd": 4.0,
+    "midAgeGapMax": 3,
+    "academyBase": 52.0,
+    "academyPerLevel": 3.5,
+    "academySd": 6.0,
+    "academyMin": 45,
+    "academyMax": 95,
+    "academyCurrentBelowPotential": [
+      20,
+      35
+    ],
+    "academyAge": [
+      16,
+      18
+    ]
+  },
+  "ageDecay": {
+    "_note": "Confirmed Oct 8: start 28-32, retire 32-40 (at least 2 years after start), total drop 15-25, curve exponent 1.5, goalkeepers +2 years.",
+    "startMin": 28,
+    "startMax": 32,
+    "retireMin": 32,
+    "retireMax": 40,
+    "minYearsBetween": 2,
+    "dropMin": 15,
+    "dropMax": 25,
+    "exponent": 1.5,
+    "goalkeeperExtraYears": 2
+  },
+  "contracts": {
+    "endYearMin": 2027,
+    "endYearMax": 2031
+  },
+  "nationality": {
+    "homeShare": 0.85
+  },
+  "facilities": {
+    "_note": "Facility level from reputation: 1 + reputation/11, +-1 random, clamped 1-10. Condition starts at 70-100%.",
+    "conditionMin": 70,
+    "conditionMax": 100
+  }
+}

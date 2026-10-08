@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegendsFC.Core", "LegendsFC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegendsFC.Core.Tests", "LegendsFC.Core.Tests\LegendsFC.Core.Tests.csproj", "{BCCB5732-0978-4412-BB3B-B97B75A7FCE8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegendsFC.Tools", "LegendsFC.Tools\LegendsFC.Tools.csproj", "{23584500-1EC3-469E-96F1-337BD9C8FF15}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{BCCB5732-0978-4412-BB3B-B97B75A7FCE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCCB5732-0978-4412-BB3B-B97B75A7FCE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCCB5732-0978-4412-BB3B-B97B75A7FCE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23584500-1EC3-469E-96F1-337BD9C8FF15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23584500-1EC3-469E-96F1-337BD9C8FF15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23584500-1EC3-469E-96F1-337BD9C8FF15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23584500-1EC3-469E-96F1-337BD9C8FF15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

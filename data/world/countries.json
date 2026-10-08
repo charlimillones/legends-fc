@@ -1,0 +1,85 @@
+{
+  "_source": "Test world, decided Oct 7-8: ENG/ESP/BRA/ARG with 2 divisions; cup-only MEX/USA/POR/NED/URU/COL (Oct 8).",
+  "countries": [
+    {
+      "id": "ENG",
+      "name": "England",
+      "currency": "GBP",
+      "confederation": "UEFA",
+      "hasLeague": true,
+      "divisions": 2
+    },
+    {
+      "id": "ESP",
+      "name": "Spain",
+      "currency": "EUR",
+      "confederation": "UEFA",
+      "hasLeague": true,
+      "divisions": 2
+    },
+    {
+      "id": "BRA",
+      "name": "Brazil",
+      "currency": "BRL",
+      "confederation": "CONMEBOL",
+      "hasLeague": true,
+      "divisions": 2
+    },
+    {
+      "id": "ARG",
+      "name": "Argentina",
+      "currency": "ARS",
+      "confederation": "CONMEBOL",
+      "hasLeague": true,
+      "divisions": 2
+    },
+    {
+      "id": "POR",
+      "name": "Portugal",
+      "currency": "EUR",
+      "confederation": "UEFA",
+      "hasLeague": false,
+      "divisions": 0
+    },
+    {
+      "id": "NED",
+      "name": "Netherlands",
+      "currency": "EUR",
+      "confederation": "UEFA",
+      "hasLeague": false,
+      "divisions": 0
+    },
+    {
+      "id": "MEX",
+      "name": "Mexico",
+      "currency": "MXN",
+      "confederation": "CONCACAF",
+      "hasLeague": false,
+      "divisions": 0
+    },
+    {
+      "id": "USA",
+      "name": "United States",
+      "currency": "USD",
+      "confederation": "CONCACAF",
+      "hasLeague": false,
+      "divisions": 0
+    },
+    {
+      "id": "URU",
+      "name": "Uruguay",
+      "currency": "UYU",
+      "confederation": "CONMEBOL",
+      "hasLeague": false,
+      "divisions": 0
+    },
+    {
+      "id": "COL",
+      "name": "Colombia",
+      "currency": "COP",
+      "confederation": "CONMEBOL",
+      "hasLeague": false,
+      "divisions": 0
+    }
+  ]
+}

@@ -23,6 +23,10 @@ namespace LegendsFC.Core.Data
         public ProbabilityConfig Probability = new ProbabilityConfig();
         public LuckyCharmConfig LuckyCharm = new LuckyCharmConfig();
         public PersonalityConfig PersonalitySettings = new PersonalityConfig();
+        public List<Country> Countries = new List<Country>();
+        public List<Competition> Competitions = new List<Competition>();
+        public World.WorldGenConfig WorldGen = new World.WorldGenConfig();
+        public World.NameBank Names = new World.NameBank();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
@@ -33,6 +37,7 @@ namespace LegendsFC.Core.Data
             "rules/archetypes.json", "rules/personalities.json", "rules/positions.json",
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
+            "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
         };
 
         /// <param name="read">Returns the JSON text for a relative path from <see cref="Files"/>.</param>
@@ -47,6 +52,10 @@ namespace LegendsFC.Core.Data
             d.Probability = Parse<ProbabilityConfig>(read("config/probability.json"));
             d.LuckyCharm = Parse<LuckyCharmConfig>(read("config/lucky-charm.json"));
             d.PersonalitySettings = Parse<PersonalityConfig>(read("config/personalities.json"));
+            d.Countries = Section<List<Country>>(read("world/countries.json"), "countries");
+            d.Competitions = Section<List<Competition>>(read("world/competitions.json"), "competitions");
+            d.WorldGen = Parse<World.WorldGenConfig>(read("config/world-generation.json"));
+            d.Names = Parse<World.NameBank>(read("names/names.json"));
             return d;
         }
 

@@ -1,0 +1,93 @@
+{
+  "_source": "Real league sizes, 'the larger the better' (Carlos, Oct 8). ARG 30 + 36 per 2026 season reports. Promotion/relegation counts approximate real rules (simplified, no playoffs yet); league formats and cups come in step 4. Names are fictional placeholders.",
+  "competitions": [
+    {
+      "id": "ENG-1",
+      "name": "English First Division",
+      "countryId": "ENG",
+      "type": "League",
+      "level": 1,
+      "teams": 20,
+      "formatTemplate": "TBD-step4",
+      "promotion": 0,
+      "relegation": 3
+    },
+    {
+      "id": "ENG-2",
+      "name": "English Second Division",
+      "countryId": "ENG",
+      "type": "League",
+      "level": 2,
+      "teams": 24,
+      "formatTemplate": "TBD-step4",
+      "promotion": 3,
+      "relegation": 0
+    },
+    {
+      "id": "ESP-1",
+      "name": "Spanish First Division",
+      "countryId": "ESP",
+      "type": "League",
+      "level": 1,
+      "teams": 20,
+      "formatTemplate": "TBD-step4",
+      "promotion": 0,
+      "relegation": 3
+    },
+    {
+      "id": "ESP-2",
+      "name": "Spanish Second Division",
+      "countryId": "ESP",
+      "type": "League",
+      "level": 2,
+      "teams": 22,
+      "formatTemplate": "TBD-step4",
+      "promotion": 3,
+      "relegation": 0
+    },
+    {
+      "id": "BRA-1",
+      "name": "Brazilian First Division",
+      "countryId": "BRA",
+      "type": "League",
+      "level": 1,
+      "teams": 20,
+      "formatTemplate": "TBD-step4",
+      "promotion": 0,
+      "relegation": 4
+    },
+    {
+      "id": "BRA-2",
+      "name": "Brazilian Second Division",
+      "countryId": "BRA",
+      "type": "League",
+      "level": 2,
+      "teams": 20,
+      "formatTemplate": "TBD-step4",
+      "promotion": 4,
+      "relegation": 0
+    },
+    {
+      "id": "ARG-1",
+      "name": "Argentine First Division",
+      "countryId": "ARG",
+      "type": "League",
+      "level": 1,
+      "teams": 30,
+      "formatTemplate": "TBD-step4",
+      "promotion": 0,
+      "relegation": 2
+    },
+    {
+      "id": "ARG-2",
+      "name": "Argentine Second Division",
+      "countryId": "ARG",
+      "type": "League",
+      "level": 2,
+      "teams": 36,
+      "formatTemplate": "TBD-step4",
+      "promotion": 2,
+      "relegation": 0
+    }
+  ]
+}

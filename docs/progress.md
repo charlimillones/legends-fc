@@ -22,15 +22,25 @@
     - rule values (Lucky Charm 10/18/24.4%, display rounding, every drop tier, the worked rating examples);
     - random-number determinism.
 
+- **Step 2b: world models:** country, competition, club, facilities, and players with hidden fields.
+- **Step 3: world generation** (branch `feature/world-generation`, 55 tests):
+  - **Size:** 222 clubs and 6,660 players, built in about 0.13 s.
+  - **Leagues (real sizes):** England 20 + 24, Spain 20 + 22, Brazil 20 + 20, Argentina 30 + 36.
+  - **Cup-only countries:** Mexico, USA, Portugal, Netherlands, Uruguay and Colombia, 5 clubs each.
+  - **Clubs:** fictional names. Club strength follows a curve per league, and facilities depend on reputation.
+  - **Squads:** 25 players plus 5 academy players. Every player has an archetype and a foot (inverted for the 5 exempt archetypes).
+  - **Ratings and potential:** attributes are shaped by the archetype and calibrated to the position rating. Youngsters and veterans start a little lower. Academy potential uses the confirmed formula.
+  - **Hidden and rare traits:** hidden age decay (confirmed); personalities about 45%; A Keeper 1 in 1,000 outfield players.
+  - **Deterministic:** the same seed gives the same world.
+  - **Report tool:** `dotnet run --project dotnet/LegendsFC.Tools -- world-report <seed>`.
+
 ## In progress
-- Step 2b: world models done (country, competition, club, facilities, player with hidden fields, JSON round-trip, 43 tests). Waiting on league sizes and the cup-only countries before writing the world data.
+- Step 3b: all national teams (needs the full FIFA country list).
 
 ## Next
-- Step 3: world generation (test world, academy potential, age decay, personalities, A Keeper).
+- Step 4: season calendar and fixtures (leagues, domestic cups, continental cups).
 
 ## Open questions for Carlos
-- League sizes: "about 80 clubs" across 8 divisions means ~10 clubs per division. Real sizes are 20-24 in the first division, about 170 clubs in total.
-- Which 4-6 cup-only countries go in the test world?
 - Can players be two-footed? Right now feet are Left or Right only.
 - How often does each personality appear? For now they're all equally likely (a PROPOSAL).
 
