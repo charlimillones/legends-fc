@@ -1,0 +1,10 @@
+{
+  "name": "com.legendsfc.core",
+  "version": "0.1.0",
+  "displayName": "Legends FC Core",
+  "description": "Pure C# game logic for Legends FC (no UnityEngine). Shared by Unity and the dotnet test projects.",
+  "unity": "6000.0",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  }
+}

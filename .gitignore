@@ -1,0 +1,19 @@
+# dotnet
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+# Unity (unity/LegendsFC)
+unity/**/[Ll]ibrary/
+unity/**/[Tt]emp/
+unity/**/[Oo]bj/
+unity/**/[Bb]uild/
+unity/**/[Bb]uilds/
+unity/**/[Ll]ogs/
+unity/**/[Uu]serSettings/
+unity/**/*.csproj
+unity/**/*.sln
+# OS
+.DS_Store
+Thumbs.db
