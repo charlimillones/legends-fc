@@ -1,0 +1,83 @@
+{
+  "_source": "balancing-report.md / DaiVinci starter formulas, PROPOSAL v0 (Oct 8). Weights per position sum to 1.",
+  "weights": {
+    "GK": {
+      "Reflexes": 0.35,
+      "Handling": 0.3,
+      "Distribution": 0.2,
+      "RushingOut": 0.15
+    },
+    "CB": {
+      "Tackling": 0.25,
+      "Positioning": 0.25,
+      "Heading": 0.15,
+      "Strength": 0.15,
+      "Pace": 0.1,
+      "Passing": 0.1
+    },
+    "FB": {
+      "Tackling": 0.2,
+      "Pace": 0.15,
+      "Positioning": 0.15,
+      "Crossing": 0.15,
+      "Stamina": 0.1,
+      "Dribbling": 0.1,
+      "Passing": 0.1,
+      "Acceleration": 0.05
+    },
+    "DM": {
+      "Tackling": 0.25,
+      "Positioning": 0.25,
+      "Passing": 0.2,
+      "Strength": 0.1,
+      "Stamina": 0.1,
+      "Heading": 0.1
+    },
+    "CM": {
+      "Passing": 0.25,
+      "Positioning": 0.15,
+      "Stamina": 0.15,
+      "Dribbling": 0.1,
+      "Tackling": 0.1,
+      "Shooting": 0.1,
+      "Strength": 0.05,
+      "Acceleration": 0.05,
+      "Pace": 0.05
+    },
+    "AM": {
+      "Passing": 0.25,
+      "Dribbling": 0.25,
+      "Shooting": 0.2,
+      "Acceleration": 0.1,
+      "Positioning": 0.1,
+      "Pace": 0.05,
+      "Crossing": 0.05
+    },
+    "WM": {
+      "Crossing": 0.2,
+      "Passing": 0.15,
+      "Stamina": 0.15,
+      "Pace": 0.15,
+      "Dribbling": 0.15,
+      "Tackling": 0.1,
+      "Acceleration": 0.1
+    },
+    "W": {
+      "Dribbling": 0.25,
+      "Pace": 0.2,
+      "Acceleration": 0.15,
+      "Crossing": 0.15,
+      "Shooting": 0.15,
+      "Passing": 0.1
+    },
+    "ST": {
+      "Shooting": 0.3,
+      "Positioning": 0.2,
+      "Heading": 0.1,
+      "Acceleration": 0.1,
+      "Pace": 0.1,
+      "Strength": 0.1,
+      "Dribbling": 0.1
+    }
+  }
+}

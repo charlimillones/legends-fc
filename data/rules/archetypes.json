@@ -1,0 +1,857 @@
+{
+  "_source": "design-discussion-personalities-archetypes.md v4 + Oct 8 decisions (A Keeper any outfield, 1 in 1,000)",
+  "archetypes": [
+    {
+      "id": "ARC-GK-SHOT-STOPPER",
+      "name": "Shot-Stopper",
+      "group": "GK",
+      "description": "Brilliant on his line, poor with the ball",
+      "plus": [
+        "Reflexes",
+        "Handling"
+      ],
+      "minus": [
+        "Distribution",
+        "RushingOut"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-GK-SWEEPER-KEEPER",
+      "name": "Sweeper Keeper",
+      "group": "GK",
+      "description": "Cuts out through balls, starts attacks, can spill shots",
+      "plus": [
+        "RushingOut",
+        "Distribution"
+      ],
+      "minus": [
+        "Handling"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-GK-COMMANDER",
+      "name": "Commander",
+      "group": "GK",
+      "description": "Owns the box on crosses, weaker up close",
+      "plus": [
+        "Handling",
+        "RushingOut"
+      ],
+      "minus": [
+        "Reflexes"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-GK-DISTRIBUTOR",
+      "name": "Distributor",
+      "group": "GK",
+      "description": "Safe hands, accurate long kicks",
+      "plus": [
+        "Distribution",
+        "Handling"
+      ],
+      "minus": [
+        "Reflexes",
+        "RushingOut"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CB-STOPPER",
+      "name": "Stopper",
+      "group": "CB",
+      "description": "Wins duels, slow and clumsy on the ball",
+      "plus": [
+        "Tackling",
+        "Strength"
+      ],
+      "minus": [
+        "Pace",
+        "Passing"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [
+        "FB"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CB-BALL-PLAYING-CB",
+      "name": "Ball-Playing CB",
+      "group": "CB",
+      "description": "Builds attacks from the back",
+      "plus": [
+        "Passing",
+        "Positioning"
+      ],
+      "minus": [
+        "Strength",
+        "Heading"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "DM"
+      ],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CB-SPRINTER-CB",
+      "name": "Sprinter CB",
+      "group": "CB",
+      "description": "Recovers fast, poor passer",
+      "plus": [
+        "Pace",
+        "Acceleration",
+        "Tackling"
+      ],
+      "minus": [
+        "Passing",
+        "Heading"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "FB"
+      ],
+      "cover": [
+        "DM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CB-AERIAL-TOWER",
+      "name": "Aerial Tower",
+      "group": "CB",
+      "description": "Dominant in the air, slow",
+      "plus": [
+        "Heading",
+        "Strength"
+      ],
+      "minus": [
+        "Pace",
+        "Acceleration"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [
+        "DM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-FB-OVERLAPPER",
+      "name": "Overlapper",
+      "group": "FB",
+      "description": "Bombs forward and crosses, leaves gaps",
+      "plus": [
+        "Pace",
+        "Crossing",
+        "Stamina"
+      ],
+      "minus": [
+        "Tackling",
+        "Positioning"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "WM"
+      ],
+      "cover": [
+        "W"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-FB-LOCKDOWN",
+      "name": "Lockdown",
+      "group": "FB",
+      "description": "Pure defender, little going forward",
+      "plus": [
+        "Tackling",
+        "Positioning"
+      ],
+      "minus": [
+        "Crossing",
+        "Dribbling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CB"
+      ],
+      "cover": [
+        "OPP_FB"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-FB-INVERTED-FULL-BACK",
+      "name": "Inverted Full-Back",
+      "group": "FB",
+      "description": "Moves into midfield to pass (Lewis-Skelly type)",
+      "plus": [
+        "Passing",
+        "Dribbling"
+      ],
+      "minus": [
+        "Crossing",
+        "Pace"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "DM",
+        "CM"
+      ],
+      "cover": [
+        "WM"
+      ],
+      "wrongFootExempt": true,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-FB-STOPPER-FULL-BACK",
+      "name": "Stopper Full-Back",
+      "group": "FB",
+      "description": "CB-type full-back, physical, no flair",
+      "plus": [
+        "Strength",
+        "Heading",
+        "Tackling"
+      ],
+      "minus": [
+        "Crossing",
+        "Dribbling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CB"
+      ],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-WM-TRADITIONAL-WIDE-MID",
+      "name": "Traditional Wide Mid",
+      "group": "WM",
+      "description": "Hugs the line and crosses, rarely scores",
+      "plus": [
+        "Crossing",
+        "Passing",
+        "Stamina"
+      ],
+      "minus": [
+        "Shooting",
+        "Dribbling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "W"
+      ],
+      "cover": [
+        "FB"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-WM-SHUTTLER",
+      "name": "Shuttler",
+      "group": "WM",
+      "description": "Defends and attacks the flank, limited on the ball",
+      "plus": [
+        "Stamina",
+        "Tackling"
+      ],
+      "minus": [
+        "Shooting",
+        "Dribbling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "FB"
+      ],
+      "cover": [
+        "CM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-WM-WIDE-CARRIER",
+      "name": "Wide Carrier",
+      "group": "WM",
+      "description": "Dribbles past people, doesn't track back",
+      "plus": [
+        "Dribbling",
+        "Pace"
+      ],
+      "minus": [
+        "Tackling",
+        "Heading"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "W"
+      ],
+      "cover": [
+        "AM"
+      ],
+      "wrongFootExempt": true,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-WM-TUCKED-IN-MID",
+      "name": "Tucked-In Mid",
+      "group": "WM",
+      "description": "A central midfielder playing wide, slow",
+      "plus": [
+        "Passing",
+        "Positioning"
+      ],
+      "minus": [
+        "Pace",
+        "Crossing"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CM"
+      ],
+      "cover": [
+        "AM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-DM-DESTROYER",
+      "name": "Destroyer",
+      "group": "DM",
+      "description": "Breaks up play, limited on the ball",
+      "plus": [
+        "Tackling",
+        "Strength"
+      ],
+      "minus": [
+        "Passing",
+        "Dribbling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CM"
+      ],
+      "cover": [
+        "CB"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-DM-ANCHOR",
+      "name": "Anchor",
+      "group": "DM",
+      "description": "Never out of position, slow, no goals",
+      "plus": [
+        "Positioning",
+        "Stamina"
+      ],
+      "minus": [
+        "Pace",
+        "Shooting"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CB"
+      ],
+      "cover": [
+        "CM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-DM-DEEP-PLAYMAKER",
+      "name": "Deep Playmaker",
+      "group": "DM",
+      "description": "Dictates from deep, weak defender",
+      "plus": [
+        "Passing",
+        "Dribbling"
+      ],
+      "minus": [
+        "Tackling",
+        "Pace"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CM"
+      ],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-DM-HALF-BACK",
+      "name": "Half-Back",
+      "group": "DM",
+      "description": "Drops between the CBs, strong in the air",
+      "plus": [
+        "Heading",
+        "Strength",
+        "Positioning"
+      ],
+      "minus": [
+        "Dribbling",
+        "Pace"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CB"
+      ],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CM-BOX-TO-BOX",
+      "name": "Box-to-Box",
+      "group": "CM",
+      "description": "Does everything, excels at nothing",
+      "plus": [
+        "Stamina"
+      ],
+      "minus": [],
+      "balanced": true,
+      "comfortable": [
+        "DM"
+      ],
+      "cover": [
+        "AM",
+        "WM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CM-METRONOME",
+      "name": "Metronome",
+      "group": "CM",
+      "description": "Keeps the ball moving, no goal threat",
+      "plus": [
+        "Passing",
+        "Positioning"
+      ],
+      "minus": [
+        "Shooting",
+        "Pace"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "DM"
+      ],
+      "cover": [
+        "AM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CM-CARRIER",
+      "name": "Carrier",
+      "group": "CM",
+      "description": "Drives forward with pace, weak defender",
+      "plus": [
+        "Dribbling",
+        "Pace",
+        "Acceleration"
+      ],
+      "minus": [
+        "Tackling",
+        "Heading"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "AM"
+      ],
+      "cover": [
+        "WM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-CM-GOAL-SCORING-MID",
+      "name": "Goal-Scoring Mid",
+      "group": "CM",
+      "description": "Late runs into the box, lazy defender",
+      "plus": [
+        "Shooting",
+        "Positioning"
+      ],
+      "minus": [
+        "Tackling",
+        "Stamina"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "AM"
+      ],
+      "cover": [
+        "DM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-AM-CLASSIC-10",
+      "name": "Classic 10",
+      "group": "AM",
+      "description": "Creator, does no defending",
+      "plus": [
+        "Passing",
+        "Dribbling"
+      ],
+      "minus": [
+        "Tackling",
+        "Strength"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "CM"
+      ],
+      "cover": [
+        "ST"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-AM-SHADOW-STRIKER",
+      "name": "Shadow Striker",
+      "group": "AM",
+      "description": "Arrives in the box to score",
+      "plus": [
+        "Shooting",
+        "Acceleration",
+        "Positioning"
+      ],
+      "minus": [
+        "Passing",
+        "Tackling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "ST"
+      ],
+      "cover": [
+        "W"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-AM-FREE-SPIRIT",
+      "name": "Free Spirit",
+      "group": "AM",
+      "description": "Flair and long shots, low work rate",
+      "plus": [
+        "Dribbling",
+        "Shooting"
+      ],
+      "minus": [
+        "Stamina",
+        "Tackling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "W"
+      ],
+      "cover": [
+        "CM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-AM-WIDE-10",
+      "name": "Wide 10",
+      "group": "AM",
+      "description": "Drifts wide to create, weak physically",
+      "plus": [
+        "Crossing",
+        "Dribbling",
+        "Passing"
+      ],
+      "minus": [
+        "Heading",
+        "Strength"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "W"
+      ],
+      "cover": [
+        "CM"
+      ],
+      "wrongFootExempt": true,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-W-SPEEDSTER",
+      "name": "Speedster",
+      "group": "W",
+      "description": "Blistering pace, poor end product",
+      "plus": [
+        "Pace",
+        "Acceleration"
+      ],
+      "minus": [
+        "Crossing",
+        "Shooting"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "WM"
+      ],
+      "cover": [
+        "ST"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-W-INSIDE-FORWARD",
+      "name": "Inside Forward",
+      "group": "W",
+      "description": "Cuts in to score (Raphinha type)",
+      "plus": [
+        "Shooting",
+        "Dribbling"
+      ],
+      "minus": [
+        "Crossing",
+        "Tackling"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "ST"
+      ],
+      "cover": [
+        "AM"
+      ],
+      "wrongFootExempt": true,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-W-TRICKSTER",
+      "name": "Trickster",
+      "group": "W",
+      "description": "Beats players for fun, light, poor finisher",
+      "plus": [
+        "Dribbling",
+        "Acceleration"
+      ],
+      "minus": [
+        "Shooting",
+        "Strength"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "AM"
+      ],
+      "cover": [
+        "WM"
+      ],
+      "wrongFootExempt": true,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-W-HEAVY-WINGER",
+      "name": "Heavy Winger",
+      "group": "W",
+      "description": "Strong, good in the air, slow, poor crosser",
+      "plus": [
+        "Strength",
+        "Heading"
+      ],
+      "minus": [
+        "Pace",
+        "Crossing"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "ST"
+      ],
+      "cover": [
+        "WM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-ST-POACHER",
+      "name": "Poacher",
+      "group": "ST",
+      "description": "Lives in the box",
+      "plus": [
+        "Shooting",
+        "Positioning"
+      ],
+      "minus": [
+        "Passing",
+        "Stamina"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [
+        "AM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-ST-TARGET-MAN",
+      "name": "Target Man",
+      "group": "ST",
+      "description": "Holds the ball up, wins headers, slow",
+      "plus": [
+        "Strength",
+        "Heading"
+      ],
+      "minus": [
+        "Pace",
+        "Dribbling"
+      ],
+      "balanced": false,
+      "comfortable": [],
+      "cover": [],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-ST-FALSE-9",
+      "name": "False 9",
+      "group": "ST",
+      "description": "Drops deep to link play, weak in the air",
+      "plus": [
+        "Passing",
+        "Dribbling"
+      ],
+      "minus": [
+        "Heading",
+        "Strength"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "AM"
+      ],
+      "cover": [
+        "W"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-ST-SPEED-MERCHANT",
+      "name": "Speed Merchant",
+      "group": "ST",
+      "description": "Runs in behind and finishes",
+      "plus": [
+        "Pace",
+        "Acceleration",
+        "Shooting"
+      ],
+      "minus": [
+        "Heading",
+        "Passing"
+      ],
+      "balanced": false,
+      "comfortable": [
+        "W"
+      ],
+      "cover": [
+        "AM"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": null
+    },
+    {
+      "id": "ARC-RARE-A-KEEPER",
+      "name": "A Keeper",
+      "group": "ANY_OUTFIELD",
+      "description": "Any outfield player who can go in goal in an emergency (Giroud type). Never a natural GK. Hidden GK backup attributes 45-60.",
+      "plus": [],
+      "minus": [],
+      "balanced": true,
+      "comfortable": [],
+      "cover": [
+        "GK"
+      ],
+      "wrongFootExempt": false,
+      "spawnWeight": 1.0,
+      "linkedPersonalityId": "PER-A-KEEPER",
+      "spawnPerOutfieldPlayer": 0.001
+    }
+  ]
+}

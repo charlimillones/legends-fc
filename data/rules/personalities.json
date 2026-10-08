@@ -1,0 +1,96 @@
+{
+  "_source": "design-discussion-personalities-archetypes.md v5 + Oct 8 (A Keeper). spawnWeight equal = PROPOSAL (not decided).",
+  "personalities": [
+    {
+      "id": "PER-PROFESSIONAL",
+      "name": "Professional",
+      "effect": "Steady form, slightly faster growth. No standout perk.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-HEALTHY",
+      "name": "Healthy",
+      "effect": "Rarely injured, but grows slower.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-THOROUGHBRED",
+      "name": "Thoroughbred",
+      "effect": "High growth ceiling, but injury-prone.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-LUCKY",
+      "name": "Lucky Charm",
+      "effect": "Adds luck to the whole team (fewer injuries, cards and bad events; better odds). Stacks: each extra Lucky Charm adds 20% less than the previous one (10%, +8% = 18%, +6.4% = 24.4%, \u2026), which levels off near 50%.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-LEADER",
+      "name": "Leader",
+      "effect": "Lifts team morale, but gets unhappy quickly when benched.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-WARRIOR",
+      "name": "Warrior",
+      "effect": "Less likely to be carded when fouling. (No downside.)",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-LOYAL",
+      "name": "Loyal",
+      "effect": "Easy to renew, but refuses to be transferred.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-WORKHORSE",
+      "name": "Workhorse",
+      "effect": "Recovers energy fast. (No downside.)",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-DIVA",
+      "name": "Diva",
+      "effect": "Morale crashes when benched; harder to renew. (No upside.)",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-MAVERICK",
+      "name": "Maverick",
+      "effect": "Unpredictable: more brilliant matches, but also more bad ones.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-BUSINESSMAN",
+      "name": "Businessman",
+      "effect": "Good morale, but asks for higher wages when signing or renewing.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-SOCIALITE",
+      "name": "Socialite",
+      "effect": "Keeps his own and the team's morale up, but his energy recovers slower.",
+      "archetypeOnly": false,
+      "spawnWeight": 1.0
+    },
+    {
+      "id": "PER-A-KEEPER",
+      "name": "A Keeper",
+      "effect": "Any outfield position, never a natural GK. Comes only with the A Keeper archetype, and every A Keeper has it. It's his only personality and is revealed by scouting like any other. It flags that he can go in goal. No other effect: the archetype does the work.",
+      "archetypeOnly": true,
+      "spawnWeight": 0.0
+    }
+  ]
+}

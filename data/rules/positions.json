@@ -1,0 +1,46 @@
+{
+  "_source": "Related-position map, design-discussion-personalities-archetypes.md section 2 (confirmed Oct 7). Tokens: FB/WM/W = same side (both sides from a central position), OPP_* = opposite side.",
+  "related": {
+    "GK": [],
+    "CB": [
+      "DM",
+      "FB"
+    ],
+    "FB": [
+      "WM",
+      "W",
+      "CB",
+      "OPP_FB"
+    ],
+    "DM": [
+      "CB",
+      "CM"
+    ],
+    "CM": [
+      "DM",
+      "AM",
+      "WM"
+    ],
+    "AM": [
+      "CM",
+      "ST",
+      "W"
+    ],
+    "WM": [
+      "W",
+      "FB",
+      "CM",
+      "OPP_WM"
+    ],
+    "W": [
+      "WM",
+      "AM",
+      "ST",
+      "OPP_W"
+    ],
+    "ST": [
+      "AM",
+      "W"
+    ]
+  }
+}

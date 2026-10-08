@@ -1,0 +1,6 @@
+{
+  "_source": "Design principle: probabilities clamped 5-95%, shown rounded to 5%.",
+  "min": 0.05,
+  "max": 0.95,
+  "displayStep": 0.05
+}

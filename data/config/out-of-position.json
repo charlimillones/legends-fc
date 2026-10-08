@@ -1,0 +1,8 @@
+{
+  "_source": "Confirmed Oct 8: comfortable 0, cover 5%, related 10% (flat), unrelated 30%, wrong foot +5%.",
+  "comfortable": 0.0,
+  "cover": 0.05,
+  "related": 0.1,
+  "unrelated": 0.3,
+  "wrongFoot": 0.05
+}

@@ -1,0 +1,5 @@
+{
+  "_source": "Confirmed Oct 7: 10%, then each extra adds 20% less; never reaches 50%.",
+  "first": 0.1,
+  "decay": 0.8
+}
