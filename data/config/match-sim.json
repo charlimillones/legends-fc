@@ -1,0 +1,9 @@
+{
+  "_source": "Sim-mode result model approved Oct 8 (balancing report v1, change 9): each team's goals ~ Poisson(base x e^(+-k x strength difference)). No home advantage until decided.",
+  "baseGoals": 1.35,
+  "strengthFactor": 0.05,
+  "homeAdvantage": 0.0,
+  "pointsWin": 3,
+  "pointsDraw": 1,
+  "startingElevenSize": 11
+}

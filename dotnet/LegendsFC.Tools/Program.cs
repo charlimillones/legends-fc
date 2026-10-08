@@ -37,3 +37,15 @@ var kids = w.Players.Where(p => w.SeasonStartYear - p.BirthYear <= 18).OrderByDe
 Console.WriteLine("Top 5 academy prospects:");
 foreach (var p in kids)
     Console.WriteLine($"  {p.Name,-24} {p.MainPosition,-3} {R(p),5:F1} pot {p.Potential} age {w.SeasonStartYear - p.BirthYear} ({w.Clubs.First(c => c.Id == p.ClubId).Name})");
+
+// Season summary (sim mode, leagues only)
+var sim = new LegendsFC.Core.Season.SeasonSimulator(data);
+var tables = sim.PlayLeagues(w, new LegendsFC.Core.Util.GameRandom(seed + 1));
+Console.WriteLine();
+Console.WriteLine("Sim season 2026/27 (leagues only): champion, points, draws");
+foreach (var kv in tables.OrderBy(k => k.Key))
+{
+    var t = kv.Value;
+    double draws = t.Sum(r => r.Drawn) / (double)t.Sum(r => r.Played) * 100;
+    Console.WriteLine($"  {kv.Key,-6} {w.Clubs.First(c => c.Id == t[0].ClubId).Name,-30} {t[0].Points,3} pts ({t[0].Played} games)  last: {t[^1].Points,3}  draws {draws:F0}%");
+}

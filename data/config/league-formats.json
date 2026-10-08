@@ -1,0 +1,13 @@
+{
+  "_source": "League formats. PROPOSAL (Oct 8): double round-robin; Argentina single round-robin because of its 30/36-club leagues (real Argentine formats use zones; to decide).",
+  "legs": {
+    "ENG-1": 2,
+    "ENG-2": 2,
+    "ESP-1": 2,
+    "ESP-2": 2,
+    "BRA-1": 2,
+    "BRA-2": 2,
+    "ARG-1": 1,
+    "ARG-2": 1
+  }
+}

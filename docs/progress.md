@@ -34,13 +34,24 @@
   - **Deterministic:** the same seed gives the same world.
   - **Report tool:** `dotnet run --project dotnet/LegendsFC.Tools -- world-report <seed>`.
 
+- **Step 4a/5: league season in sim mode** (branch `feature/season-sim`, 64 tests):
+  - **Fixtures:** round-robin, with every club playing once per round and home games balanced.
+  - **Results:** the approved sim-mode model.
+  - **League tables:** points, then goal difference, then goals scored.
+  - **Formats:** double round-robin; Argentina single round-robin (PROPOSAL).
+  - **Balancing check in CI:** title winners in England's first division average 78–97 points; draws are 18–32%.
+  - **Speed:** a full season of all 8 leagues runs in well under 2 s.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
 ## Next
-- Step 4: season calendar and fixtures (leagues, domestic cups, continental cups).
+- **Step 4b:** domestic and continental cups, plus promotion and relegation. Formats need DaiVinci proposals and Carlos's OK.
+- **Step 6:** player development (training, form, age decay during the season).
 
 ## Open questions for Carlos
+- Argentina's league format: real zones, or a simple single round-robin (current PROPOSAL)?
+- Home advantage in sim mode: none for now (fans have no match effect). Should home teams get a small edge?
 - Can players be two-footed? Right now feet are Left or Right only.
 - How often does each personality appear? For now they're all equally likely (a PROPOSAL).
 
