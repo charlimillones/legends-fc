@@ -220,8 +220,9 @@ public class FreeAgentTests
         var ai = w.Clubs[0]; var user = w.Clubs[1]; w.UserClubId = user.Id;
         var spare = w.Players.Where(p => p.ClubId == w.Clubs[2].Id).ToList();
         foreach (var c in new[] { ai, user })
-            while (Squads.Count(w, c.Id) < d.Development.MaxSquadSize) { var s = spare[0]; spare.RemoveAt(0); s.ClubId = c.Id; }
+            while (Squads.Count(w, c.Id) < d.Development.MaxSquadSize) { var s = spare[0]; spare.RemoveAt(0); s.ClubId = c.Id; w.Market.SquadsChanged(); }
         var fa = spare[0]; fa.ClubId = null;
+        w.Market.SquadsChanged();   // the test moved players by hand
         Assert.Equal(OfferResult.SquadFull, FreeAgents.Offer(w, ai, fa, 1_000_000_000, 2, new GameRandom(1), d));
         Assert.Equal(OfferResult.SquadFull, FreeAgents.Offer(w, user, fa, 1_000_000_000, 2, new GameRandom(1), d));
     }
@@ -233,11 +234,13 @@ public class FreeAgentTests
         var club = w.Clubs[0];
         var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
         foreach (var p in squad.Skip(d.Development.MinSquadSize)) p.ClubId = null;
+        w.Market.SquadsChanged();   // the test moved players by hand
         Assert.Equal(16, Squads.Count(w, club.Id));
         Assert.False(Squads.CanSell(w, club.Id, d));
         Assert.False(Squads.Release(w, squad[0], d));
         Assert.Equal(club.Id, squad[0].ClubId);
         squad[20].ClubId = club.Id;
+        w.Market.SquadsChanged();
         Assert.True(Squads.CanSell(w, club.Id, d));
     }
 }

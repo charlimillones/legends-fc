@@ -40,20 +40,27 @@ namespace LegendsFC.Core.Transfers
             return rank <= c.KeyPlayers ? c.KeyPlayer : rank <= c.Starters ? c.Starter : rank <= c.SquadPlayers ? c.SquadPlayer : c.Fringe;
         }
 
-        /// <summary>His rank by rating in his squad (1 = best). Cached; the cache is dropped whenever squads change.</summary>
+        /// <summary>Rating cached in the world (ratings only change with training; the cache is dropped after training).</summary>
+        public static double CachedRating(GameWorld w, Player p, GameData d)
+        {
+            var cache = w.Market.RatingCache ??= new Dictionary<string, double>();
+            if (!cache.TryGetValue(p.Id, out double r)) { r = Rating(p, d); cache[p.Id] = r; }
+            return r;
+        }
+
+        /// <summary>His rank by rating in his squad (1 = best). Cached per club; dropped when that squad changes.</summary>
         public static int SquadRank(GameWorld w, Player p, GameData d)
         {
+            if (p.ClubId == null) return 99;
             var m = w.Market;
-            if (m.RankCache == null)
+            m.RankByClub ??= new Dictionary<string, Dictionary<string, int>>();
+            if (!m.RankByClub.TryGetValue(p.ClubId, out var ranks))
             {
-                m.RankCache = new Dictionary<string, int>();
-                foreach (var g in w.Players.Where(x => x.ClubId != null).GroupBy(x => x.ClubId))
-                {
-                    int i = 0;
-                    foreach (var x in g.OrderByDescending(x => Rating(x, d)).ThenBy(x => x.Id, StringComparer.Ordinal)) m.RankCache[x.Id] = ++i;
-                }
+                ranks = new Dictionary<string, int>(); int i = 0;
+                foreach (var x in Market.Squad(w, p.ClubId).OrderByDescending(x => CachedRating(w, x, d)).ThenBy(x => x.Id, StringComparer.Ordinal)) ranks[x.Id] = ++i;
+                m.RankByClub[p.ClubId] = ranks;
             }
-            return m.RankCache.TryGetValue(p.Id, out int r) ? r : 99;
+            return ranks.TryGetValue(p.Id, out int r) ? r : 99;
         }
 
         /// <summary>Good form makes the club want to keep him (Carlos, Oct 9).</summary>
@@ -63,8 +70,17 @@ namespace LegendsFC.Core.Transfers
             return Clamp(1 + f.Slope * (Form(p, d) - f.Neutral), f.Min, f.Max);
         }
 
-        /// <summary>Fair price = value × importance × form (Carlos, Oct 9).</summary>
-        public static double FairPrice(GameWorld w, Player p, GameData d) => Value(w, p, d) * Importance(w, p, d) * FormFactor(p, d);
+        /// <summary>
+        /// Fair price = value × importance × form (Carlos, Oct 9). The value is taken as if he had a normal contract
+        /// (at least transfers.json minContractYearsForPrice), so a short contract doesn't make him a bargain to flip
+        /// straight away (balancing check "no risk-free exploit", PROPOSAL Oct 9).
+        /// </summary>
+        public static double FairPrice(GameWorld w, Player p, GameData d)
+        {
+            int years = Math.Max(Math.Max(0, p.ContractEndYear - w.SeasonStartYear), d.Transfers.MinContractYearsForPrice);
+            double value = MarketValue.Eur(Rating(p, d), Form(p, d), Age(w, p), p.Potential, years, d.MarketValue);
+            return value * Importance(w, p, d) * FormFactor(p, d);
+        }
 
         /// <summary>The selling club's asking price: fair price × 1.00–1.20 (stable for the month).</summary>
         public static double AskingPrice(GameWorld w, Player p, GameData d)

@@ -20,12 +20,7 @@ namespace LegendsFC.Core.Transfers
         public static readonly string[] Groups = { "GK", "DEF", "MID", "FWD" };
 
         // Ratings don't change during a window (training happens in the season), so they're cached per window (not saved).
-        private static double R(GameWorld w, Player p, GameData d)
-        {
-            var cache = w.Market.RatingCache ??= new Dictionary<string, double>();
-            if (!cache.TryGetValue(p.Id, out double r)) { r = Pricing.Rating(p, d); cache[p.Id] = r; }
-            return r;
-        }
+        private static double R(GameWorld w, Player p, GameData d) => Pricing.CachedRating(w, p, d);
 
         // ------------------------------------------------------------------ window
 
@@ -34,13 +29,16 @@ namespace LegendsFC.Core.Transfers
             var m = w.Market; var wc = d.Transfers.Windows;
             m.Window = kind; m.WindowDay = 0; m.WindowLength = kind == "winter" ? wc.WinterDays : wc.SummerDays;
             m.SquadsChanged(); m.RatingCache = null;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             foreach (var l in m.Listings.Where(l => !l.BidsCreated).ToList()) CreateListingBids(w, l, rng, d);
             foreach (var club in w.Clubs.Where(c => c.Id != w.UserClubId)) ListSurplus(w, club, d);
+            Ms(w, "ms:open", sw);
         }
 
-        public static void CloseWindow(GameWorld w)
+        public static void CloseWindow(GameWorld w, GameData d)
         {
             var m = w.Market;
+            m.ReleasedAtClose += ReleaseUnsold(w, d);
             foreach (var t in m.Talks.Where(t => (t.Status == TalkStatus.Open || t.Status == TalkStatus.Pending)
                                                && (t.Kind == TalkKind.Transfer || t.Kind == TalkKind.Loan || t.Kind == TalkKind.Bid)))
                 t.Status = TalkStatus.Cancelled;
@@ -59,7 +57,6 @@ namespace LegendsFC.Core.Transfers
             m.Day++;
             if (!m.WindowOpen) return;
             m.WindowDay++;
-            m.SquadsChanged();
 
             // Bids arrive; bidders answer a plain "no" from the day before.
             foreach (var bid in m.Talks.Where(x => x.Kind == TalkKind.Bid && x.Status == TalkStatus.Pending && x.ArrivesDay <= m.Day)) bid.Status = TalkStatus.Open;
@@ -76,15 +73,19 @@ namespace LegendsFC.Core.Transfers
             double mult = m.InDeadlineRush(t.Windows.DeadlineDays) ? t.Windows.DeadlineMultiplier : 1;
             var ai = w.Clubs.Where(c => c.Id != w.UserClubId).ToList();
             Shuffle(ai, rng);
+            var swi = System.Diagnostics.Stopwatch.StartNew();
             var index = BuildIndex(w, d);
+            Ms(w, "ms:index", swi);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             foreach (var club in ai)
             {
                 if (rng.Chance(Math.Min(1, t.Ai.SearchChancePerDay * mult))) Search(w, club, index, rng, d);
                 if (rng.Chance(Math.Min(1, t.Loans.AiLoanChancePerDay * mult))) LoanOut(w, club, rng, d);
             }
+            Ms(w, "ms:clubs", sw);
             if (w.UserClubId != null && rng.Chance(t.Bids.UnsolicitedChancePerDay * mult)) UnsolicitedBid(w, rng, d);
 
-            if (m.WindowDay >= m.WindowLength) CloseWindow(w);
+            if (m.WindowDay >= m.WindowLength) CloseWindow(w, d);
         }
 
         /// <summary>Runs a whole window (headless seasons and sims).</summary>
@@ -103,7 +104,7 @@ namespace LegendsFC.Core.Transfers
         public static List<Need> Needs(GameWorld w, Club club, GameData d)
         {
             var a = d.Transfers.Ai;
-            var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
+            var squad = Market.Squad(w, club.Id);
             var needs = new List<Need>();
             if (squad.Count == 0) return needs;
             double level = squad.Select(p => R(w, p, d)).OrderByDescending(x => x).Take(11).Average();
@@ -137,6 +138,31 @@ namespace LegendsFC.Core.Transfers
             return lo;
         }
 
+        /// <summary>Wage room counting the players it has listed as already gone (they're leaving this window or released at its end).</summary>
+        public static double ProjectedRoom(GameWorld w, Club club, GameData d)
+            => Market.WageRoom(w, club, d) + w.Players.Where(p => p.ClubId == club.Id && w.Market.IsListed(p.Id)).Sum(p => (double)p.Wage);
+
+        /// <summary>
+        /// End of window: an AI club still above its normal squad size releases the listed players nobody bought
+        /// (weakest first), keeping the 16 minimum and 2 goalkeepers (PROPOSAL; like a contract termination).
+        /// </summary>
+        private static int ReleaseUnsold(GameWorld w, GameData d)
+        {
+            int n = 0; var a = d.Transfers.Ai;
+            foreach (var club in w.Clubs.Where(c => c.Id != w.UserClubId))
+            {
+                int extra = Squads.Count(w, club.Id) - a.NormalSquadSize;
+                if (extra <= 0) continue;
+                foreach (var p in w.Players.Where(p => p.ClubId == club.Id && p.LoanFromClubId == null && w.Market.IsListed(p.Id)).OrderBy(p => R(w, p, d)).ToList())
+                {
+                    if (extra <= 0 || !Squads.CanSell(w, club.Id, d)) break;
+                    if (p.MainPosition == Position.GK && w.Players.Count(x => x.ClubId == club.Id && x.MainPosition == Position.GK) <= d.Development.AiMinGoalkeepers) continue;
+                    Squads.Leave(w, p); extra--; n++;
+                }
+            }
+            return n;
+        }
+
         private static double Budget(Club c, GameData d) => Math.Max(0, c.Balance * d.Transfers.Ai.BudgetShareOfBalance);
 
         // ------------------------------------------------------------------ AI selling
@@ -149,7 +175,7 @@ namespace LegendsFC.Core.Transfers
         public static void ListSurplus(GameWorld w, Club club, GameData d)
         {
             var a = d.Transfers.Ai;
-            var squad = w.Players.Where(p => p.ClubId == club.Id && p.LoanFromClubId == null).ToList();
+            var squad = Market.Squad(w, club.Id).Where(p => p.LoanFromClubId == null).ToList();
             int extra = squad.Count - a.NormalSquadSize;
             if (extra > 0)
                 foreach (var p in squad.Where(p => Pricing.Age(w, p) > d.Transfers.Loans.AiLoanMaxAge && p.MainPosition != Position.GK)
@@ -169,7 +195,6 @@ namespace LegendsFC.Core.Transfers
         {
             if (w.Market.IsListed(p.Id)) return;
             w.Market.Listings.Add(new Listing { PlayerId = p.Id, BidsCreated = true });
-            w.Market.SquadsChanged();
         }
 
         /// <summary>Season income the club can expect at mid-table in its current league.</summary>
@@ -187,7 +212,7 @@ namespace LegendsFC.Core.Transfers
         private static void Search(GameWorld w, Club club, Dictionary<string, List<Player>> index, GameRandom rng, GameData d)
         {
             var a = d.Transfers.Ai;
-            if (Squads.Count(w, club.Id) >= a.NormalSquadSize + 2) { w.Market.Count("squadFull"); return; }
+            if (Squads.Count(w, club.Id) >= d.Development.MaxSquadSize) { w.Market.Count("squadFull"); return; }
             w.Market.Count("search");
             var need = Needs(w, club, d).FirstOrDefault();
             if (need == null) { w.Market.Count("noNeed"); return; }
@@ -343,6 +368,11 @@ namespace LegendsFC.Core.Transfers
             if (talk == null) return;
             var reply = Market.OfferLoan(w, talk, 0, 1.0, rng, d, out _);
             if (reply != Reply.Accepted && talk.Status == TalkStatus.Open) talk.Status = TalkStatus.Cancelled;
+        }
+
+        private static void Ms(GameWorld w, string key, System.Diagnostics.Stopwatch sw)
+        {
+            w.Market.Stats.TryGetValue(key, out int n); w.Market.Stats[key] = n + (int)sw.ElapsedMilliseconds;
         }
 
         private static void Shuffle<T>(List<T> list, GameRandom rng)

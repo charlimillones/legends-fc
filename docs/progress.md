@@ -76,12 +76,34 @@
   - **Finance report:** `dotnet run --project dotnet/LegendsFC.Tools -- finance-report <seed>`.
   - **Known gap until the transfer market exists:** clubs keep about a third of their income, so cash builds up (England's first division: about 3 seasons of income after 10 seasons). Transfers and facilities will spend it.
 
+- **Step 8: transfer market** (branch `feature/transfer-market`, 123 tests; rules confirmed by Carlos Oct 9):
+  - **Negotiations:**
+    - two sides: club (fee) and player (wage, years);
+    - a live probability, 0–100% in whole numbers;
+    - meeting the demand closes the deal;
+    - answers by how far off the offer is (lowball → walk away; close → counter or keep talking);
+    - patience 3; a 1-week cooldown after a walk-away.
+  - **Prices:** fair price = value × importance × form; the asking price is up to 20% more; wage demand at a preferred length; moving to a richer league is a raise.
+  - **Selling:** listing brings 0–5 bids; accept, counter, reject or end talks; bidders improve, hold or withdraw; occasional bids for players you haven't listed.
+  - **Loans:** until the end of the season, with a fee and a wage split.
+  - **Also:** free agents any time, and renewals as negotiations.
+  - **AI market:** needs-based buying, AI-to-AI deals, AI loans of young fringe players, surplus listing and releases, a day-by-day 8-week summer window with a ×3 deadline rush.
+  - **Balancing:**
+    - 170–390 transfers per season;
+    - leagues stable over 10 seasons;
+    - buy-then-flip makes a profit 38% of the time, average −3% (no risk-free exploit);
+    - wages settle near 75% of income.
+  - **Tools:** `market-report`, `flip-test` and `wage-room` in `dotnet/LegendsFC.Tools`.
+  - **Not yet:** the winter window (needs the weekly calendar), swaps (v1.x), scouting filters (scouting step), and a money sink for rich clubs (facilities step).
+- **Facility display names** (branch `feature/facility-names`): Stadium, Training Grounds, Youth Academy, Medical Building, Club Store, Scouting Centre. The ids are unchanged.
+- **Unity project** (branch `feature/unity-project`): URP, Unity 6.6, with the core package. The smoke test passes in the editor.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
 ## Next
 - **Step 4b:** domestic and continental cups, plus promotion and relegation. Formats need DaiVinci proposals and Carlos's OK.
-- **Step 8:** transfer market.
+- **Step 9:** facilities (levels, wear, upkeep, Repair all) and the money sink for rich clubs.
 
 ## Open questions for Carlos
 - Can players be two-footed? Right now feet are Left or Right only.

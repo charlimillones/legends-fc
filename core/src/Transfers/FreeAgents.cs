@@ -58,7 +58,7 @@ namespace LegendsFC.Core.Transfers
             p.ClubId = club.Id;
             p.Wage = wageEur;
             p.ContractEndYear = w.SeasonStartYear + years;
-            w.Market.SquadsChanged();
+            w.Market.Touch(club.Id);
             return OfferResult.Accepted;
         }
 
@@ -68,7 +68,7 @@ namespace LegendsFC.Core.Transfers
     /// <summary>Squad-size rules (confirmed Oct 9): no club may go below 16 players by selling or releasing.</summary>
     public static class Squads
     {
-        public static int Count(GameWorld w, string clubId) => w.Players.Count(p => p.ClubId == clubId);
+        public static int Count(GameWorld w, string clubId) => Market.Squad(w, clubId).Count;
 
         /// <summary>True if the club can lose one player (sale, release) and still have the minimum.</summary>
         public static bool CanSell(GameWorld w, string clubId, GameData d) => Count(w, clubId) - 1 >= d.Development.MinSquadSize;
@@ -77,12 +77,15 @@ namespace LegendsFC.Core.Transfers
         public static bool Release(GameWorld w, Player p, GameData d)
         {
             if (p.ClubId == null || !CanSell(w, p.ClubId, d)) return false;
-            Leave(p);
+            Leave(w, p);
             return true;
         }
 
         /// <summary>He leaves his club (released, or out of contract): becomes a free agent.</summary>
-        internal static void Leave(Player p)
+        /// <summary>He leaves his club (released, or out of contract): becomes a free agent. Drops the market caches.</summary>
+        public static void Leave(GameWorld w, Player p) { var c = p.ClubId; Leave(p); w.Market.Touch(c); }
+
+        public static void Leave(Player p)
         {
             if (p.ClubId != null && !p.FormerClubIds.Contains(p.ClubId)) p.FormerClubIds.Add(p.ClubId);
             p.ClubId = null;

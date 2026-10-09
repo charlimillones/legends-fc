@@ -26,14 +26,40 @@ namespace LegendsFC.Core.Transfers
         /// <summary>What a club pays in wages per season, loans included (borrower pays its share, owner the rest).</summary>
         public static double WageBill(GameWorld w, string clubId)
         {
-            double sum = 0;
-            foreach (var p in w.Players)
+            var m = w.Market;
+            if (m.WageBillCache == null)
             {
-                if (p.Retired) continue;
-                if (p.ClubId == clubId) sum += p.LoanFromClubId == null ? p.Wage : p.Wage * p.LoanWageShare;
-                else if (p.LoanFromClubId == clubId) sum += p.Wage * (1 - p.LoanWageShare);
+                m.WageBillCache = new Dictionary<string, double>();
+                foreach (var p in w.Players)
+                {
+                    if (p.Retired || p.ClubId == null) continue;
+                    m.WageBillCache.TryGetValue(p.ClubId, out double a);
+                    m.WageBillCache[p.ClubId] = a + (p.LoanFromClubId == null ? p.Wage : p.Wage * p.LoanWageShare);
+                    if (p.LoanFromClubId != null)
+                    {
+                        m.WageBillCache.TryGetValue(p.LoanFromClubId, out double b);
+                        m.WageBillCache[p.LoanFromClubId] = b + p.Wage * (1 - p.LoanWageShare);
+                    }
+                }
             }
-            return sum;
+            return m.WageBillCache.TryGetValue(clubId, out double v) ? v : 0;
+        }
+
+        /// <summary>The players registered with a club (loan signings included). Cached until squads change.</summary>
+        public static List<Player> Squad(GameWorld w, string clubId)
+        {
+            var m = w.Market;
+            if (m.SquadCache == null)
+            {
+                m.SquadCache = new Dictionary<string, List<Player>>();
+                foreach (var p in w.Players)
+                {
+                    if (p.ClubId == null) continue;
+                    if (!m.SquadCache.TryGetValue(p.ClubId, out var l)) m.SquadCache[p.ClubId] = l = new List<Player>();
+                    l.Add(p);
+                }
+            }
+            return m.SquadCache.TryGetValue(clubId, out var s) ? s : new List<Player>();
         }
 
         /// <summary>Room left under the club's wage bar (the board's objective is "standard" until boards exist).</summary>
@@ -274,11 +300,10 @@ namespace LegendsFC.Core.Transfers
             if (w.Market.IsListed(p.Id)) return;
             var l = new Listing { PlayerId = p.Id, Price = price };
             w.Market.Listings.Add(l);
-            w.Market.SquadsChanged();
             if (w.Market.WindowOpen) AiMarket.CreateListingBids(w, l, rng, d);
         }
 
-        public static void Unlist(GameWorld w, Player p) { w.Market.Listings.RemoveAll(l => l.PlayerId == p.Id); w.Market.SquadsChanged(); }
+        public static void Unlist(GameWorld w, Player p) => w.Market.Listings.RemoveAll(l => l.PlayerId == p.Id);
 
         /// <summary>The bids waiting for this club's answer.</summary>
         public static IEnumerable<Talk> BidsFor(GameWorld w, string sellerClubId)
@@ -338,6 +363,8 @@ namespace LegendsFC.Core.Transfers
             var p = PlayerById(w, t.PlayerId); var buyer = ClubById(w, t.BuyerClubId);
             if (t.Kind == TalkKind.Renewal)
             {
+                var cache = w.Market.WageBillCache;
+                if (cache != null && cache.ContainsKey(p.ClubId) && p.LoanFromClubId == null) cache[p.ClubId] += wage - p.Wage; else w.Market.WageBillCache = null;
                 p.Wage = wage; p.ContractEndYear = w.SeasonStartYear + years;
                 t.Status = TalkStatus.Done; t.AgreedWage = wage; t.AgreedYears = years;
                 return;
@@ -372,7 +399,7 @@ namespace LegendsFC.Core.Transfers
             foreach (var other in w.Market.Talks.Where(x => x.PlayerId == p.Id && (x.Status == TalkStatus.Open || x.Status == TalkStatus.Pending)))
                 other.Status = TalkStatus.Cancelled;
             w.Market.History.Add(new TransferRecord { Day = w.Market.Day, Season = w.SeasonStartYear, PlayerId = p.Id, FromClubId = from, ToClubId = to, Fee = fee, Loan = loan, FreeAgent = from == null });
-            w.Market.SquadsChanged();
+            w.Market.Touch(from, to);
         }
 
         /// <summary>End of season: every loan ends and the player goes back to his club.</summary>

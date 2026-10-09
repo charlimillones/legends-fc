@@ -8,6 +8,7 @@ namespace LegendsFC.Core.Transfers
         public ImportanceConfig Importance = new ImportanceConfig();
         public FormConfig Form = new FormConfig();
         public double AskingSpreadMin = 1.0, AskingSpreadMax = 1.2, WageDemandMin = 1.0, WageDemandMax = 1.2;
+        public int MinContractYearsForPrice = 3;
         public AcceptanceConfig Acceptance = new AcceptanceConfig();
         public ResponseConfig Responses = new ResponseConfig();
         public YearsConfig Years = new YearsConfig();

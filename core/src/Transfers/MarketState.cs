@@ -77,18 +77,29 @@ namespace LegendsFC.Core.Transfers
         public string Window;
         public int WindowDay, WindowLength;
         public int Seq;
+        /// <summary>Players AI clubs released at the end of windows (running total, for reports).</summary>
+        public int ReleasedAtClose;
         public List<Talk> Talks = new List<Talk>();
         public List<Cooldown> Cooldowns = new List<Cooldown>();
         public List<Listing> Listings = new List<Listing>();
         public List<TransferRecord> History = new List<TransferRecord>();
 
-        /// <summary>Squad ranks by rating (not saved). Null = rebuild on next use.</summary>
-        [Newtonsoft.Json.JsonIgnore] public Dictionary<string, int> RankCache;
+        /// <summary>Squad ranks by rating per club (not saved). Rebuilt per club on next use.</summary>
+        [Newtonsoft.Json.JsonIgnore] public Dictionary<string, Dictionary<string, int>> RankByClub;
         [Newtonsoft.Json.JsonIgnore] public Dictionary<string, double> RatingCache;
         /// <summary>Counters for balancing reports (not saved).</summary>
         [Newtonsoft.Json.JsonIgnore] public Dictionary<string, int> Stats = new Dictionary<string, int>();
         public void Count(string key) { Stats.TryGetValue(key, out int n); Stats[key] = n + 1; }
-        public void SquadsChanged() => RankCache = null;
+        [Newtonsoft.Json.JsonIgnore] public Dictionary<string, List<Model.Player>> SquadCache;
+        [Newtonsoft.Json.JsonIgnore] public Dictionary<string, double> WageBillCache;
+        /// <summary>Call whenever a player changes club or wage: drops the caches.</summary>
+        public void SquadsChanged() { RankByClub = null; SquadCache = null; WageBillCache = null; }
+        /// <summary>Only these clubs' squads changed (cheaper than SquadsChanged).</summary>
+        public void Touch(params string[] clubIds)
+        {
+            SquadCache = null; WageBillCache = null;
+            if (RankByClub != null) foreach (var c in clubIds) if (c != null) RankByClub.Remove(c);
+        }
 
         public bool WindowOpen => Window != null;
         public bool IsListed(string playerId) => Listings.Any(l => l.PlayerId == playerId);

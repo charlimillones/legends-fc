@@ -28,6 +28,57 @@ if (args.Length > 0 && args[0] == "protege-report")
     return;
 }
 
+if (args.Length > 0 && args[0] == "flip-test")
+{
+    // Approved trade-loop check: buy a player, list him straight away in the same window, sell to the best bidder.
+    // Strategy: offer 92% of the asking price (pay the full price if they counter), then counter the best bid at +10%.
+    var fw = new WorldGenerator(data).Generate(seed);
+    var user = fw.Clubs.First(c => fw.ClubLeague[c.Id] == "ENG-1");
+    fw.UserClubId = user.Id; user.Balance = 5_000_000_000;
+    var rng = new LegendsFC.Core.Util.GameRandom(seed + 3);
+    LegendsFC.Core.Transfers.AiMarket.OpenWindow(fw, "summer", rng, data);
+    var results = new System.Collections.Generic.List<double>(); int noBids = 0, failedBuys = 0, tries = 0;
+    var pool = fw.Players.Where(p => p.ClubId != null && p.ClubId != user.Id).ToList();
+    while (results.Count + noBids < 300 && tries < 3000)
+    {
+        tries++;
+        var p = pool[rng.NextInt(0, pool.Count - 1)];
+        if (p.ClubId == null || p.ClubId == user.Id) continue;
+        int minYears = args.Length > 2 ? int.Parse(args[2]) : 0, maxYears = args.Length > 3 ? int.Parse(args[3]) : 99;
+        int left = p.ContractEndYear - fw.SeasonStartYear;
+        if (left < minYears || left > maxYears) continue;
+        while (LegendsFC.Core.Transfers.Squads.Count(fw, user.Id) > 20)
+        {   // keep room: move someone of ours out for free (not part of the test)
+            var x = fw.Players.First(q => q.ClubId == user.Id && q != p); LegendsFC.Core.Transfers.Squads.Leave(fw, x);
+        }
+        var talk = LegendsFC.Core.Transfers.Market.OpenSigning(fw, user, p, data, out var bl);
+        if (talk == null) continue;
+        long fee = (long)(talk.ClubDemand * 0.92), wage = (long)Math.Ceiling(talk.WageDemand);
+        var r = LegendsFC.Core.Transfers.Market.Offer(fw, talk, fee, wage, talk.PreferredYears, rng, data, out bl);
+        if (r == LegendsFC.Core.Transfers.Reply.Countered || r == LegendsFC.Core.Transfers.Reply.KeepTalking)
+        { fee = (long)Math.Ceiling(talk.ClubDemand); r = LegendsFC.Core.Transfers.Market.Offer(fw, talk, fee, wage, talk.PreferredYears, rng, data, out bl); }
+        if (r != LegendsFC.Core.Transfers.Reply.Accepted) { failedBuys++; continue; }
+        LegendsFC.Core.Transfers.Market.List(fw, p, null, rng, data);
+        var bids = fw.Market.Talks.Where(t => t.Kind == LegendsFC.Core.Transfers.TalkKind.Bid && t.PlayerId == p.Id && t.Status == LegendsFC.Core.Transfers.TalkStatus.Pending).ToList();
+        if (bids.Count == 0) { noBids++; LegendsFC.Core.Transfers.Market.Unlist(fw, p); continue; }
+        foreach (var b in bids) b.Status = LegendsFC.Core.Transfers.TalkStatus.Open;
+        var topBid = bids.OrderByDescending(b => b.Bid).First();
+        long ask = (long)(topBid.Bid * 1.10);
+        var sr = LegendsFC.Core.Transfers.Market.RespondToBid(fw, topBid, LegendsFC.Core.Transfers.Market.SellerAction.Counter, ask, rng, data);
+        long sale = sr == LegendsFC.Core.Transfers.Reply.Accepted ? ask : 0;
+        if (sale == 0)
+        {
+            var still = bids.Where(b => b.Status == LegendsFC.Core.Transfers.TalkStatus.Open).OrderByDescending(b => b.Bid).FirstOrDefault();
+            if (still == null) { noBids++; LegendsFC.Core.Transfers.Market.Unlist(fw, p); continue; }
+            sale = still.Bid; LegendsFC.Core.Transfers.Market.RespondToBid(fw, still, LegendsFC.Core.Transfers.Market.SellerAction.Accept, 0, rng, data);
+        }
+        results.Add(sale / (double)Math.Max(1, fee) - 1);
+    }
+    var srt = results.OrderBy(x => x).ToList();
+    Console.WriteLine($"Flips: {results.Count} sold, {noBids} got no bid, {failedBuys} buys failed");
+    Console.WriteLine($"Profit in {results.Count(x => x > 0) * 100.0 / results.Count:F0}% | average {results.Average() * 100:+0.0;-0.0}% | median {srt[srt.Count / 2] * 100:+0;-0}% | worst 10% {srt[srt.Count / 10] * 100:+0;-0}% | best 10% {srt[srt.Count * 9 / 10] * 100:+0;-0}%");
+    return;
+}
 if (args.Length > 0 && args[0] == "wage-room")
 {
     var ww = new WorldGenerator(data).Generate(seed);

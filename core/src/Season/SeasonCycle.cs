@@ -34,6 +34,7 @@ namespace LegendsFC.Core.Season
             var report = new SeasonReport { SeasonStartYear = w.SeasonStartYear };
             report.Outcomes = new SeasonSimulator(_d).PlaySeason(w, rng);
             Train(w);
+            w.Market.RatingCache = null; w.Market.SquadsChanged();   // ratings changed
             SettleFinances(w, report);
             ApplyPromotionAndRelegation(w, report.Outcomes);
 
@@ -41,10 +42,12 @@ namespace LegendsFC.Core.Season
             report.LoansReturned = Transfers.Market.ReturnLoans(w);   // loans last until the end of the season
             foreach (var p in w.Players.Where(p => !p.Retired && w.SeasonStartYear - p.BirthYear >= p.RetireAge))
             {
-                p.Retired = true; p.ClubId = null; report.Retired++;
+                p.Retired = true; p.ClubId = null; report.Retired++; w.Market.SquadsChanged();
             }
 
+            var swR = System.Diagnostics.Stopwatch.StartNew();
             RenewContracts(w, rng, report);
+            w.Market.Stats.TryGetValue("ms:renew", out int msr); w.Market.Stats["ms:renew"] = msr + (int)swR.ElapsedMilliseconds;
 
             var gen = new WorldGenerator(_d);
             var c = _d.Development;
@@ -52,6 +55,7 @@ namespace LegendsFC.Core.Season
             {
                 int intake = rng.NextInt(c.AcademyIntakeMin, c.AcademyIntakeMax);
                 gen.AddAcademyIntake(w, club, rng, intake);
+                w.Market.SquadsChanged();
                 report.AcademyGraduates += intake;
                 if (club.Id == w.UserClubId) continue;   // the user's squad is never trimmed or topped up for him
                 var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
@@ -64,7 +68,7 @@ namespace LegendsFC.Core.Season
                 {
                     if (excess == 0) break;
                     if (p.MainPosition == Position.GK && squad.Count(x => x.ClubId == club.Id && x.MainPosition == Position.GK) <= c.AiMinGoalkeepers) continue;
-                    Transfers.Squads.Leave(p); excess--; report.Released++;
+                    Transfers.Squads.Leave(w, p); excess--; report.Released++;
                 }
             }
             AiFreeAgentWindow(w, rng, report);
@@ -73,7 +77,9 @@ namespace LegendsFC.Core.Season
             var m = w.Market;
             m.Day += 365 - _d.Transfers.Windows.SummerDays;
             int historyBefore = m.History.Count;
+            var swW = System.Diagnostics.Stopwatch.StartNew();
             Transfers.AiMarket.RunWindow(w, "summer", rng, _d);
+            m.Stats.TryGetValue("ms:window", out int msw); m.Stats["ms:window"] = msw + (int)swW.ElapsedMilliseconds;
             var deals = m.History.Skip(historyBefore).ToList();
             report.Transfers = deals.Count(x => !x.Loan && !x.FreeAgent);
             report.Loans = deals.Count(x => x.Loan);
@@ -90,6 +96,7 @@ namespace LegendsFC.Core.Season
         /// </summary>
         private void AiFreeAgentWindow(GameWorld w, GameRandom rng, SeasonReport report)
         {
+            w.Market.SquadsChanged();
             var f = _d.Finance; var fa = f.FreeAgents; var c = _d.Development;
             var rating = new Dictionary<Player, double>();
             var value = new Dictionary<Player, double>();  // market value on a 2-year deal, for affordability checks
@@ -151,7 +158,7 @@ namespace LegendsFC.Core.Season
                     if (needGk && squad.Count >= c.MaxSquadSize)
                     {   // make room: release the weakest outfield player
                         var weakest = squad.Where(p => p.MainPosition != Position.GK).OrderBy(Rating).First();
-                        Transfers.Squads.Leave(weakest); squad.Remove(weakest); bill[club.Id] -= weakest.Wage;
+                        Transfers.Squads.Leave(w, weakest); squad.Remove(weakest); bill[club.Id] -= weakest.Wage;
                         Track(weakest); pool.Add(weakest); report.Released++;
                     }
                     double room = Headroom(club);
@@ -214,6 +221,7 @@ namespace LegendsFC.Core.Season
         /// </summary>
         private void RenewContracts(GameWorld w, GameRandom rng, SeasonReport report)
         {
+            w.Market.SquadsChanged();
             var f = _d.Finance; var rc = f.Renewal;
             foreach (var club in w.Clubs)
             {
@@ -226,7 +234,7 @@ namespace LegendsFC.Core.Season
                 {
                     int age = w.SeasonStartYear - p.BirthYear;
                     bool wanted = (age <= rc.AiOfferYoungAge && rank[p] <= _d.Development.MaxSquadSize - 2) || (age <= rc.AiOfferMaxAge && rank[p] <= keep);
-                    if (!wanted) { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; report.NotOfferedRenewal++; continue; }
+                    if (!wanted) { Transfers.Squads.Leave(w, p); report.LeftAtContractEnd++; report.NotOfferedRenewal++; continue; }
                     var talk = Transfers.Market.OpenRenewal(w, club, p, _d);
                     int years = talk.PreferredYears;
                     double market = Transfers.FreeAgents.ExpectedWage(w, club, p, years, _d);
@@ -244,7 +252,7 @@ namespace LegendsFC.Core.Season
                     }
                     if (talk.Status == Transfers.TalkStatus.Open) talk.Status = Transfers.TalkStatus.Cancelled;
                     if (renewed) report.Renewed++;
-                    else { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; report.RefusedRenewal++; }
+                    else { Transfers.Squads.Leave(w, p); report.LeftAtContractEnd++; report.RefusedRenewal++; }
                 }
             }
         }

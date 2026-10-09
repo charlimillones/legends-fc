@@ -118,5 +118,7 @@
     "aiLoanOutsideBest": 18,
     "aiLoanChancePerDay": 0.01,
     "squadPlayerFeeShare": 0.05
-  }
+  },
+  "minContractYearsForPrice": 3,
+  "_minContractNote": "PROPOSAL Oct 9: the selling club prices a player as if he had at least 3 years left. Without it, buying a player with 1 year left and selling him straight after on a new contract was a risk-free +60% (balancing check failed)."
 }
