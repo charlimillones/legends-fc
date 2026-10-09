@@ -1,0 +1,109 @@
+{
+  "_source": "Money model, agreed Oct 9 (numbers are PROPOSALS for balancing). All amounts in EUR. TV: half split equally, half by final position. Prize money: a pot of 20% of TV, by position. Gate: home league games x capacity x fill (0.6 + 0.4 x mood/100, max 1) x ticket price (15 + 65 x (reputation/100)^1.5). Sponsors: 0.4 x league TV per club x (0.5 + reputation/100). Store: 0.15 x league TV per club x (reputation/50) x (0.5 + mood/100). Wage bar (approved): league base x 1.025^(reputation - 50) x objective. Expected wage: 12% of market value per year. Upkeep about 3% of income. Starting balance: half a season's income.",
+  "leagues": {
+    "ENG-1": {
+      "tvPerClubEur": 150000000.0,
+      "wageBarBaseEur": 120000000.0
+    },
+    "ENG-2": {
+      "tvPerClubEur": 18000000.0,
+      "wageBarBaseEur": 30000000.0
+    },
+    "ESP-1": {
+      "tvPerClubEur": 80000000.0,
+      "wageBarBaseEur": 65000000.0
+    },
+    "ESP-2": {
+      "tvPerClubEur": 10000000.0,
+      "wageBarBaseEur": 12000000.0
+    },
+    "BRA-1": {
+      "tvPerClubEur": 25000000.0,
+      "wageBarBaseEur": 25000000.0
+    },
+    "BRA-2": {
+      "tvPerClubEur": 3000000.0,
+      "wageBarBaseEur": 4000000.0
+    },
+    "ARG-1": {
+      "tvPerClubEur": 8000000.0,
+      "wageBarBaseEur": 8000000.0
+    },
+    "ARG-2": {
+      "tvPerClubEur": 1000000.0,
+      "wageBarBaseEur": 1500000.0
+    }
+  },
+  "cupOnly": {
+    "POR": {
+      "tvPerClubEur": 12000000.0,
+      "wageBarBaseEur": 20000000.0
+    },
+    "NED": {
+      "tvPerClubEur": 12000000.0,
+      "wageBarBaseEur": 20000000.0
+    },
+    "MEX": {
+      "tvPerClubEur": 10000000.0,
+      "wageBarBaseEur": 15000000.0
+    },
+    "USA": {
+      "tvPerClubEur": 10000000.0,
+      "wageBarBaseEur": 15000000.0
+    },
+    "URU": {
+      "tvPerClubEur": 2000000.0,
+      "wageBarBaseEur": 3000000.0
+    },
+    "COL": {
+      "tvPerClubEur": 2500000.0,
+      "wageBarBaseEur": 4000000.0
+    }
+  },
+  "tvEqualShare": 0.5,
+  "prizePotShareOfTv": 0.2,
+  "ticketBase": 15,
+  "ticketRange": 65,
+  "ticketExponent": 1.5,
+  "fillBase": 0.6,
+  "fillMood": 0.4,
+  "sponsorShareOfTv": 0.4,
+  "storeShareOfTv": 0.15,
+  "objectiveMultipliers": {
+    "safe": 0.95,
+    "standard": 1.0,
+    "ambitious": 1.15
+  },
+  "wageBarRepGrowth": 1.025,
+  "expectedWageShareOfValue": 0.12,
+  "upkeepShareOfIncome": 0.03,
+  "startingBalanceSeasons": 0.5,
+  "renewal": {
+    "_note": "Confirmed Oct 9: an expiring contract goes to a renewal negotiation; the outcome decides if he stays. AI clubs offer a renewal to players they still want (PROPOSAL: under 33 and at or above the squad median rating, or 23 and under).",
+    "aiOfferMaxAge": 32,
+    "aiOfferYoungAge": 23,
+    "yearsMin": 1,
+    "yearsMax": 5
+  },
+  "freeAgents": {
+    "_note": "Free transfers added Oct 9: a player without a club joins for no fee if he accepts the wage (approved signing chance, +0.6 for his academy or a former club). AI rules are PROPOSALS: each AI club, best reputation first, approaches up to 3 free agents per window who are at least as good as its squad median and fit under its wage bar (standard objective). AI clubs below 16 players sign the best free agents they can afford.",
+    "aiApproachesPerClub": 3,
+    "aiQualityPercentile": 0.5,
+    "aiWageObjective": "standard"
+  },
+  "fanMood": {
+    "_note": "Agreed Oct 9.",
+    "win": 2,
+    "draw": 0,
+    "loss": -2,
+    "title": 15,
+    "promotion": 10,
+    "relegation": -20,
+    "starSigning": 5,
+    "importantSale": -8,
+    "academyDebut": 1,
+    "monthlyDriftShare": 0.1,
+    "normalBase": 30,
+    "normalPerReputation": 0.5
+  }
+}

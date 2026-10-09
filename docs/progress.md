@@ -62,12 +62,25 @@
   - **Stability:** over 10 seasons the world stays stable (England's first-division average XI goes from 76.4 to 77.5), with 3 different champions. 10 seasons take about 12 s.
   - **Interim, until the systems exist:** AI clubs use default training (moderate regime, average coach, one coach per group); form is neutral; surplus players are released instead of sold.
 
+- **Step 7: money, contracts and free agents** (branch `feature/money`, 102 tests):
+  - **Currencies:** 22 main currencies (rates of Oct 8, 2026). One per world, chosen by the user at creation; everything is stored in EUR and only displayed in the chosen currency.
+  - **Income per season:** TV (half equal, half by position), prize money, gate, sponsors, store. Wages and about 3% upkeep are paid at season end.
+  - **Fan mood:** results, titles, promotion and relegation, drifting back to normal.
+  - **Starting money:** half a season's projected income.
+  - **Contracts (Oct 9):** when a contract runs out, the player and club negotiate a renewal (1–5 years); the outcome decides if he stays. Personalities matter (Loyal easier, Diva harder, Businessman wants 20% more).
+  - **Free agents (Oct 9):** a player without a club signs for no fee if he accepts the wage, with the approved signing chance (+0.6 for his academy or a former club). The same rule for AI and user. AI clubs (best reputation first) approach up to 3 free agents per window who are at least as good as their squad median and fit under their wage bar.
+  - **Squad rules:** no club can sell or release below 16. The 32 maximum applies to AI clubs only.
+  - **Fixes:** academy graduates now get a wage, and new players' contracts count from the current season.
+  - **Finance report:** `dotnet run --project dotnet/LegendsFC.Tools -- finance-report <seed>`.
+  - **Balancing not done yet:** see the money finding in the decisions doc. Income and wages are out of proportion (England's first division spends 13% of income on wages; Uruguay and Colombia 110–120%).
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
 ## Next
 - **Step 4b:** domestic and continental cups, plus promotion and relegation. Formats need DaiVinci proposals and Carlos's OK.
-- **Step 6:** player development (training, form, age decay during the season).
+- **Step 7b:** money balancing (waiting on Carlos's choice).
+- **Step 8:** transfer market.
 
 ## Open questions for Carlos
 - Can players be two-footed? Right now feet are Left or Right only.

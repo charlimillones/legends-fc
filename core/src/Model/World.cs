@@ -49,7 +49,7 @@ namespace LegendsFC.Core.Model
         public int StadiumCapacity;
         public string PrimaryColor;
         public string SecondaryColor;
-        public long Balance;             // whole units of the country's currency
+        public long Balance;             // EUR (displayed in the world's currency)
         public Dictionary<Facility, FacilityState> Facilities = new Dictionary<Facility, FacilityState>();
         public double FanMood = 50;      // 0-100 (Oct 8)
     }
@@ -78,10 +78,14 @@ namespace LegendsFC.Core.Model
         public string PersonalityId;     // null = no personality (about 55% of players)
 
         public int ContractEndYear;
-        public long Wage;                // per season, club currency
+        public long Wage;                // per season, in EUR (displayed in the world's currency)
         public List<double> RecentMatchRatings = new List<double>(); // form score = average of the last ~10
         /// <summary>Fractional training progress per attribute (hidden), so small weekly gains add up.</summary>
         public double[] AttributeProgress = new double[AttributeSet.Count];
         public bool Retired;
+        /// <summary>Club whose academy produced him (null for generated senior players). Gives the academy/ex-club signing bonus.</summary>
+        public string AcademyClubId;
+        /// <summary>Clubs he has left (released or out of contract). Also gives the ex-club bonus.</summary>
+        public List<string> FormerClubIds = new List<string>();
     }
 }

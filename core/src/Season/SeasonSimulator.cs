@@ -27,6 +27,16 @@ namespace LegendsFC.Core.Season
                 g => g.Select(p => PositionRating.Base(p.Attributes, p.MainPosition, _d.PositionRatings))
                       .OrderByDescending(x => x).Take(_d.MatchSim.StartingElevenSize).Average());
 
+        /// <summary>Home league matches per club per season (gate income). Cup-only clubs have no league games yet.</summary>
+        public static int HomeLeagueMatches(string leagueOrCountry, int teams, GameData d)
+        {
+            var f = d.LeagueFormats;
+            if (leagueOrCountry == f.ArgentinaFirst.CompetitionId) return 16;           // 2 tournaments × 8
+            if (leagueOrCountry == f.ArgentinaSecond.CompetitionId) return (teams / 2) - 1; // zone home games
+            if (!f.Legs.TryGetValue(leagueOrCountry, out var legs)) return 0;
+            return legs * (teams - 1) / 2;
+        }
+
         /// <summary>Main league table per competition (Argentina: the annual / zone tables are in the outcome).</summary>
         public Dictionary<string, List<TableRow>> PlayLeagues(GameWorld w, GameRandom rng)
             => PlaySeason(w, rng).ToDictionary(o => o.CompetitionId,

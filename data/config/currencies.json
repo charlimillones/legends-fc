@@ -1,0 +1,160 @@
+{
+  "_source": "Confirmed Oct 9: all main currencies, one per game, chosen by the user at world creation. The game counts in EUR internally and converts for display. Rates are fixed per data version: ECB reference rates 8 Oct 2026; ARS, COP, UYU and CLP from exchange-rates.org, 2 Oct 2026.",
+  "default": "EUR",
+  "currencies": [
+    {
+      "code": "EUR",
+      "name": "Euro",
+      "symbol": "€",
+      "perEur": 1.0,
+      "decimals": 0
+    },
+    {
+      "code": "USD",
+      "name": "US dollar",
+      "symbol": "$",
+      "perEur": 1.1186,
+      "decimals": 0
+    },
+    {
+      "code": "GBP",
+      "name": "Pound sterling",
+      "symbol": "£",
+      "perEur": 0.84698,
+      "decimals": 0
+    },
+    {
+      "code": "BRL",
+      "name": "Brazilian real",
+      "symbol": "R$",
+      "perEur": 5.6118,
+      "decimals": 0
+    },
+    {
+      "code": "ARS",
+      "name": "Argentine peso",
+      "symbol": "ARS$",
+      "perEur": 1716.31,
+      "decimals": 0
+    },
+    {
+      "code": "MXN",
+      "name": "Mexican peso",
+      "symbol": "MX$",
+      "perEur": 20.1486,
+      "decimals": 0
+    },
+    {
+      "code": "COP",
+      "name": "Colombian peso",
+      "symbol": "COL$",
+      "perEur": 3724.83,
+      "decimals": 0
+    },
+    {
+      "code": "UYU",
+      "name": "Uruguayan peso",
+      "symbol": "UYU$",
+      "perEur": 45.5562,
+      "decimals": 0
+    },
+    {
+      "code": "CLP",
+      "name": "Chilean peso",
+      "symbol": "CLP$",
+      "perEur": 1115.53,
+      "decimals": 0
+    },
+    {
+      "code": "JPY",
+      "name": "Japanese yen",
+      "symbol": "¥",
+      "perEur": 177.05,
+      "decimals": 0
+    },
+    {
+      "code": "CNY",
+      "name": "Chinese yuan",
+      "symbol": "CN¥",
+      "perEur": 7.4972,
+      "decimals": 0
+    },
+    {
+      "code": "KRW",
+      "name": "South Korean won",
+      "symbol": "₩",
+      "perEur": 1502.79,
+      "decimals": 0
+    },
+    {
+      "code": "INR",
+      "name": "Indian rupee",
+      "symbol": "₹",
+      "perEur": 108.2635,
+      "decimals": 0
+    },
+    {
+      "code": "CHF",
+      "name": "Swiss franc",
+      "symbol": "CHF",
+      "perEur": 0.9326,
+      "decimals": 0
+    },
+    {
+      "code": "CAD",
+      "name": "Canadian dollar",
+      "symbol": "CA$",
+      "perEur": 1.5953,
+      "decimals": 0
+    },
+    {
+      "code": "AUD",
+      "name": "Australian dollar",
+      "symbol": "A$",
+      "perEur": 1.611,
+      "decimals": 0
+    },
+    {
+      "code": "ZAR",
+      "name": "South African rand",
+      "symbol": "R",
+      "perEur": 18.6252,
+      "decimals": 0
+    },
+    {
+      "code": "TRY",
+      "name": "Turkish lira",
+      "symbol": "₺",
+      "perEur": 55.0523,
+      "decimals": 0
+    },
+    {
+      "code": "SEK",
+      "name": "Swedish krona",
+      "symbol": "kr",
+      "perEur": 11.194,
+      "decimals": 0
+    },
+    {
+      "code": "NOK",
+      "name": "Norwegian krone",
+      "symbol": "kr",
+      "perEur": 10.717,
+      "decimals": 0
+    },
+    {
+      "code": "DKK",
+      "name": "Danish krone",
+      "symbol": "kr",
+      "perEur": 7.4739,
+      "decimals": 0
+    },
+    {
+      "code": "PLN",
+      "name": "Polish zloty",
+      "symbol": "zł",
+      "perEur": 4.3753,
+      "decimals": 0
+    }
+  ]
+}

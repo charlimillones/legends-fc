@@ -130,8 +130,11 @@ public class MultiSeasonTests
         new SeasonCycle(d).Advance(w, new GameRandom(3));
         var nowIds = w.Players.Where(p => p.ClubId == club.Id).Select(p => p.Id).ToHashSet();
         int retired = w.Players.Count(p => before.Contains(p.Id) && p.Retired);
+        var left = w.Players.Where(p => before.Contains(p.Id) && !p.Retired && p.ClubId != club.Id).ToList();
         int academy = nowIds.Count(id => !before.Contains(id));
         Assert.InRange(academy, 2, 4);                                   // only the random intake joins
-        Assert.Equal(before.Count - retired + academy, nowIds.Count);   // nobody released, nobody signed
+        Assert.Equal(before.Count - retired - left.Count + academy, nowIds.Count);   // nobody released, nobody signed
+        // The only other way out: his contract ran out and the renewal talks failed (Oct 9).
+        Assert.All(left, p => { Assert.Null(p.ClubId); Assert.Contains(club.Id, p.FormerClubIds); Assert.True(p.ContractEndYear <= w.SeasonStartYear); });
     }
 }

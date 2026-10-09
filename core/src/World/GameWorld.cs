@@ -16,5 +16,7 @@ namespace LegendsFC.Core.World
         public Dictionary<string, string> ClubLeague = new Dictionary<string, string>();
         /// <summary>The user's club (null until one is picked). Rules never treat it differently, except that the AI's squad management doesn't touch it.</summary>
         public string UserClubId;
+        /// <summary>Display currency picked at world creation (Oct 9). Amounts are stored in EUR.</summary>
+        public string CurrencyCode = "EUR";
     }
 }

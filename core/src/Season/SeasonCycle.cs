@@ -12,7 +12,9 @@ namespace LegendsFC.Core.Season
     {
         public int SeasonStartYear;
         public List<CompetitionOutcome> Outcomes = new List<CompetitionOutcome>();
-        public int Retired, AcademyGraduates, Released, FreeAgentSignings;
+        public int Retired, AcademyGraduates, Released, FreeAgentSignings, Renewed, LeftAtContractEnd;
+        public Dictionary<string, Money.IncomeBreakdown> Income = new Dictionary<string, Money.IncomeBreakdown>();
+        public Dictionary<string, double> WageBill = new Dictionary<string, double>();
     }
 
     /// <summary>
@@ -30,6 +32,7 @@ namespace LegendsFC.Core.Season
             var report = new SeasonReport { SeasonStartYear = w.SeasonStartYear };
             report.Outcomes = new SeasonSimulator(_d).PlaySeason(w, rng);
             Train(w);
+            SettleFinances(w, report);
             ApplyPromotionAndRelegation(w, report.Outcomes);
 
             w.SeasonStartYear++;
@@ -37,6 +40,8 @@ namespace LegendsFC.Core.Season
             {
                 p.Retired = true; p.ClubId = null; report.Retired++;
             }
+
+            RenewContracts(w, rng, report);
 
             var gen = new WorldGenerator(_d);
             var c = _d.Development;
@@ -56,38 +61,168 @@ namespace LegendsFC.Core.Season
                 {
                     if (excess == 0) break;
                     if (p.MainPosition == Position.GK && squad.Count(x => x.ClubId == club.Id && x.MainPosition == Position.GK) <= c.AiMinGoalkeepers) continue;
-                    p.ClubId = null; excess--; report.Released++;
+                    Transfers.Squads.Leave(p); excess--; report.Released++;
                 }
             }
-            // Minimum squad of 16 (confirmed Oct 9). AI clubs below it sign the best free agents.
-            // The user's club is never topped up: it simply can't sell below 16 (enforced by the transfer rules).
-            var freeAgents = w.Players.Where(p => !p.Retired && p.ClubId == null).OrderByDescending(Rating).ToList();
-            foreach (var club in w.Clubs)
-            {
-                bool ai = club.Id != w.UserClubId;
-                // AI balance: below the goalkeeper minimum, sign the best free-agent goalkeeper.
-                while (ai && w.Players.Count(p => p.ClubId == club.Id && p.MainPosition == Position.GK) < c.AiMinGoalkeepers)
-                {
-                    var gk = freeAgents.FirstOrDefault(p => p.MainPosition == Position.GK);
-                    if (gk == null) break;
-                    if (w.Players.Count(p => p.ClubId == club.Id) >= c.MaxSquadSize)
-                    {   // make room: release the weakest outfield player
-                        var weakest = w.Players.Where(p => p.ClubId == club.Id && p.MainPosition != Position.GK).OrderBy(Rating).First();
-                        weakest.ClubId = null; report.Released++;
-                    }
-                    gk.ClubId = club.Id; freeAgents.Remove(gk); report.FreeAgentSignings++;
-                }
-                while (ai && w.Players.Count(p => p.ClubId == club.Id) < c.MinSquadSize && freeAgents.Count > 0)
-                {
-                    bool needGk = ai && w.Players.Count(p => p.ClubId == club.Id && p.MainPosition == Position.GK) < c.AiMinGoalkeepers;
-                    var pick = (needGk ? freeAgents.FirstOrDefault(p => p.MainPosition == Position.GK) : null) ?? freeAgents[0];
-                    pick.ClubId = club.Id; freeAgents.Remove(pick); report.FreeAgentSignings++;
-                }
-            }
+            AiFreeAgentWindow(w, rng, report);
             return report;
         }
 
+        /// <summary>
+        /// AI clubs in the free-agent market (PROPOSAL rules in finance.json). Same offer and acceptance rule as the user.
+        /// 1) Best reputation first, each approaches up to N free agents at least as good as its squad median, within its wage bar.
+        /// 2) AI balance: at least 2 goalkeepers. 3) Minimum squad of 16 (confirmed Oct 9): sign the best it can afford.
+        /// The user's club is never topped up: it simply can't sell below 16.
+        /// </summary>
+        private void AiFreeAgentWindow(GameWorld w, GameRandom rng, SeasonReport report)
+        {
+            var f = _d.Finance; var fa = f.FreeAgents; var c = _d.Development;
+            var rating = new Dictionary<Player, double>();
+            var wish = new Dictionary<Player, double>();   // expected wage on a 2-year deal, for affordability checks
+            void Track(Player p)
+            {
+                rating[p] = Rating(p);
+                wish[p] = Transfers.FreeAgents.ExpectedWage(p, w.SeasonStartYear, 2, _d);
+            }
+            var pool = Transfers.FreeAgents.List(w);
+            foreach (var p in pool) Track(p);
+            pool = pool.OrderByDescending(p => rating[p]).ThenBy(p => p.Id, System.StringComparer.Ordinal).ToList();
+
+            var squads = w.Players.Where(p => p.ClubId != null).GroupBy(p => p.ClubId).ToDictionary(g => g.Key, g => g.ToList());
+            foreach (var club in w.Clubs) if (!squads.ContainsKey(club.Id)) squads[club.Id] = new List<Player>();
+            var bill = squads.ToDictionary(kv => kv.Key, kv => kv.Value.Sum(p => (double)p.Wage));
+            var ai = w.Clubs.Where(x => x.Id != w.UserClubId).OrderByDescending(x => x.Reputation).ThenBy(x => x.Id, System.StringComparer.Ordinal).ToList();
+            double Headroom(Club club) => Money.Finance.WageBar(club, w.ClubLeague[club.Id] ?? club.CountryId, fa.AiWageObjective, f) - bill[club.Id];
+
+            bool TrySign(Club club, Player p)
+            {
+                int age = w.SeasonStartYear - p.BirthYear;
+                int years = age <= 23 ? rng.NextInt(3, 4) : age <= 29 ? rng.NextInt(2, 4) : rng.NextInt(1, 2);
+                double expected = Transfers.FreeAgents.ExpectedWage(p, w.SeasonStartYear, years, _d);
+                if (p.PersonalityId == "PER-BUSINESSMAN") expected *= Money.Contracts.BusinessmanWageFactor;
+                var result = Transfers.FreeAgents.Offer(w, club, p, (long)System.Math.Max(1, System.Math.Round(expected)), years, rng, _d);
+                if (result != Transfers.OfferResult.Accepted) return false;
+                pool.Remove(p); squads[club.Id].Add(p); bill[club.Id] += p.Wage; report.FreeAgentSignings++;
+                return true;
+            }
+
+            // 1) Strengthen the squad.
+            foreach (var club in ai)
+            {
+                var squad = squads[club.Id];
+                if (squad.Count == 0 || squad.Count >= c.MaxSquadSize) continue;
+                var ratings = squad.Select(Rating).OrderBy(x => x).ToList();
+                double bar = ratings[(int)System.Math.Min(ratings.Count - 1, System.Math.Floor(fa.AiQualityPercentile * ratings.Count))];
+                int approaches = 0;
+                foreach (var p in pool.ToList())
+                {
+                    if (approaches >= fa.AiApproachesPerClub || squad.Count >= c.MaxSquadSize) break;
+                    if (rating[p] < bar) break;   // pool is sorted best first
+                    if (wish[p] > Headroom(club)) continue;
+                    approaches++;
+                    TrySign(club, p);
+                }
+            }
+            // 2) and 3) Goalkeeper minimum, then the 16 minimum: best affordable first, else the cheapest.
+            foreach (var club in ai)
+            {
+                var squad = squads[club.Id];
+                var saidNo = new HashSet<Player>();
+                for (int guard = 0; guard < 200; guard++)
+                {
+                    bool needGk = squad.Count(p => p.MainPosition == Position.GK) < c.AiMinGoalkeepers;
+                    if (!needGk && squad.Count >= c.MinSquadSize) break;
+                    var candidates = pool.Where(p => !saidNo.Contains(p) && (!needGk || p.MainPosition == Position.GK)).ToList();
+                    if (candidates.Count == 0) break;
+                    if (needGk && squad.Count >= c.MaxSquadSize)
+                    {   // make room: release the weakest outfield player
+                        var weakest = squad.Where(p => p.MainPosition != Position.GK).OrderBy(Rating).First();
+                        Transfers.Squads.Leave(weakest); squad.Remove(weakest); bill[club.Id] -= weakest.Wage;
+                        Track(weakest); pool.Add(weakest); report.Released++;
+                    }
+                    double room = Headroom(club);
+                    var pick = candidates.FirstOrDefault(p => wish[p] <= room) ?? candidates.OrderBy(p => wish[p]).First();
+                    if (!TrySign(club, pick)) saidNo.Add(pick);   // he said no to this club: try the next one
+                }
+            }
+        }
+
         private double Rating(Player p) => PositionRating.Base(p.Attributes, p.MainPosition, _d.PositionRatings);
+
+        /// <summary>Fan mood from results and season outcome, then season income minus wages and upkeep (agreed Oct 9).</summary>
+        private void SettleFinances(GameWorld w, SeasonReport report)
+        {
+            var f = _d.Finance; var fm = f.FanMood;
+            var rows = new Dictionary<string, (int pos, int teams, string league, TableRow row)>();
+            foreach (var o in report.Outcomes)
+            {
+                var table = o.Tables.TryGetValue("League", out var t) ? t : o.Tables.TryGetValue("Annual", out var a) ? a
+                          : o.Tables.Values.SelectMany(x => x).OrderByDescending(r => r.Points).ThenByDescending(r => r.GoalDifference).ToList();
+                for (int i = 0; i < table.Count; i++) rows[table[i].ClubId] = (i + 1, table.Count, o.CompetitionId, table[i]);
+                foreach (var id in o.Titles.Values.Distinct()) Mood(w, id, fm.Title);
+                foreach (var id in o.Promoted) Mood(w, id, fm.Promotion);
+                foreach (var id in o.Relegated) Mood(w, id, fm.Relegation);
+            }
+            foreach (var club in w.Clubs)
+            {
+                string key = w.ClubLeague[club.Id] ?? club.CountryId;
+                int pos = 1, teams = 1;
+                if (rows.TryGetValue(club.Id, out var r))
+                {
+                    pos = r.pos; teams = r.teams;
+                    club.FanMood = Clamp(club.FanMood + fm.Win * r.row.Won + fm.Draw * r.row.Drawn + fm.Loss * r.row.Lost, 0, 100);
+                }
+                double normal = Money.Finance.NormalFanMood(club, f);
+                club.FanMood = normal + (club.FanMood - normal) * System.Math.Pow(1 - fm.MonthlyDriftShare, 10); // drift over the season
+
+                var income = Money.Finance.SeasonIncome(club, key, pos, teams, SeasonSimulator.HomeLeagueMatches(key, teams, _d), f);
+                double wages = w.Players.Where(p => p.ClubId == club.Id).Sum(p => (double)p.Wage);
+                double upkeep = income.Total * f.UpkeepShareOfIncome;
+                club.Balance += (long)System.Math.Round(income.Total - wages - upkeep);
+                report.Income[club.Id] = income; report.WageBill[club.Id] = wages;
+            }
+        }
+
+        private static void Mood(GameWorld w, string clubId, double delta)
+        {
+            var club = w.Clubs.First(c => c.Id == clubId);
+            club.FanMood = Clamp(club.FanMood + delta, 0, 100);
+        }
+
+        private static double Clamp(double v, double lo, double hi) => v < lo ? lo : v > hi ? hi : v;
+
+        /// <summary>
+        /// Expiring contracts go to a renewal negotiation; the outcome decides if he stays (confirmed Oct 9).
+        /// AI clubs offer to players they still want (PROPOSAL rule in finance.json) at the expected wage;
+        /// the player accepts with the approved signing/renewal chance. The user's club negotiates in the UI;
+        /// headless runs use the same AI rule for it.
+        /// </summary>
+        private void RenewContracts(GameWorld w, GameRandom rng, SeasonReport report)
+        {
+            var f = _d.Finance; var rc = f.Renewal;
+            foreach (var club in w.Clubs)
+            {
+                var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
+                if (squad.Count == 0) continue;
+                double median = squad.Select(Rating).OrderBy(x => x).ElementAt(squad.Count / 2);
+                foreach (var p in squad.Where(p => p.ContractEndYear <= w.SeasonStartYear))
+                {
+                    int age = w.SeasonStartYear - p.BirthYear;
+                    double rating = Rating(p);
+                    bool wanted = age <= rc.AiOfferYoungAge || (age <= rc.AiOfferMaxAge && rating >= median);
+                    int years = rng.NextInt(rc.YearsMin, rc.YearsMax);
+                    double value = MarketValue.Eur(rating, 6.5, age, p.Potential, years, _d.MarketValue);
+                    double expected = Money.Finance.ExpectedWage(value, f);
+                    if (wanted && rng.Chance(Money.Contracts.RenewalChance(p.PersonalityId, expected, expected, years, _d.Probability)))
+                    {
+                        p.ContractEndYear = w.SeasonStartYear + years;
+                        p.Wage = (long)System.Math.Round(p.PersonalityId == "PER-BUSINESSMAN" ? expected * Money.Contracts.BusinessmanWageFactor : expected);
+                        report.Renewed++;
+                    }
+                    else { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; }
+                }
+            }
+        }
 
         /// <summary>AI default until coaches exist: one coach per group (GK / defence / midfield / attack), moderate regime.</summary>
         private void Train(GameWorld w)

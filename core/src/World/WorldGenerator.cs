@@ -34,10 +34,13 @@ namespace LegendsFC.Core.World
             _c = data.WorldGen;
         }
 
-        public GameWorld Generate(ulong seed)
+        /// <param name="currencyCode">The one display currency for this world, chosen by the user (Oct 9). Null = default (EUR).</param>
+        public GameWorld Generate(ulong seed, string currencyCode = null)
         {
+            string currency = currencyCode ?? _d.Currencies.Default;
+            if (!_d.Currencies.Currencies.Any(c => c.Code == currency)) throw new ArgumentException("Unknown currency: " + currency);
             _rng = new GameRandom(seed);
-            _w = new GameWorld { Seed = seed, Countries = _d.Countries.ToList(), Competitions = _d.Competitions.ToList() };
+            _w = new GameWorld { Seed = seed, Countries = _d.Countries.ToList(), Competitions = _d.Competitions.ToList(), CurrencyCode = currency };
             _clubSeq = 0; _playerSeq = 0; _usedClubNames = new HashSet<string>();
 
             foreach (var league in _d.Competitions.Where(c => c.Type == CompetitionType.League).OrderBy(c => c.Id, StringComparer.Ordinal))
@@ -52,6 +55,7 @@ namespace LegendsFC.Core.World
                 for (int i = 0; i < _c.CupOnlyClubsPerCountry; i++)
                     AddClub(country.Id, 0, null, CurveRating(best, worst, i, _c.CupOnlyClubsPerCountry));
             }
+            SetUpMoney();
             return _w;
         }
 
@@ -65,7 +69,36 @@ namespace LegendsFC.Core.World
             for (int i = 0; i < count; i++)
             {
                 var pos = Positions.All[_rng.NextInt(0, Positions.All.Length - 1)];
-                AddPlayer(club, pos, 0, _c.Potential.AcademyAge[0], academyLevel);
+                SetStartingWage(AddPlayer(club, pos, 0, _c.Potential.AcademyAge[0], academyLevel));
+            }
+        }
+
+        /// <summary>Wage = the expected wage (12% of market value) ± 15%, as at world creation.</summary>
+        private void SetStartingWage(Player p)
+        {
+            int age = _w.SeasonStartYear - p.BirthYear;
+            double rating = PositionRating.Base(p.Attributes, p.MainPosition, _d.PositionRatings);
+            double value = MarketValue.Eur(rating, 6.5, age, p.Potential, p.ContractEndYear - _w.SeasonStartYear, _d.MarketValue);
+            p.Wage = (long)Math.Round(Money.Finance.ExpectedWage(value, _d.Finance) * _rng.Uniform(0.85, 1.15));
+        }
+
+        /// <summary>Wages from market value (12%, ± a little), fan mood at its normal level, and a starting
+        /// balance of half a season's projected income (agreed Oct 9).</summary>
+        private void SetUpMoney()
+        {
+            var f = _d.Finance;
+            foreach (var p in _w.Players) SetStartingWage(p);
+            foreach (var club in _w.Clubs) club.FanMood = Money.Finance.NormalFanMood(club, f);
+            foreach (var group in _w.Clubs.GroupBy(c => _w.ClubLeague[c.Id] ?? c.CountryId))
+            {
+                var ranked = group.OrderByDescending(c => c.Reputation).ToList();
+                for (int i = 0; i < ranked.Count; i++)
+                {
+                    var club = ranked[i];
+                    int home = Season.SeasonSimulator.HomeLeagueMatches(group.Key, ranked.Count, _d);
+                    var income = Money.Finance.SeasonIncome(club, group.Key, i + 1, ranked.Count, home, f);
+                    club.Balance = (long)Math.Round(income.Total * f.StartingBalanceSeasons);
+                }
             }
         }
 
@@ -191,7 +224,9 @@ namespace LegendsFC.Core.World
             else if (_rng.Chance(_d.PersonalitySettings.ShareWithPersonality))
                 p.PersonalityId = PickWeighted(_d.Personalities.Where(x => !x.ArchetypeOnly).ToList(), x => x.SpawnWeight).Id;
 
-            p.ContractEndYear = _rng.NextInt(_c.Contracts.EndYearMin, _c.Contracts.EndYearMax);
+            // Contract length as at world creation (1-5 seasons), counted from the current season.
+            p.ContractEndYear = _w.SeasonStartYear + _rng.NextInt(_c.Contracts.EndYearMin, _c.Contracts.EndYearMax) - GameInfo.StartSeasonYear;
+            if (academyLevel != null) p.AcademyClubId = club.Id;
             _w.Players.Add(p);
             return p;
         }
@@ -213,6 +248,7 @@ namespace LegendsFC.Core.World
             int potential = Clamp((int)Math.Round(median + Math.Abs(_rng.Gaussian(0, pc.AcademySd))), pc.AcademyMin, pc.AcademyMax); // upper half only
             var pos = position ?? Positions.All[_rng.NextInt(0, Positions.All.Length - 1)];
             var p = AddPlayer(club, pos, 0, pc.AcademyAge[0], level, potential, personalityId);
+            SetStartingWage(p);
             double rating = PositionRating.Base(p.Attributes, p.MainPosition, _d.PositionRatings);
             int years = p.ContractEndYear - world.SeasonStartYear;
             double value = MarketValue.Eur(rating, 6.5, pc.AcademyAge[0], p.Potential, years, _d.MarketValue);

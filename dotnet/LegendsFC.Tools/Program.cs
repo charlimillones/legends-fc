@@ -28,6 +28,64 @@ if (args.Length > 0 && args[0] == "protege-report")
     return;
 }
 
+if (args.Length > 0 && args[0] == "finance-dump")
+{
+    // One line per club at world creation: key, rank, teams, reputation, capacity, wage bill, home games, fan mood
+    var dw = new WorldGenerator(data).Generate(seed);
+    foreach (var g in dw.Clubs.GroupBy(c => dw.ClubLeague[c.Id] ?? c.CountryId))
+    {
+        var ranked = g.OrderByDescending(c => c.Reputation).ToList();
+        int home = LegendsFC.Core.Season.SeasonSimulator.HomeLeagueMatches(g.Key, ranked.Count, data);
+        for (int i = 0; i < ranked.Count; i++)
+        {
+            var c = ranked[i];
+            Console.WriteLine($"{g.Key},{i + 1},{ranked.Count},{c.Reputation},{c.StadiumCapacity},{dw.Players.Where(p => p.ClubId == c.Id).Sum(p => (double)p.Wage):F0},{home},{c.FanMood:F1},{string.Join(";", dw.Players.Where(p => p.ClubId == c.Id).Select(p => (p.Wage / data.Finance.ExpectedWageShareOfValue).ToString("F0")))}");
+        }
+    }
+    return;
+}
+if (args.Length > 0 && args[0] == "finance-report")
+{
+    // Money over 10 seasons, per league (EUR). Usage: finance-report [seed]
+    var fw = new WorldGenerator(data).Generate(seed);
+    var cycle = new LegendsFC.Core.Season.SeasonCycle(data);
+    var frng = new LegendsFC.Core.Util.GameRandom(seed + 1);
+    string Key(Club c) => fw.ClubLeague[c.Id] ?? c.CountryId;
+    var start = fw.Clubs.ToDictionary(c => c.Id, c => (double)c.Balance);
+    var startKey = fw.Clubs.ToDictionary(c => c.Id, Key);
+    string M(double v) => (v / 1e6).ToString("0.0") + "M";
+    var startBill = fw.Clubs.ToDictionary(c => c.Id, c => fw.Players.Where(p => p.ClubId == c.Id).Sum(p => (double)p.Wage));
+    LegendsFC.Core.Season.SeasonReport first = null;
+    var history = new System.Collections.Generic.List<System.Collections.Generic.Dictionary<string, double>>();
+    for (int s = 0; s < 10; s++)
+    {
+        var rep = cycle.Advance(fw, frng);
+        first ??= rep;
+        history.Add(fw.Clubs.ToDictionary(c => c.Id, c => (double)c.Balance));
+        if (s == 9)
+        {
+            Console.WriteLine($"Season 10 ({rep.SeasonStartYear}/{rep.SeasonStartYear + 1 - 2000}): {rep.Renewed} renewed, {rep.LeftAtContractEnd} left at contract end, {rep.FreeAgentSignings} free-agent signings");
+        }
+    }
+    Console.WriteLine();
+    Console.WriteLine("Season 1, by starting league (averages per club):");
+    Console.WriteLine("League | start balance | income Y1 | wages Y1 | wages/income | start balance / wages | balance Y1 | Y5 | Y10 | in debt Y10");
+    foreach (var g in fw.Clubs.GroupBy(c => startKey[c.Id]).OrderBy(g => g.Key))
+    {
+        var ids = g.Select(c => c.Id).ToList();
+        double inc = ids.Average(id => first.Income[id].Total), wages = ids.Average(id => first.WageBill[id]);
+        Console.WriteLine($"{g.Key,-6} | {M(ids.Average(id => start[id])),13} | {M(inc),9} | {M(wages),8} | {wages / inc,12:P0} | {ids.Average(id => start[id]) / ids.Average(id => startBill[id]),21:F2} | {M(ids.Average(id => history[0][id])),10} | {M(ids.Average(id => history[4][id])),6} | {M(ids.Average(id => history[9][id])),6} | {ids.Count(id => history[9][id] < 0),3}/{ids.Count}");
+    }
+    Console.WriteLine();
+    Console.WriteLine("Wages / income, best vs worst club in each league (season 1):");
+    foreach (var g in fw.Clubs.GroupBy(c => startKey[c.Id]).OrderBy(g => g.Key))
+    {
+        var r = g.Select(c => first.WageBill[c.Id] / first.Income[c.Id].Total).ToList();
+        Console.WriteLine($"{g.Key,-6} min {r.Min():P0}  median {r.OrderBy(x => x).ElementAt(r.Count / 2):P0}  max {r.Max():P0}");
+    }
+    return;
+}
+
 var sw = System.Diagnostics.Stopwatch.StartNew();
 var w = new WorldGenerator(data).Generate(seed);
 sw.Stop();
