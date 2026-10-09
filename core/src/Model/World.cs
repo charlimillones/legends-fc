@@ -2,7 +2,14 @@ using System.Collections.Generic;
 
 namespace LegendsFC.Core.Model
 {
+    /// <summary>
+    /// Stable facility ids (saved by name, never renamed). Display names live in data/rules/facilities.json
+    /// (Oct 9): Stadium, Training Grounds, Youth Academy, Medical Building, Club Store, Scouting Centre.
+    /// </summary>
     public enum Facility { Stadium, TrainingGround, Academy, MedicalCentre, ClubStore, ScoutingCentre }
+
+    /// <summary>data/rules/facilities.json: display name for each stable facility id.</summary>
+    public sealed class FacilityInfo { public Facility Id; public string Name; }
 
     public enum CompetitionType { League, Cup, Continental, International }
 

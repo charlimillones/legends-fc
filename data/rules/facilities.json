@@ -1,0 +1,11 @@
+{
+  "_source": "The 6 facilities (confirmed Oct 7). Display names renamed by Carlos on Oct 9; the ids are stable and never change (saves use them).",
+  "facilities": [
+    { "id": "Stadium", "name": "Stadium" },
+    { "id": "TrainingGround", "name": "Training Grounds" },
+    { "id": "Academy", "name": "Youth Academy" },
+    { "id": "MedicalCentre", "name": "Medical Building" },
+    { "id": "ClubStore", "name": "Club Store" },
+    { "id": "ScoutingCentre", "name": "Scouting Centre" }
+  ]
+}
