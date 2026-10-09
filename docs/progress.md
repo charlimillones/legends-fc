@@ -108,6 +108,22 @@
   - **End of season:** `SeasonCycle.EndSeason` handles money, promotion and relegation, the new year, renewals, the academy and free agents.
   - **Wages with the market running:** the typical club now settles near 74% of income (wage bars lowered 10%).
 
+- **Step 9a: facilities** (branch `feature/facilities`, 137 tests; confirmed Oct 9):
+  - **Upgrades and repairs:**
+    - instant upgrades at fixed prices (€0.5M → €120M);
+    - repairs priced from the level (0.2% of the price per 1%);
+    - Repair all, or one facility at a time.
+  - **Wear and levels:**
+    - weekly wear (faster when fans are unhappy);
+    - working level from condition;
+    - Stadium seats and Club Store income follow the level;
+    - level drops below 20%.
+  - **Managers:** named managers who retire, with a 5–15% handover loss.
+  - **AI clubs:** they repair below 70% and upgrade with spare money (the money sink).
+  - **Upkeep:** the flat 3% upkeep was replaced by real repairs.
+  - **10-season sim:** levels show wealth (England 8.0 → Argentina's 2nd division 3.3); English top-flight cash after 10 seasons falls from €694M to €441M per club.
+  - **Next:** the inbox and the 45 manager messages (step 9b).
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 

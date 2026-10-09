@@ -56,6 +56,10 @@ namespace LegendsFC.Core.World
                     AddClub(country.Id, 0, null, CurveRating(best, worst, i, _c.CupOnlyClubsPerCountry));
             }
             SetUpMoney();
+            // Facility managers (own random stream, so adding them didn't change the rest of the world).
+            var managers = new GameRandom(seed ^ 0xFAC1_17E5_0000_0001UL);
+            foreach (var club in _w.Clubs)
+                foreach (var s in club.Facilities.Values) s.Manager = Facilities.FacilityRules.NewManager(_w, club, managers, _d);
             return _w;
         }
 
@@ -64,7 +68,8 @@ namespace LegendsFC.Core.World
         {
             _w = world; _rng = rng;
             _playerSeq = world.Players.Count == 0 ? 0 : world.Players.Max(p => int.Parse(p.Id.Substring(4)));
-            int academyLevel = club.Facilities[Facility.Academy].Level;
+            // The Youth Academy works at its working level (level × condition, Oct 9).
+            int academyLevel = Math.Max(1, (int)Math.Round(Facilities.FacilityRules.WorkingLevel(club.Facilities[Facility.Academy], _d.FacilityRules)));
             // Random positions (confirmed Oct 9: no gap filling).
             for (int i = 0; i < count; i++)
             {
@@ -97,7 +102,7 @@ namespace LegendsFC.Core.World
                 {
                     var club = ranked[i];
                     int home = Season.SeasonSimulator.HomeLeagueMatches(group.Key, ranked.Count, _d);
-                    var income = Money.Finance.SeasonIncome(club, group.Key, i + 1, ranked.Count, home, f);
+                    var income = Money.Finance.SeasonIncome(club, group.Key, i + 1, ranked.Count, home, f, _d.FacilityRules);
                     club.Balance = (long)Math.Round(income.Total * f.StartingBalanceSeasons);
                 }
             }
@@ -243,7 +248,7 @@ namespace LegendsFC.Core.World
             if (personalityId != null && _d.Personalities.Any(x => x.Id == personalityId && x.ArchetypeOnly)) throw new ArgumentException("That personality can't be chosen.");
             _w = world; _rng = rng;
             _playerSeq = world.Players.Count == 0 ? 0 : world.Players.Max(p => int.Parse(p.Id.Substring(4)));
-            int level = club.Facilities[Facility.Academy].Level;
+            int level = Math.Max(1, (int)Math.Round(Facilities.FacilityRules.WorkingLevel(club.Facilities[Facility.Academy], _d.FacilityRules)));
             var pc = _c.Potential;
             double median = pc.AcademyBase + pc.AcademyPerLevel * level;
             int potential = Clamp((int)Math.Round(median + Math.Abs(_rng.Gaussian(0, pc.AcademySd))), pc.AcademyMin, pc.AcademyMax); // upper half only

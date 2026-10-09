@@ -95,7 +95,7 @@
     "exponent": 0.65
   },
   "commercialRepGrowth": 1.06,
-  "upkeepShareOfIncome": 0.03,
+  "upkeepShareOfIncome": 0.0,
   "startingBalanceSeasons": 0.5,
   "renewal": {
     "_note": "Confirmed Oct 9: an expiring contract goes to a renewal negotiation; the outcome decides if he stays. AI clubs talk to players they still want (PROPOSAL): their best 26 by rating up to age 32, and prospects (23 and under) inside their best 30.",
@@ -125,5 +125,6 @@
     "monthlyDriftShare": 0.1,
     "normalBase": 30,
     "normalPerReputation": 0.5
-  }
+  },
+  "_upkeepNote": "Oct 9: the flat 3% upkeep is replaced by real repairs (facilities.json: each 1% of condition costs 0.2% of the level's price), paid when a club repairs."
 }

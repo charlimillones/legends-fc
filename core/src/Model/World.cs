@@ -42,6 +42,15 @@ namespace LegendsFC.Core.Model
     {
         public int Level = 1;            // 1-10
         public double Condition = 100;   // 0-100 %, shown per facility and as a total (Oct 8)
+        /// <summary>The facility's named manager (a story character with no abilities, Oct 7).</summary>
+        public FacilityManager Manager;
+    }
+
+    /// <summary>A facility manager: random per club, ages, retires and is replaced (Oct 7-9).</summary>
+    public sealed class FacilityManager
+    {
+        public string Name, NationalityId;
+        public int BirthYear, RetireAge;
     }
 
     /// <summary>A club. Stable IDs, e.g. "CLB-000123".</summary>
@@ -59,6 +68,8 @@ namespace LegendsFC.Core.Model
         public long Balance;             // EUR (displayed in the world's currency)
         public Dictionary<Facility, FacilityState> Facilities = new Dictionary<Facility, FacilityState>();
         public double FanMood = 50;      // 0-100 (Oct 8)
+        /// <summary>Running total spent on facility upgrades and repairs (EUR), for reports.</summary>
+        public long SpentOnFacilities;
     }
 
     /// <summary>A player. Hidden fields are never shown directly (architecture rule 7).</summary>

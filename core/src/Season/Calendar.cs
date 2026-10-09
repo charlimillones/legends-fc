@@ -86,6 +86,10 @@ namespace LegendsFC.Core.Season
                 }
             }
 
+            // Facilities: weekly wear; AI clubs repair and upgrade (confirmed Oct 9).
+            Facilities.FacilityRules.WeeklyWear(w, rng, _d.FacilityRules);
+            Facilities.FacilityRules.AiWeekly(w, _d);
+
             // Weekly training (40 weeks from the first training week).
             if (cal.Week >= c.FirstTrainingWeek && cal.Week < c.FirstTrainingWeek + _d.Development.TrainingWeeksPerSeason)
             {

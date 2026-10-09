@@ -115,6 +115,8 @@ if (args.Length > 0 && args[0] == "market-report")
         Console.WriteLine($"{rep.SeasonStartYear}/{rep.SeasonStartYear + 1 - 2000} | {rep.Transfers,9} | {rep.Loans,5} | {rep.FreeAgentSignings,11} | {Mm(rep.TransferFees),10} | {Mm(deals.Count == 0 ? 0 : deals.Average(x => (double)x.Fee)),7} | {ratio,9:F2} | {rep.Renewed,7} | {rep.LeftAtContractEnd,4} | {Avg("ENG-1"),8:F1} | {Avg("ARG-1"),8:F1} | {Mm(eng),14} | {rep.ClubsAtZero}");
     }
     Console.WriteLine($"10 seasons in {sw2.Elapsed.TotalSeconds:F1} s");
+    foreach (var g in mw.Clubs.GroupBy(c => mw.ClubLeague[c.Id] ?? c.CountryId).OrderBy(g => g.Key))
+        Console.WriteLine($"  {g.Key,-6} avg facility level {g.Average(c => c.Facilities.Values.Average(f => f.Level)):F1} (max {g.Max(c => c.Facilities.Values.Average(f => f.Level)):F1}), condition {g.Average(c => c.Facilities.Values.Average(f => f.Condition)):F0}%, spent on facilities {Mm(g.Average(c => (double)c.SpentOnFacilities))} per club, cash {Mm(g.Average(c => (double)c.Balance))}");
     Console.WriteLine(string.Join(", ", mw.Market.Stats.OrderByDescending(k => k.Value).Select(k => k.Key + " " + k.Value)));
     var top = mw.Market.History.Where(h => !h.Loan && !h.FreeAgent).OrderByDescending(h => h.Fee).Take(5);
     Console.WriteLine("Biggest fees: " + string.Join(", ", top.Select(h => Mm(h.Fee))));

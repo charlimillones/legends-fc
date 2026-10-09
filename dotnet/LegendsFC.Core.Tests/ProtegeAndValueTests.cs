@@ -38,7 +38,7 @@ public class ProtegeTests
         var gen = new WorldGenerator(d);
         var w = gen.Generate(21);
         var club = w.Clubs.First();
-        int level = club.Facilities[Facility.Academy].Level;
+        int level = Math.Max(1, (int)Math.Round(LegendsFC.Core.Facilities.FacilityRules.WorkingLevel(club.Facilities[Facility.Academy], d.FacilityRules)));   // the Youth Academy works at its working level
         double median = d.WorldGen.Potential.AcademyBase + d.WorldGen.Potential.AcademyPerLevel * level;
         var rng = new GameRandom(5);
         for (int i = 0; i < 200; i++)

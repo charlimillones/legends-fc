@@ -13,7 +13,7 @@ namespace LegendsFC.Core.Season
         public int SeasonStartYear;
         public List<CompetitionOutcome> Outcomes = new List<CompetitionOutcome>();
         public int Retired, AcademyGraduates, Released, FreeAgentSignings, Renewed, LeftAtContractEnd, NotOfferedRenewal, RefusedRenewal, ClubsAtZero;
-        public int Transfers, Loans, LoansReturned;
+        public int Transfers, Loans, LoansReturned, FacilityLevelDrops, ManagerHandovers;
         public double TransferFees;
         public Dictionary<string, Money.IncomeBreakdown> Income = new Dictionary<string, Money.IncomeBreakdown>();
         public Dictionary<string, double> WageBill = new Dictionary<string, double>();
@@ -55,7 +55,9 @@ namespace LegendsFC.Core.Season
             SettleFinances(w, report);
             ApplyPromotionAndRelegation(w, report.Outcomes);
 
+            report.FacilityLevelDrops = Facilities.FacilityRules.LevelDrops(w, rng, _d.FacilityRules).Count;
             w.SeasonStartYear++;
+            report.ManagerHandovers = Facilities.FacilityRules.ManagerHandovers(w, rng, _d).Count;
             report.LoansReturned = Transfers.Market.ReturnLoans(w);   // loans last until the end of the season
             foreach (var p in w.Players.Where(p => !p.Retired && w.SeasonStartYear - p.BirthYear >= p.RetireAge))
             {
@@ -204,7 +206,7 @@ namespace LegendsFC.Core.Season
                 double normal = Money.Finance.NormalFanMood(club, f);
                 club.FanMood = normal + (club.FanMood - normal) * System.Math.Pow(1 - fm.MonthlyDriftShare, 10); // drift over the season
 
-                var income = Money.Finance.SeasonIncome(club, key, pos, teams, SeasonSimulator.HomeLeagueMatches(key, teams, _d), f);
+                var income = Money.Finance.SeasonIncome(club, key, pos, teams, SeasonSimulator.HomeLeagueMatches(key, teams, _d), f, _d.FacilityRules);
                 double wages = Transfers.Market.WageBill(w, club.Id);   // loans: each club pays its share
                 double upkeep = income.Total * f.UpkeepShareOfIncome;
                 club.Balance = System.Math.Max(0, club.Balance + (long)System.Math.Round(income.Total - wages - upkeep)); // never below zero (Oct 9)

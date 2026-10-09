@@ -44,7 +44,7 @@ namespace LegendsFC.Core.Money
     public static class Finance
     {
         /// <param name="position">Final league position (1 = champion). Cup-only clubs: pass position 1 of 1.</param>
-        public static IncomeBreakdown SeasonIncome(Club club, string leagueOrCountry, int position, int teams, int homeMatches, FinanceConfig c)
+        public static IncomeBreakdown SeasonIncome(Club club, string leagueOrCountry, int position, int teams, int homeMatches, FinanceConfig c, Facilities.FacilityConfig fc = null)
         {
             var m = c.For(leagueOrCountry);
             double merit = teams <= 1 ? 1.0 : 2.0 * (teams - position + 1) / (teams + 1); // averages to 1 across the league
@@ -58,7 +58,10 @@ namespace LegendsFC.Core.Money
             };
             double fill = Math.Min(1.0, c.FillBase + c.FillMood * club.FanMood / 100.0);
             double ticket = c.TicketBase + c.TicketRange * Math.Pow(club.Reputation / 100.0, c.TicketExponent);
-            inc.Gate = homeMatches * club.StadiumCapacity * fill * ticket;
+            // Facilities (Oct 9): the Stadium level sets the seats, the Club Store level the store income (level 5 in full condition = ×1).
+            int seats = fc == null ? club.StadiumCapacity : Facilities.FacilityRules.StadiumCapacity(club, fc);
+            if (fc != null) inc.Store *= Facilities.FacilityRules.Effect(club.Facilities[Facility.ClubStore], fc);
+            inc.Gate = homeMatches * seats * fill * ticket;
             return inc;
         }
 

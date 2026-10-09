@@ -204,7 +204,7 @@ namespace LegendsFC.Core.Transfers
             int teams = w.ClubLeague.Count(x => x.Value != null && x.Value == key);
             if (teams == 0) teams = 1;
             int home = Season.SeasonSimulator.HomeLeagueMatches(key, teams, d);
-            return Money.Finance.SeasonIncome(club, key, (teams + 1) / 2, teams, home, d.Finance).Total;
+            return Money.Finance.SeasonIncome(club, key, (teams + 1) / 2, teams, home, d.Finance, d.FacilityRules).Total;
         }
 
         // ------------------------------------------------------------------ AI buying
