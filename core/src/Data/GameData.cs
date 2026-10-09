@@ -38,6 +38,8 @@ namespace LegendsFC.Core.Data
         public List<FacilityInfo> Facilities = new List<FacilityInfo>();
         public Season.CalendarConfig Calendar = new Season.CalendarConfig();
         public LegendsFC.Core.Facilities.FacilityConfig FacilityRules = new LegendsFC.Core.Facilities.FacilityConfig();
+        /// <summary>data/world/cups.json: domestic, super and continental cups (Oct 9).</summary>
+        public Season.CupData Cups = new Season.CupData();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
@@ -51,7 +53,7 @@ namespace LegendsFC.Core.Data
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
             "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
-            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json",
+            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json", "world/cups.json",
         };
 
         /// <param name="read">Returns the JSON text for a relative path from <see cref="Files"/>.</param>
@@ -81,6 +83,7 @@ namespace LegendsFC.Core.Data
             d.Transfers = Parse<Transfers.TransferConfig>(read("config/transfers.json"));
             d.Calendar = Parse<Season.CalendarConfig>(read("config/calendar.json"));
             d.FacilityRules = Parse<LegendsFC.Core.Facilities.FacilityConfig>(read("config/facilities.json"));
+            d.Cups = Parse<Season.CupData>(read("world/cups.json"));
             return d;
         }
 

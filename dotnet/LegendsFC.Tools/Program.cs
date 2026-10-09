@@ -93,6 +93,46 @@ if (args.Length > 0 && args[0] == "wage-room")
     }
     return;
 }
+if (args.Length > 0 && args[0] == "cups-report")
+{
+    // Cups over N seasons: entrants, winners, prize money. Usage: cups-report [seed] [seasons]
+    int seasons = args.Length > 2 ? int.Parse(args[2]) : 3;
+    var cw = new WorldGenerator(data).Generate(seed);
+    var cc = new LegendsFC.Core.Season.SeasonCycle(data);
+    var cr = new LegendsFC.Core.Util.GameRandom(seed + 11);
+    string Nm(string id) => id == null ? "-" : cw.Clubs.First(c => c.Id == id) is var c ? $"{c.Name} ({cw.ClubLeague[c.Id] ?? c.CountryId})" : id;
+    var swc = System.Diagnostics.Stopwatch.StartNew();
+    for (int s = 0; s < seasons; s++)
+    {
+        var cal = new LegendsFC.Core.Season.SeasonCalendar(data);
+        cal.Start(cw, cr);
+        var runs = cw.Calendar.Runs.ToList();
+        Console.WriteLine($"=== {cw.SeasonStartYear}/{cw.SeasonStartYear + 1 - 2000}");
+        foreach (var run in runs.Where(r => data.Cups.Cups.Any(c => c.Id == r.CompetitionId && c.Kind != LegendsFC.Core.Season.CupKind.Ranking)))
+            Console.WriteLine($"  {run.CompetitionId,-13} {run.Clubs.Count,2} clubs, {run.PlannedRounds,2} rounds, weeks {string.Join(",", cw.Calendar.RoundWeeks[run.CompetitionId])}");
+        while (!cw.Calendar.SeasonOver) cal.PlayWeek(cw, cr);
+        var money = LegendsFC.Core.Season.CupRewards.PrizeMoney(cw.Calendar.Runs, data);
+        foreach (var run in cw.Calendar.Runs.Where(r => data.Cups.Cups.Any(c => c.Id == r.CompetitionId)))
+        {
+            var o = run.Outcome;
+            string title = o.Titles.TryGetValue("Winner", out var wnr) ? wnr : o.Titles.TryGetValue("Champion", out var ch) ? ch : null;
+            int et = run.PlayedRounds.SelectMany(x => x).Count(x => x.AfterExtraTime), pens = run.PlayedRounds.SelectMany(x => x).Count(x => x.PenaltyWinner != null);
+            Console.WriteLine($"  {run.CompetitionId,-13} winner {Nm(title)}, {run.PlayedRounds.Sum(x => x.Count)} matches, {et} extra time, {pens} shootouts" + (title != null && money.TryGetValue(title, out var m) && m > 0 ? $", winner's cup money this season (all cups) {m / 1e6:F1}M" : ""));
+        }
+        foreach (var lg in new[] { "ENG-1", "BRA-1", "ARG-1" })
+        {
+            var ids = cw.Clubs.Where(c => cw.ClubLeague[c.Id] == lg).Select(c => c.Id).ToList();
+            Console.WriteLine($"  {lg} cup prize money: avg {ids.Average(i => money.TryGetValue(i, out var v) ? v : 0) / 1e6:F1}M, max {ids.Max(i => money.TryGetValue(i, out var v) ? v : 0) / 1e6:F1}M");
+        }
+        var weekLoad = cw.Calendar.Runs.SelectMany(r => r.PlayedRounds.Select((res, i) => (week: cw.Calendar.RoundWeeks[r.CompetitionId][i], res)))
+            .SelectMany(x => x.res.SelectMany(m => new[] { (x.week, m.Home), (x.week, m.Away) }))
+            .GroupBy(x => x).Select(g => g.Count()).DefaultIfEmpty(0).Max();
+        Console.WriteLine($"  most matches for one club in one week: {weekLoad}");
+        cc.EndSeason(cw, cr, cal.Outcomes(cw));
+    }
+    Console.WriteLine($"{seasons} seasons in {swc.Elapsed.TotalSeconds:F1} s");
+    return;
+}
 if (args.Length > 0 && args[0] == "market-report")
 {
     // Transfer market over 10 seasons. Usage: market-report [seed]

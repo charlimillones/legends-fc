@@ -23,7 +23,12 @@ public class CalendarTests
         Assert.All(weeks.Where(x => x.Week >= 9 && x.Week <= 26), x => Assert.False(x.WindowOpen));
         Assert.All(weeks.Where(x => x.Week >= 27 && x.Week <= 30), x => Assert.True(x.WindowOpen));
         Assert.All(weeks.Where(x => x.Week >= 31), x => Assert.False(x.WindowOpen));
-        Assert.All(weeks.Where(x => x.Week <= 8 || x.Week > 50), x => Assert.Equal(0, x.MatchesPlayed));
+        // League rounds only in weeks 9-50; before and after that only cups play (qualifying, super cups, finals).
+        var leagues = new HashSet<string>(w.Competitions.Select(c => c.Id));
+        Assert.All(w.Calendar.RoundWeeks.Where(kv => leagues.Contains(kv.Key)), kv => Assert.All(kv.Value, wk => Assert.InRange(wk, 9, 50)));
+        Assert.All(weeks.Where(x => x.Week <= 5), x => Assert.Equal(0, x.MatchesPlayed));
+        Assert.True(weeks.Where(x => x.Week <= 8).Sum(x => x.MatchesPlayed) > 0);   // continental qualifying and super cups
+        Assert.True(weeks.Where(x => x.Week > 50).Sum(x => x.MatchesPlayed) > 0);   // cup and continental finals
         Assert.Equal(40, weeks.Count(x => x.Trained));
         Assert.All(w.Calendar.Runs, r => { Assert.True(r.Finished); Assert.Equal(r.PlannedRounds, r.PlayedRounds.Count); });
         // At most two rounds of a league in one week (midweek games when a league has more rounds than weeks).
@@ -64,6 +69,10 @@ public class CalendarTests
         cal.Start(w, rng);
         int mine = 0;
         while (!w.Calendar.SeasonOver) mine += cal.PlayWeek(w, rng).UserMatches.Count;
-        Assert.Equal(38, mine);
+        int league = w.Calendar.Runs.Single(r => r.CompetitionId == "ENG-1").PlayedRounds.Sum(x => x.Count(m => m.Home == w.UserClubId || m.Away == w.UserClubId));
+        int all = w.Calendar.Runs.Sum(r => r.PlayedRounds.Sum(x => x.Count(m => m.Home == w.UserClubId || m.Away == w.UserClubId)));
+        Assert.Equal(38, league);
+        Assert.True(all > league);          // every English club plays at least one cup match
+        Assert.Equal(all, mine);
     }
 }

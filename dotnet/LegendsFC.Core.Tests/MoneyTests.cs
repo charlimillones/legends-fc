@@ -275,7 +275,12 @@ public class FinanceSeasonsTests
                 {   // balancing target (Oct 9): the typical club spends about 65% of income on wages (real football 60-70%)
                     double median = g.Select(c => r.WageBill[c.Id] / r.Income[c.Id].Total).OrderBy(x => x).ElementAt(g.Count() / 2);
                     _out.WriteLine($"  {g.Key}: median wages/income {median:P0}");
-                    Assert.InRange(median, 0.50, 0.85);   // with the market spending up to the wage bar the typical club settles near 74%; second divisions (small stadiums and stores) run hotter, as in real football
+                    // With the market spending up to the wage bar the typical club settles near 70%; second divisions (small stadiums
+                    // and stores, almost no cup money) run hotter, as in real football (76-85% in the Oct 9 sims).
+                    // Cup-only countries have no league: continental prize money dominates their income (Oct 9), so no target.
+                    if (g.Key == null || !g.Key.Contains("-")) continue;
+                    bool second = g.Key.EndsWith("-2");
+                    Assert.InRange(median, second ? 0.60 : 0.50, second ? 0.90 : 0.80);
                 }
             _out.WriteLine($"{r.SeasonStartYear}: renewed {r.Renewed}, left at contract end {r.LeftAtContractEnd}, free-agent signings {r.FreeAgentSignings}, " +
                            $"free agents now {w.Players.Count(p => !p.Retired && p.ClubId == null)}, clubs at zero {r.ClubsAtZero}");
