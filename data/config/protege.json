@@ -1,0 +1,7 @@
+{
+  "_source": "Prot\u00e9g\u00e9 (Oct 7-9). First one: free and fully custom, slightly above academy level. Yearly one: you choose position OR personality; guaranteed in the top 50% of what the academy can produce (confirmed Oct 9). Price: a standard % of his market value that depends on the academy level, always below market value (confirmed rule; the % numbers are a PROPOSAL).",
+  "priceShareBase": 0.5,
+  "priceSharePerLevel": 0.03,
+  "priceShareMax": 0.8,
+  "firstProtegeBonus": 5
+}

@@ -12,6 +12,13 @@ namespace LegendsFC.Core.World
     /// Builds the fictional base world from data + one seed. Same seed and data → identical world (architecture rule 4).
     /// Same rules for every club (rule 5): the user's club is picked after generation.
     /// </summary>
+    /// <summary>data/config/protege.json.</summary>
+    public sealed class ProtegeConfig
+    {
+        public double PriceShareBase = 0.5, PriceSharePerLevel = 0.03, PriceShareMax = 0.8;
+        public int FirstProtegeBonus = 5;
+    }
+
     public sealed class WorldGenerator
     {
         private readonly GameData _d;
@@ -135,14 +142,14 @@ namespace LegendsFC.Core.World
             }
         }
 
-        private void AddPlayer(Club club, Position main, double targetRating, int age, int? academyLevel)
+        private Player AddPlayer(Club club, Position main, double targetRating, int age, int? academyLevel, int? forcedPotential = null, string forcedPersonalityId = null)
         {
             var p = new Player { Id = "PLY-" + (++_playerSeq).ToString("D7"), ClubId = club.Id, MainPosition = main };
             bool outfield = Positions.IsOutfield(main);
 
             // Archetype: A Keeper is 1 in 1,000 outfield players (confirmed Oct 8); otherwise one of the 4 for the group.
             var aKeeper = _d.Archetypes.First(a => a.IsAnyOutfield);
-            Archetype arch = outfield && _rng.Chance(aKeeper.SpawnPerOutfieldPlayer ?? 0)
+            Archetype arch = outfield && forcedPersonalityId == null && _rng.Chance(aKeeper.SpawnPerOutfieldPlayer ?? 0)
                 ? aKeeper
                 : PickWeighted(_d.Archetypes.Where(a => a.Group == Positions.GroupOf(main).ToString()).ToList(), a => a.SpawnWeight);
             p.ArchetypeId = arch.Id;
@@ -152,7 +159,7 @@ namespace LegendsFC.Core.World
             if (academyLevel.HasValue)
             {
                 var pc = _c.Potential;
-                potential = Clamp((int)Math.Round(_rng.Gaussian(pc.AcademyBase + pc.AcademyPerLevel * academyLevel.Value, pc.AcademySd)), pc.AcademyMin, pc.AcademyMax);
+                potential = forcedPotential ?? Clamp((int)Math.Round(_rng.Gaussian(pc.AcademyBase + pc.AcademyPerLevel * academyLevel.Value, pc.AcademySd)), pc.AcademyMin, pc.AcademyMax);
                 targetRating = potential - _rng.Uniform(pc.AcademyCurrentBelowPotential[0], pc.AcademyCurrentBelowPotential[1]);
             }
             targetRating = Math.Max(25, Math.Min(95, targetRating));
@@ -179,12 +186,39 @@ namespace LegendsFC.Core.World
             p.DeclineAmount = Math.Round(_rng.Uniform(ad.DropMin, ad.DropMax), 1);
 
             // Personality: about 45% (confirmed range 40-50%); A Keeper always has the A Keeper personality and no other.
-            if (arch.LinkedPersonalityId != null) p.PersonalityId = arch.LinkedPersonalityId;
+            if (forcedPersonalityId != null) p.PersonalityId = forcedPersonalityId;
+            else if (arch.LinkedPersonalityId != null) p.PersonalityId = arch.LinkedPersonalityId;
             else if (_rng.Chance(_d.PersonalitySettings.ShareWithPersonality))
                 p.PersonalityId = PickWeighted(_d.Personalities.Where(x => !x.ArchetypeOnly).ToList(), x => x.SpawnWeight).Id;
 
             p.ContractEndYear = _rng.NextInt(_c.Contracts.EndYearMin, _c.Contracts.EndYearMax);
             _w.Players.Add(p);
+            return p;
+        }
+
+        /// <summary>
+        /// The yearly protégé (confirmed Oct 9): you choose his position OR his personality, everything else is random,
+        /// and his potential is guaranteed to be in the top 50% of what this academy produces.
+        /// Returns the player and his price (a standard share of his market value, below market value).
+        /// </summary>
+        public (Player player, long priceEur) CreateYearlyProtege(GameWorld world, Club club, GameRandom rng, Position? position, string personalityId)
+        {
+            if ((position == null) == (personalityId == null)) throw new ArgumentException("Choose a position or a personality (one of them).");
+            if (personalityId != null && _d.Personalities.Any(x => x.Id == personalityId && x.ArchetypeOnly)) throw new ArgumentException("That personality can't be chosen.");
+            _w = world; _rng = rng;
+            _playerSeq = world.Players.Count == 0 ? 0 : world.Players.Max(p => int.Parse(p.Id.Substring(4)));
+            int level = club.Facilities[Facility.Academy].Level;
+            var pc = _c.Potential;
+            double median = pc.AcademyBase + pc.AcademyPerLevel * level;
+            int potential = Clamp((int)Math.Round(median + Math.Abs(_rng.Gaussian(0, pc.AcademySd))), pc.AcademyMin, pc.AcademyMax); // upper half only
+            var pos = position ?? Positions.All[_rng.NextInt(0, Positions.All.Length - 1)];
+            var p = AddPlayer(club, pos, 0, pc.AcademyAge[0], level, potential, personalityId);
+            double rating = PositionRating.Base(p.Attributes, p.MainPosition, _d.PositionRatings);
+            int years = p.ContractEndYear - world.SeasonStartYear;
+            double value = MarketValue.Eur(rating, 6.5, pc.AcademyAge[0], p.Potential, years, _d.MarketValue);
+            var pr = _d.Protege;
+            double share = Math.Min(pr.PriceShareMax, pr.PriceShareBase + pr.PriceSharePerLevel * level);
+            return (p, (long)Math.Round(value * share));
         }
 
         private int SeniorPotential(int current, int age)

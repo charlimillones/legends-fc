@@ -11,6 +11,22 @@ var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
 while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, "data", "rules"))) dir = dir.Parent;
 var data = GameData.LoadFromDirectory(Path.Combine(dir.FullName, "data"));
 ulong seed = args.Length > 1 ? ulong.Parse(args[1]) : 2026;
+if (args.Length > 0 && args[0] == "protege-report")
+{
+    var g = new WorldGenerator(data);
+    var wr = g.Generate(seed);
+    Console.WriteLine("Academy level | avg potential | avg price (EUR) | price share");
+    foreach (var lvl in new[] { 1, 3, 5, 8, 10 })
+    {
+        var club = wr.Clubs.First();
+        club.Facilities[LegendsFC.Core.Model.Facility.Academy].Level = lvl;
+        var rr = new LegendsFC.Core.Util.GameRandom((ulong)lvl);
+        var rows = Enumerable.Range(0, 200).Select(_ => g.CreateYearlyProtege(wr, club, rr, LegendsFC.Core.Model.Position.CM, null)).ToList();
+        double share = Math.Min(data.Protege.PriceShareMax, data.Protege.PriceShareBase + data.Protege.PriceSharePerLevel * lvl);
+        Console.WriteLine($"{lvl,13} | {rows.Average(r => r.player.Potential),13:F1} | {rows.Average(r => (double)r.priceEur),15:N0} | {share:P0}");
+    }
+    return;
+}
 
 var sw = System.Diagnostics.Stopwatch.StartNew();
 var w = new WorldGenerator(data).Generate(seed);
