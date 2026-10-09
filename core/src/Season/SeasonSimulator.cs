@@ -42,32 +42,30 @@ namespace LegendsFC.Core.Season
             => PlaySeason(w, rng).ToDictionary(o => o.CompetitionId,
                 o => o.Tables.TryGetValue("League", out var t) ? t : o.Tables.TryGetValue("Annual", out var a) ? a : o.Tables.Values.First());
 
+        /// <summary>A season's league competitions, ready to play round by round (structure seeds drawn from rng).</summary>
+        public List<CompetitionRun> NewRuns(GameWorld w, GameRandom rng)
+        {
+            var runs = new List<CompetitionRun>();
+            foreach (var league in w.Competitions.Where(c => c.Type == Model.CompetitionType.League).OrderBy(c => c.Id, System.StringComparer.Ordinal))
+            {
+                var clubs = w.Clubs.Where(c => w.ClubLeague[c.Id] == league.Id).Select(c => c.Id).ToList();
+                var run = new CompetitionRun { CompetitionId = league.Id, Seed = rng.NextUInt64(), Clubs = clubs };
+                run.PlannedRounds = CompetitionRun.CountRounds(run.CompetitionId, clubs, run.Seed, _d);
+                runs.Add(run);
+            }
+            return runs;
+        }
+
+        /// <summary>Plays every league season at once in sim mode (headless tools and tests). The weekly calendar uses the same runs.</summary>
         public List<CompetitionOutcome> PlaySeason(GameWorld w, GameRandom rng)
         {
             var strength = Strengths(w);
             double S(string id) => strength[id];
-            var f = _d.LeagueFormats;
-            var outcomes = new List<CompetitionOutcome>();
-            foreach (var league in w.Competitions.Where(c => c.Type == Model.CompetitionType.League).OrderBy(c => c.Id, System.StringComparer.Ordinal))
-            {
-                var clubs = w.Clubs.Where(c => w.ClubLeague[c.Id] == league.Id).Select(c => c.Id).ToList();
-                if (league.Id == f.ArgentinaFirst.CompetitionId) { outcomes.Add(Argentina.PlayFirstDivision(clubs, f.ArgentinaFirst, S, _d.MatchSim, rng)); continue; }
-                if (league.Id == f.ArgentinaSecond.CompetitionId) { outcomes.Add(Argentina.PlaySecondDivision(clubs, f.ArgentinaSecond, f.ArgentinaFirst, S, _d.MatchSim, rng)); continue; }
-
-                int legs = f.Legs.TryGetValue(league.Id, out var l) ? l : 2;
-                var table = new LeagueTable(clubs, _d.MatchSim);
-                foreach (var round in Fixtures.RoundRobin(clubs, legs, rng))
-                    foreach (var fx in round)
-                        table.Add(MatchSim.Play(fx.Home, fx.Away, S(fx.Home), S(fx.Away), _d.MatchSim, rng));
-                var rows = table.Standings();
-                var o = new CompetitionOutcome { CompetitionId = league.Id };
-                o.Tables["League"] = rows;
-                o.Titles["Champion"] = rows[0].ClubId;
-                o.Relegated.AddRange(Enumerable.Reverse(rows).Take(league.Relegation).Select(r => r.ClubId));
-                o.Promoted.AddRange(rows.Take(league.Promotion).Select(r => r.ClubId));
-                outcomes.Add(o);
-            }
-            return outcomes;
+            var runs = NewRuns(w, rng);
+            foreach (var run in runs)
+                for (var round = run.Next(_d); round != null; round = run.Next(_d))
+                    run.Record(RoundPlayer.Sim(round, S, _d, rng), _d);
+            return runs.Select(r => r.Outcome).ToList();
         }
     }
 }

@@ -110,11 +110,7 @@ if (args.Length > 0 && args[0] == "market-report")
         int hb = mw.Market.History.Count;
         var rep = mc.Advance(mw, mr);
         var deals = mw.Market.History.Skip(hb).Where(h => !h.Loan && !h.FreeAgent).ToList();
-        double ratio = deals.Count == 0 ? 0 : deals.Average(h =>
-        {
-            var p = mw.Players.First(x => x.Id == h.PlayerId);
-            return h.Fee / Math.Max(1, LegendsFC.Core.Transfers.Pricing.Value(mw, p, data));
-        });
+        double ratio = deals.Count == 0 ? 0 : deals.Average(h => h.Fee / Math.Max(1, h.ValueAtDeal));
         double eng = mw.Clubs.Where(c => mw.ClubLeague[c.Id] == "ENG-1").Average(c => (double)c.Balance);
         Console.WriteLine($"{rep.SeasonStartYear}/{rep.SeasonStartYear + 1 - 2000} | {rep.Transfers,9} | {rep.Loans,5} | {rep.FreeAgentSignings,11} | {Mm(rep.TransferFees),10} | {Mm(deals.Count == 0 ? 0 : deals.Average(x => (double)x.Fee)),7} | {ratio,9:F2} | {rep.Renewed,7} | {rep.LeftAtContractEnd,4} | {Avg("ENG-1"),8:F1} | {Avg("ARG-1"),8:F1} | {Mm(eng),14} | {rep.ClubsAtZero}");
     }

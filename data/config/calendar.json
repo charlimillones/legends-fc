@@ -1,0 +1,9 @@
+{
+  "_source": "Weekly season calendar (Oct 9, PROPOSAL agreed in principle with the facilities plan): 52 weeks; summer window weeks 1-8 (pre-season), league matches weeks 9-50 spread evenly (some weeks have two rounds when a league has more rounds than weeks), winter window weeks 27-30 alongside the matches, training weeks 9-48 (40 weeks, as in development.json).",
+  "weeksPerSeason": 52,
+  "summerWindowStartWeek": 1,
+  "firstMatchWeek": 9,
+  "lastMatchWeek": 50,
+  "winterWindowStartWeek": 27,
+  "firstTrainingWeek": 9
+}

@@ -98,6 +98,16 @@
 - **Facility display names** (branch `feature/facility-names`): Stadium, Training Grounds, Youth Academy, Medical Building, Club Store, Scouting Centre. The ids are unchanged.
 - **Unity project** (branch `feature/unity-project`): URP, Unity 6.6, with the core package. The smoke test passes in the editor.
 
+- **Weekly calendar** (branch `feature/weekly-calendar`, 127 tests):
+  - **The season runs week by week (52 weeks):**
+    - the summer window in weeks 1–8, day by day;
+    - league rounds spread over weeks 9–50, with two rounds in some weeks when a league has more rounds than weeks;
+    - the winter window in weeks 27–30, alongside the matches;
+    - training in weeks 9–48.
+  - **Formats as scripts:** competition formats (round-robin leagues, Argentina's zones, playoffs, final and reducido) are scripts that play round by round. Only the seed and the results are saved, and a half-played season survives a save (tested).
+  - **End of season:** `SeasonCycle.EndSeason` handles money, promotion and relegation, the new year, renewals, the academy and free agents.
+  - **Wages with the market running:** the typical club now settles near 74% of income (wage bars lowered 10%).
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 

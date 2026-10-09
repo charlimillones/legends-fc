@@ -29,12 +29,29 @@ namespace LegendsFC.Core.Season
         private readonly GameData _d;
         public SeasonCycle(GameData d) { _d = d; }
 
+        /// <summary>One whole season, week by week (52 weeks), then the end-of-season work. Endless career = call again.</summary>
         public SeasonReport Advance(GameWorld w, GameRandom rng)
         {
-            var report = new SeasonReport { SeasonStartYear = w.SeasonStartYear };
-            report.Outcomes = new SeasonSimulator(_d).PlaySeason(w, rng);
-            Train(w);
-            w.Market.RatingCache = null; w.Market.SquadsChanged();   // ratings changed
+            var calendar = new SeasonCalendar(_d);
+            var m = w.Market;
+            int historyBefore = m.History.Count;
+            if (w.Calendar.Week == 0 || w.Calendar.Runs.Count == 0) calendar.Start(w, rng);
+            while (!w.Calendar.SeasonOver) calendar.PlayWeek(w, rng);
+            var report = EndSeason(w, rng, calendar.Outcomes(w));
+            var deals = m.History.Skip(historyBefore).ToList();
+            report.Transfers = deals.Count(x => !x.Loan && !x.FreeAgent);
+            report.Loans = deals.Count(x => x.Loan);
+            report.TransferFees = deals.Sum(x => (double)x.Fee);
+            return report;
+        }
+
+        /// <summary>
+        /// End of season: money and fan mood, promotion and relegation, the new year (loans back, retirements),
+        /// contract renewals, academy intake and squad limits, the free-agent market. Then the next season's calendar is reset.
+        /// </summary>
+        public SeasonReport EndSeason(GameWorld w, GameRandom rng, List<CompetitionOutcome> outcomes)
+        {
+            var report = new SeasonReport { SeasonStartYear = w.SeasonStartYear, Outcomes = outcomes };
             SettleFinances(w, report);
             ApplyPromotionAndRelegation(w, report.Outcomes);
 
@@ -73,18 +90,9 @@ namespace LegendsFC.Core.Season
             }
             AiFreeAgentWindow(w, rng, report);
 
-            // Summer transfer window before the new season (8 weeks, day by day, deadline rush). The calendar moves on a year.
-            var m = w.Market;
-            m.Day += 365 - _d.Transfers.Windows.SummerDays;
-            int historyBefore = m.History.Count;
-            var swW = System.Diagnostics.Stopwatch.StartNew();
-            Transfers.AiMarket.RunWindow(w, "summer", rng, _d);
-            m.Stats.TryGetValue("ms:window", out int msw); m.Stats["ms:window"] = msw + (int)swW.ElapsedMilliseconds;
-            var deals = m.History.Skip(historyBefore).ToList();
-            report.Transfers = deals.Count(x => !x.Loan && !x.FreeAgent);
-            report.Loans = deals.Count(x => x.Loan);
-            report.TransferFees = deals.Sum(x => (double)x.Fee);
-            m.Talks.RemoveAll(t => t.Status != Transfers.TalkStatus.Open && t.Status != Transfers.TalkStatus.Pending);
+            // Ready for the next season: a fresh calendar; old finished talks are cleared.
+            w.Market.Talks.RemoveAll(t => t.Status != Transfers.TalkStatus.Open && t.Status != Transfers.TalkStatus.Pending);
+            w.Calendar = new CalendarState();
             return report;
         }
 
@@ -258,20 +266,19 @@ namespace LegendsFC.Core.Season
         }
 
         /// <summary>AI default until coaches exist: one coach per group (GK / defence / midfield / attack), moderate regime.</summary>
-        private void Train(GameWorld w)
+        public static void TrainOneWeek(GameWorld w, GameData d)
         {
-            var c = _d.Development;
-            var arch = _d.Archetypes.ToDictionary(a => a.Id);
+            var c = d.Development;
+            var arch = d.Archetypes.ToDictionary(a => a.Id);
             foreach (var club in w.Clubs)
             {
-                var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
+                var squad = Transfers.Market.Squad(w, club.Id);
                 var fac = club.Facilities[Facility.TrainingGround];
                 int effective = (int)System.Math.Round(fac.Level * (0.6 + 0.4 * fac.Condition / 100));
                 var groups = squad.GroupBy(p => CoachGroup(p.MainPosition)).ToDictionary(g => g.Key, g => g.Count());
-                for (int week = 0; week < c.TrainingWeeksPerSeason; week++)
-                    foreach (var p in squad)
-                        Development.TrainWeek(p, w.SeasonStartYear - p.BirthYear, arch[p.ArchetypeId], c.DefaultCoachQuality, c.DefaultRegime,
-                            groups[CoachGroup(p.MainPosition)], effective, c.FormNeutral, _d);
+                foreach (var p in squad)
+                    Development.TrainWeek(p, w.SeasonStartYear - p.BirthYear, arch[p.ArchetypeId], c.DefaultCoachQuality, c.DefaultRegime,
+                        groups[CoachGroup(p.MainPosition)], effective, c.FormNeutral, d);
             }
         }
 

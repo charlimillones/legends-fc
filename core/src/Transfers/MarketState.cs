@@ -65,6 +65,8 @@ namespace LegendsFC.Core.Transfers
         public int Day, Season;
         public string PlayerId, FromClubId, ToClubId;
         public long Fee;
+        /// <summary>His market value when the deal was done (fee ÷ value is a balancing measure).</summary>
+        public double ValueAtDeal;
         public bool Loan, FreeAgent;
     }
 

@@ -14,6 +14,8 @@ namespace LegendsFC.Core.Season
     {
         public string Home, Away;
         public int HomeGoals, AwayGoals;
+        /// <summary>Knockout matches level after 90 minutes: who won the shootout (null otherwise).</summary>
+        public string PenaltyWinner;
     }
 
     /// <summary>Sim-mode results (approved Oct 8). Same model for every club; the user's club gets no help.</summary>

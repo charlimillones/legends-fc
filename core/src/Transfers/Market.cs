@@ -377,10 +377,12 @@ namespace LegendsFC.Core.Transfers
                 seller.Balance += fee;
                 if (!p.FormerClubIds.Contains(from)) p.FormerClubIds.Add(from);
             }
+            double valueBefore = Pricing.Value(w, p, d);
             p.ClubId = buyer.Id; p.Wage = wage; p.ContractEndYear = w.SeasonStartYear + years;
             p.LoanFromClubId = null; p.LoanWageShare = 0;
             t.Status = TalkStatus.Done; t.AgreedFee = fee; t.AgreedWage = wage; t.AgreedYears = years;
             Closed(w, p, from, buyer.Id, fee, false);
+            w.Market.History[w.Market.History.Count - 1].ValueAtDeal = valueBefore;
         }
 
         private static void ExecuteLoan(GameWorld w, Talk t, long fee, double wageShare, GameData d)

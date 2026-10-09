@@ -3,74 +3,74 @@
   "leagues": {
     "ENG-1": {
       "tvPerClubEur": 75000000.0,
-      "wageBarBaseEur": 116700000.0,
+      "wageBarBaseEur": 105000000.0,
       "wageLevel": 1.0
     },
     "ENG-2": {
       "tvPerClubEur": 9000000.0,
-      "wageBarBaseEur": 29200000.0,
+      "wageBarBaseEur": 26300000.0,
       "wageLevel": 0.339
     },
     "ESP-1": {
       "tvPerClubEur": 40000000.0,
-      "wageBarBaseEur": 67800000.0,
+      "wageBarBaseEur": 61000000.0,
       "wageLevel": 0.62
     },
     "ESP-2": {
       "tvPerClubEur": 5000000.0,
-      "wageBarBaseEur": 16900000.0,
+      "wageBarBaseEur": 15200000.0,
       "wageLevel": 0.259
     },
     "BRA-1": {
       "tvPerClubEur": 12500000.0,
-      "wageBarBaseEur": 29800000.0,
+      "wageBarBaseEur": 26800000.0,
       "wageLevel": 0.298
     },
     "BRA-2": {
       "tvPerClubEur": 1500000.0,
-      "wageBarBaseEur": 7300000.0,
+      "wageBarBaseEur": 6600000.0,
       "wageLevel": 0.142
     },
     "ARG-1": {
       "tvPerClubEur": 4000000.0,
-      "wageBarBaseEur": 17600000.0,
+      "wageBarBaseEur": 15800000.0,
       "wageLevel": 0.17
     },
     "ARG-2": {
       "tvPerClubEur": 500000.0,
-      "wageBarBaseEur": 4400000.0,
+      "wageBarBaseEur": 4000000.0,
       "wageLevel": 0.098
     }
   },
   "cupOnly": {
     "POR": {
       "tvPerClubEur": 6000000.0,
-      "wageBarBaseEur": 8100000.0,
+      "wageBarBaseEur": 7300000.0,
       "wageLevel": 0.104
     },
     "NED": {
       "tvPerClubEur": 6000000.0,
-      "wageBarBaseEur": 8900000.0,
+      "wageBarBaseEur": 8000000.0,
       "wageLevel": 0.111
     },
     "MEX": {
       "tvPerClubEur": 5000000.0,
-      "wageBarBaseEur": 7600000.0,
+      "wageBarBaseEur": 6800000.0,
       "wageLevel": 0.111
     },
     "USA": {
       "tvPerClubEur": 5000000.0,
-      "wageBarBaseEur": 7700000.0,
+      "wageBarBaseEur": 6900000.0,
       "wageLevel": 0.125
     },
     "URU": {
       "tvPerClubEur": 1000000.0,
-      "wageBarBaseEur": 1500000.0,
+      "wageBarBaseEur": 1400000.0,
       "wageLevel": 0.027
     },
     "COL": {
       "tvPerClubEur": 1200000.0,
-      "wageBarBaseEur": 1900000.0,
+      "wageBarBaseEur": 1700000.0,
       "wageLevel": 0.029
     }
   },
