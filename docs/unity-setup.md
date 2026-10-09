@@ -14,3 +14,7 @@
    - **Every day:** Window → General → Device Simulator, then choose an iPhone or iPad.
    - **Touch on your device:** install Unity Remote 5 on the iPhone, plus the Apple Devices app on Windows (for USB). In the editor: Project Settings → Editor → Device: Any iOS Device.
    - **Real builds (later):** GitHub Actions on a cloud Mac uploads to TestFlight. This needs the Apple Developer Program ($99/yr).
+
+## Status (Oct 9, 2026)
+- Done: Unity 6.6 (6000.6.5f1) with iOS, Web and Windows build support; the URP project `unity/LegendsFC` was created from the Universal 3D template (local project, no Unity Cloud); the core package is added to the manifest.
+- Smoke test (Legends FC → Smoke Test) passed in the editor: "222 clubs, 7305 players, ENG-1 champion Blackstead Town, 4937 ms", with 0 errors and 0 warnings.
