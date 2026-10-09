@@ -120,16 +120,18 @@ public class MultiSeasonTests
     }
 
     [Fact]
-    public void UserClubIsNeverTrimmed_ButKeepsAtLeast16()
+    public void UserClubIsNeverTrimmedOrToppedUp()
     {
         var d = TestData.Data;
         var w = new WorldGenerator(d).Generate(8);
         var club = w.Clubs.First();
         w.UserClubId = club.Id;
-        // Strip the user's squad down to 10 and give him 40 others: the cycle must not trim him, only top him up to 16.
-        var mine = w.Players.Where(p => p.ClubId == club.Id).ToList();
-        foreach (var p in mine.Skip(10)) p.ClubId = null;
+        var before = w.Players.Where(p => p.ClubId == club.Id).Select(p => p.Id).ToHashSet();
         new SeasonCycle(d).Advance(w, new GameRandom(3));
-        Assert.True(w.Players.Count(p => p.ClubId == club.Id) >= 16);
+        var nowIds = w.Players.Where(p => p.ClubId == club.Id).Select(p => p.Id).ToHashSet();
+        int retired = w.Players.Count(p => before.Contains(p.Id) && p.Retired);
+        int academy = nowIds.Count(id => !before.Contains(id));
+        Assert.InRange(academy, 2, 4);                                   // only the random intake joins
+        Assert.Equal(before.Count - retired + academy, nowIds.Count);   // nobody released, nobody signed
     }
 }

@@ -59,8 +59,8 @@ namespace LegendsFC.Core.Season
                     p.ClubId = null; excess--; report.Released++;
                 }
             }
-            // Minimum squad of 16 at all times (confirmed Oct 9): clubs below it sign the best free agents.
-            // AI clubs sign a goalkeeper first if they are under their goalkeeper minimum.
+            // Minimum squad of 16 (confirmed Oct 9). AI clubs below it sign the best free agents.
+            // The user's club is never topped up: it simply can't sell below 16 (enforced by the transfer rules).
             var freeAgents = w.Players.Where(p => !p.Retired && p.ClubId == null).OrderByDescending(Rating).ToList();
             foreach (var club in w.Clubs)
             {
@@ -77,7 +77,7 @@ namespace LegendsFC.Core.Season
                     }
                     gk.ClubId = club.Id; freeAgents.Remove(gk); report.FreeAgentSignings++;
                 }
-                while (w.Players.Count(p => p.ClubId == club.Id) < c.MinSquadSize && freeAgents.Count > 0)
+                while (ai && w.Players.Count(p => p.ClubId == club.Id) < c.MinSquadSize && freeAgents.Count > 0)
                 {
                     bool needGk = ai && w.Players.Count(p => p.ClubId == club.Id && p.MainPosition == Position.GK) < c.AiMinGoalkeepers;
                     var pick = (needGk ? freeAgents.FirstOrDefault(p => p.MainPosition == Position.GK) : null) ?? freeAgents[0];
