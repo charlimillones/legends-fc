@@ -135,6 +135,7 @@ public class MultiSeasonTests
         Assert.InRange(academy, 2, 4);                                   // only the random intake joins
         Assert.Equal(before.Count - retired - left.Count + academy, nowIds.Count);   // nobody released, nobody signed
         // The only other way out: his contract ran out and the renewal talks failed (Oct 9).
-        Assert.All(left, p => { Assert.Null(p.ClubId); Assert.Contains(club.Id, p.FormerClubIds); Assert.True(p.ContractEndYear <= w.SeasonStartYear); });
+        // (He may have signed for another club in the summer window since.)
+        Assert.All(left, p => { Assert.Contains(club.Id, p.FormerClubIds); Assert.True(p.ClubId == null || p.ContractEndYear > w.SeasonStartYear); });
     }
 }

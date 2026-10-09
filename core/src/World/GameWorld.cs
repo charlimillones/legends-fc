@@ -18,6 +18,8 @@ namespace LegendsFC.Core.World
         public string UserClubId;
         /// <summary>Display currency picked at world creation (Oct 9). Amounts are stored in EUR.</summary>
         public string CurrencyCode = "EUR";
+        /// <summary>Transfer market: calendar day, window, negotiations, cooldowns, listings, history.</summary>
+        public Transfers.MarketState Market = new Transfers.MarketState();
 
         /// <summary>League id for league clubs, country id for cup-only clubs (keys of the finance config).</summary>
         public string MoneyKey(Model.Club club) => ClubLeague.TryGetValue(club.Id, out var l) && l != null ? l : club.CountryId;

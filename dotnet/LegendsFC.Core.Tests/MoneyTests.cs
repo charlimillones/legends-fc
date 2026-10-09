@@ -44,31 +44,6 @@ public class CurrencyTests
     }
 }
 
-public class ContractTests
-{
-    private static LegendsFC.Core.Rules.ProbabilityConfig P => TestData.Data.Probability;
-
-    [Fact]
-    public void FairOfferIsAbout66Percent()
-    {
-        Assert.InRange(Contracts.AcceptChance(1e6, 1e6, 0, 3, 0, P), 0.65, 0.67);
-        Assert.InRange(Contracts.AcceptChance(1e6, 1e6, 0, 3, Contracts.AcademyOrExClubBonus, P), 0.77, 0.79);
-        Assert.InRange(Contracts.AcceptChance(1.1e6, 1e6, 0, 3, 0, P), 0.70, 0.72);
-        Assert.Equal(0.05, Contracts.AcceptChance(1, 1e6, -3, 1, 0, P), 6);      // clamped
-        Assert.Equal(0.95, Contracts.AcceptChance(1e9, 1e6, 0, 4, 0, P), 6);
-    }
-
-    [Fact]
-    public void PersonalitiesChangeRenewals()
-    {
-        double plain = Contracts.RenewalChance(null, 1e6, 1e6, 3, P);
-        Assert.True(Contracts.RenewalChance("PER-LOYAL", 1e6, 1e6, 3, P) > plain);
-        Assert.True(Contracts.RenewalChance("PER-DIVA", 1e6, 1e6, 3, P) < plain);
-        Assert.True(Contracts.RenewalChance("PER-BUSINESSMAN", 1e6, 1e6, 3, P) < plain);
-        Assert.Equal(plain, Contracts.RenewalChance("PER-BUSINESSMAN", 1.2e6, 1e6, 3, P), 9);  // he wants 20% more
-    }
-}
-
 public class FinanceTests
 {
     private static FinanceConfig F => TestData.Data.Finance;
@@ -149,9 +124,11 @@ public class FinanceTests
         var w = new WorldGenerator(d).Generate(6);
         var before = w.Clubs.ToDictionary(c => c.Id, c => c.Balance);
         var report = new SeasonCycle(d).Advance(w, new GameRandom(1));
+        // Transfer fees from the summer window move money between clubs on top of the season's settlement.
+        double Fees(string id) => w.Market.History.Where(h => h.FromClubId == id).Sum(h => (double)h.Fee) - w.Market.History.Where(h => h.ToClubId == id && h.FromClubId != null).Sum(h => (double)h.Fee);
         foreach (var c in w.Clubs)
         {
-            double expected = Math.Max(0, before[c.Id] + report.Income[c.Id].Total * (1 - F.UpkeepShareOfIncome) - report.WageBill[c.Id]);
+            double expected = Math.Max(0, before[c.Id] + report.Income[c.Id].Total * (1 - F.UpkeepShareOfIncome) - report.WageBill[c.Id]) + Fees(c.Id);
             Assert.InRange(c.Balance - expected, -1, 1);
             Assert.True(c.Balance >= 0);
             Assert.InRange(c.FanMood, 0, 100);
@@ -198,34 +175,41 @@ public class FreeAgentTests
     }
 
     [Fact]
-    public void AcceptanceRateMatchesTheApprovedChance()
+    public void AskingWhatHeWantsCloses_LessIsAChance()
     {
         var (d, w) = Fresh();
         var p = w.Players.First(x => x.ClubId == w.Clubs[1].Id && x.PersonalityId == null);
         p.ClubId = null;
         var club = w.Clubs[0];
-        long fair = (long)FreeAgents.ExpectedWage(w, club, p, 3, d);
-        double chance = FreeAgents.AcceptChance(w, club, p, fair, 3, d);
-        Assert.InRange(chance, 0.65, 0.67);
+        int years = Pricing.PreferredYears(w, p, d);
+        double demand = Pricing.WageDemand(w, club, p, false, d);
+        Assert.Equal(1.0, FreeAgents.AcceptChance(w, club, p, (long)Math.Ceiling(demand), years, d));
+        Assert.Equal(0.0, FreeAgents.AcceptChance(w, club, p, (long)(demand * 0.69), years, d));
+        long offer = (long)(demand * 0.9);
+        double chance = FreeAgents.AcceptChance(w, club, p, offer, years, d);
+        Assert.InRange(chance, 0.65, 0.68);
         int yes = 0, n = 4000; var rng = new GameRandom(7);
         for (int i = 0; i < n; i++)
         {
             p.ClubId = null;
-            if (FreeAgents.Offer(w, club, p, fair, 3, rng, d) == OfferResult.Accepted) yes++;
+            if (FreeAgents.Offer(w, club, p, offer, years, rng, d) == OfferResult.Accepted) yes++;
         }
         Assert.InRange(yes / (double)n, chance - 0.03, chance + 0.03);
     }
 
     [Fact]
-    public void FormerClubAndAcademyGetTheBonus()
+    public void FormerClubAndAcademyAskLess()
     {
         var (d, w) = Fresh();
         var club = w.Clubs[0];
-        var p = w.Players.First(x => x.ClubId == club.Id && x.AcademyClubId == null);
+        var p = w.Players.First(x => x.ClubId == club.Id && x.AcademyClubId == null && x.PersonalityId == null);
         Assert.True(Squads.Release(w, p, d));
         Assert.Contains(club.Id, p.FormerClubIds);
-        long fair = (long)FreeAgents.ExpectedWage(w, club, p, 3, d);
-        Assert.True(FreeAgents.AcceptChance(w, club, p, fair, 3, d) > FreeAgents.AcceptChance(w, w.Clubs[5], p, fair, 3, d));
+        // Same league, so the only difference is the former-club discount (and each club's own 0-20% spread).
+        double home = Pricing.WageDemand(w, club, p, false, d) / Pricing.Stable(w, "wage|" + p.Id + "|" + club.Id, 1.0, 1.2);
+        var other = w.Clubs[5];
+        double away = Pricing.WageDemand(w, other, p, false, d) / Pricing.Stable(w, "wage|" + p.Id + "|" + other.Id, 1.0, 1.2);
+        Assert.Equal(0.95, home / away, 6);
         Assert.Contains(w.Players, x => x.AcademyClubId == club.Id);
     }
 

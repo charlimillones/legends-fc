@@ -1,0 +1,122 @@
+{
+  "_source": "Transfer market, confirmed by Carlos Oct 9, 2026 (09:14, 09:40, 09:48, 09:57). Numbers marked PROPOSAL are for balancing. See claude/transfer-market-draft.md.",
+  "importance": {
+    "_note": "Fair price = market value x importance x form (Carlos, 09:40). Rank by rating within the squad. Multipliers PROPOSAL.",
+    "keyPlayers": 3,
+    "keyPlayer": 1.5,
+    "starters": 11,
+    "starter": 1.25,
+    "squadPlayers": 18,
+    "squadPlayer": 1.0,
+    "fringe": 0.9,
+    "listed": 0.85
+  },
+  "form": {
+    "_note": "Good form makes the club want to keep him (Carlos, 09:40). 1 + slope x (form - neutral), clamped. PROPOSAL.",
+    "neutral": 6.5,
+    "slope": 0.05,
+    "min": 0.9,
+    "max": 1.15
+  },
+  "askingSpreadMin": 1.0,
+  "askingSpreadMax": 1.2,
+  "wageDemandMin": 1.0,
+  "wageDemandMax": 1.2,
+  "acceptance": {
+    "_note": "Offer / demand: 100% or more closes the deal (Carlos, 09:14). Linear to 0% at 70%. Shown 0-100% in whole numbers (09:40).",
+    "zeroAt": 0.7,
+    "closeFrom": 0.85
+  },
+  "responses": {
+    "_note": "How far off the offer is decides the response (Carlos, 09:48). PROPOSAL shares. Under zeroAt: offended, walks away. After a plain 'no' to a bid, the bidder improves it 50%, holds it 30%, withdraws 20% (PROPOSAL).",
+    "closeCounter": 0.7,
+    "farCounter": 0.4,
+    "farKeepTalking": 0.4,
+    "patience": 3,
+    "cooldownDays": 7,
+    "afterRejectImprove": 0.5,
+    "afterRejectHold": 0.3
+  },
+  "years": {
+    "_note": "Preferred contract length by age; each year away from it counts as 5% less money. PROPOSAL.",
+    "youngMaxAge": 23,
+    "young": [
+      4,
+      5
+    ],
+    "primeMaxAge": 29,
+    "prime": [
+      3,
+      4
+    ],
+    "veteran": [
+      2,
+      3
+    ],
+    "penaltyPerYear": 0.05
+  },
+  "bonuses": {
+    "academyOrFormerClub": 0.05,
+    "loyalRenewal": 0.1,
+    "diva": -0.1,
+    "_note": "Bonuses lower what he asks from that club (folded into the wage demand): his academy club or a former club 5%, Loyal renewing 10%, Diva asks 10% more. PROPOSAL."
+  },
+  "bids": {
+    "_note": "Listing brings 0-5 bids depending on how useful he is (Carlos, 09:14). Bids 0.85-1.10x value (approved Oct 8). A bidder's hidden maximum is its bid x 1.00-1.25. PROPOSAL.",
+    "maxBids": 5,
+    "bidMin": 0.85,
+    "bidMax": 1.1,
+    "bidderMaxMin": 1.0,
+    "bidderMaxMax": 1.25,
+    "arrivalDaysMax": 5,
+    "unsolicitedChancePerDay": 0.01
+  },
+  "windows": {
+    "_note": "Summer 8 weeks before the season, winter 4 weeks at the halfway point; deadline rush x3 on the last 3 days. PROPOSAL.",
+    "summerDays": 56,
+    "winterDays": 28,
+    "deadlineDays": 3,
+    "deadlineMultiplier": 3
+  },
+  "ai": {
+    "_note": "AI market rules. PROPOSAL. Needs: a short position group, a starter more than 3 below the club's level, or else an upgrade on the weakest starter. Scouts look at players rated between the need and need + 8. Selling: at the start of a window an AI club lists players beyond 28 (weakest over 21 first), and if its wages are above 80% of its expected income it lists its most expensive players outside its best 3 until the excess is covered.",
+    "budgetShareOfBalance": 0.5,
+    "upgradeMargin": 1.0,
+    "shortGroupMinimum": {
+      "GK": 2,
+      "DEF": 7,
+      "MID": 7,
+      "FWD": 4
+    },
+    "searchChancePerDay": 0.15,
+    "candidatesPerSearch": 8,
+    "openingBidMin": 0.85,
+    "openingBidMax": 1.0,
+    "maxOverAsking": 1.1,
+    "sellBelowFairShare": 0.0,
+    "weakStarterGap": 3.0,
+    "startersPerGroup": {
+      "GK": 1,
+      "DEF": 4,
+      "MID": 3,
+      "FWD": 3
+    },
+    "maxOverWageDemand": 1.1,
+    "searchBand": 8,
+    "normalSquadSize": 28,
+    "wageShareBeforeSelling": 0.8
+  },
+  "loans": {
+    "_note": "Loans to the end of the season, no buy option in v1. The borrowing club pays 0, 50 or 100% of his wage plus a loan fee of 0-10% of value. PROPOSAL.",
+    "maxFeeShareOfValue": 0.1,
+    "wageShares": [
+      0.0,
+      0.5,
+      1.0
+    ],
+    "aiLoanMaxAge": 21,
+    "aiLoanOutsideBest": 18,
+    "aiLoanChancePerDay": 0.01,
+    "squadPlayerFeeShare": 0.05
+  }
+}

@@ -22,9 +22,9 @@ namespace LegendsFC.Core.Transfers
     }
 
     /// <summary>
-    /// Free transfers (added Oct 9): a player without a club can be signed with no fee. One rule for AI and user:
-    /// the club offers a wage and years, and the player accepts with the approved signing chance
-    /// (fee fairness 0, +0.6 if it's his academy or a former club).
+    /// Free transfers (added Oct 9): a player without a club can be signed with no fee, any time. One rule for AI and user:
+    /// the club offers a wage and years; offering what he asks at his preferred length closes it, below that the chance
+    /// falls (transfer negotiation rules, Oct 9). The user negotiates through Market.OpenSigning; this is the one-shot form.
     /// </summary>
     public static class FreeAgents
     {
@@ -41,16 +41,9 @@ namespace LegendsFC.Core.Transfers
             return Money.Finance.ExpectedWage(value, w.MoneyKey(club), d.Finance);
         }
 
-        public static double Bonus(Player p, Club club)
-            => p.AcademyClubId == club.Id || p.FormerClubIds.Contains(club.Id) ? Money.Contracts.AcademyOrExClubBonus : 0;
-
-        /// <summary>The chance he says yes. Shown in the UI rounded to 5%.</summary>
+        /// <summary>The chance he says yes (shown 0–100%, whole numbers).</summary>
         public static double AcceptChance(GameWorld w, Club club, Player p, long wageEur, int years, GameData d)
-        {
-            double expected = ExpectedWage(w, club, p, years, d);
-            if (p.PersonalityId == "PER-BUSINESSMAN") expected *= Money.Contracts.BusinessmanWageFactor;
-            return Money.Contracts.AcceptChance(wageEur, expected, 0, years, Bonus(p, club), d.Probability);
-        }
+            => Pricing.AcceptChance(Pricing.PlayerRatio(wageEur, years, Pricing.WageDemand(w, club, p, false, d), Pricing.PreferredYears(w, p, d), d), d);
 
         /// <summary>Make an offer. On acceptance he joins with that wage and a contract to SeasonStartYear + years.</summary>
         public static OfferResult Offer(GameWorld w, Club club, Player p, long wageEur, int years, GameRandom rng, GameData d)
@@ -60,10 +53,12 @@ namespace LegendsFC.Core.Transfers
             if (wageEur <= 0 || years < rc.YearsMin || years > rc.YearsMax) return OfferResult.InvalidTerms;
             // Every club, the user's included, has at most 32 players (Carlos, Oct 9).
             if (Squads.Count(w, club.Id) >= d.Development.MaxSquadSize) return OfferResult.SquadFull;
-            if (!rng.Chance(AcceptChance(w, club, p, wageEur, years, d))) return OfferResult.Declined;
+            double chance = AcceptChance(w, club, p, wageEur, years, d);
+            if (chance < 1 && !rng.Chance(chance)) return OfferResult.Declined;
             p.ClubId = club.Id;
             p.Wage = wageEur;
             p.ContractEndYear = w.SeasonStartYear + years;
+            w.Market.SquadsChanged();
             return OfferResult.Accepted;
         }
 

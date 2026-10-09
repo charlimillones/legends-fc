@@ -28,6 +28,51 @@ if (args.Length > 0 && args[0] == "protege-report")
     return;
 }
 
+if (args.Length > 0 && args[0] == "wage-room")
+{
+    var ww = new WorldGenerator(data).Generate(seed);
+    var wc = new LegendsFC.Core.Season.SeasonCycle(data); var wr = new LegendsFC.Core.Util.GameRandom(seed + 7);
+    for (int s = 0; s < 4; s++)
+    {
+        var rows = ww.Clubs.Select(c => (c, bar: LegendsFC.Core.Money.Finance.WageBar(c, ww.MoneyKey(c), "standard", data.Finance), bill: LegendsFC.Core.Transfers.Market.WageBill(ww, c.Id),
+                                       inc: LegendsFC.Core.Transfers.AiMarket.ExpectedIncome(ww, c, data))).ToList();
+        var ratio = rows.Select(r => r.bill / r.bar).OrderBy(x => x).ToList();
+        Console.WriteLine($"Season start {ww.SeasonStartYear}: bill/bar p10 {ratio[ratio.Count/10]:P0} median {ratio[ratio.Count/2]:P0} p90 {ratio[ratio.Count*9/10]:P0}; over bar {ratio.Count(x => x > 1)}/{ratio.Count}; bill/income median {rows.Select(r => r.bill / r.inc).OrderBy(x => x).ElementAt(rows.Count/2):P0}; squad avg {ww.Clubs.Average(c => ww.Players.Count(p => p.ClubId == c.Id)):F1}");
+        wc.Advance(ww, wr);
+    }
+    return;
+}
+if (args.Length > 0 && args[0] == "market-report")
+{
+    // Transfer market over 10 seasons. Usage: market-report [seed]
+    var mw = new WorldGenerator(data).Generate(seed);
+    var mc = new LegendsFC.Core.Season.SeasonCycle(data);
+    var mr = new LegendsFC.Core.Util.GameRandom(seed + 7);
+    double Rt(Player p) => PositionRating.Base(p.Attributes, p.MainPosition, data.PositionRatings);
+    double Avg(string league) => mw.Clubs.Where(c => mw.ClubLeague[c.Id] == league)
+        .Average(c => mw.Players.Where(p => p.ClubId == c.Id).Select(Rt).OrderByDescending(x => x).Take(11).Average());
+    string Mm(double v) => (v / 1e6).ToString("0.0") + "M";
+    var sw2 = System.Diagnostics.Stopwatch.StartNew();
+    Console.WriteLine("Season  | transfers | loans | free agents | fees total | avg fee | fee/value | renewed | left | ENG-1 XI | ARG-1 XI | ENG-1 cash avg | clubs at 0");
+    for (int s = 0; s < 10; s++)
+    {
+        int hb = mw.Market.History.Count;
+        var rep = mc.Advance(mw, mr);
+        var deals = mw.Market.History.Skip(hb).Where(h => !h.Loan && !h.FreeAgent).ToList();
+        double ratio = deals.Count == 0 ? 0 : deals.Average(h =>
+        {
+            var p = mw.Players.First(x => x.Id == h.PlayerId);
+            return h.Fee / Math.Max(1, LegendsFC.Core.Transfers.Pricing.Value(mw, p, data));
+        });
+        double eng = mw.Clubs.Where(c => mw.ClubLeague[c.Id] == "ENG-1").Average(c => (double)c.Balance);
+        Console.WriteLine($"{rep.SeasonStartYear}/{rep.SeasonStartYear + 1 - 2000} | {rep.Transfers,9} | {rep.Loans,5} | {rep.FreeAgentSignings,11} | {Mm(rep.TransferFees),10} | {Mm(deals.Count == 0 ? 0 : deals.Average(x => (double)x.Fee)),7} | {ratio,9:F2} | {rep.Renewed,7} | {rep.LeftAtContractEnd,4} | {Avg("ENG-1"),8:F1} | {Avg("ARG-1"),8:F1} | {Mm(eng),14} | {rep.ClubsAtZero}");
+    }
+    Console.WriteLine($"10 seasons in {sw2.Elapsed.TotalSeconds:F1} s");
+    Console.WriteLine(string.Join(", ", mw.Market.Stats.OrderByDescending(k => k.Value).Select(k => k.Key + " " + k.Value)));
+    var top = mw.Market.History.Where(h => !h.Loan && !h.FreeAgent).OrderByDescending(h => h.Fee).Take(5);
+    Console.WriteLine("Biggest fees: " + string.Join(", ", top.Select(h => Mm(h.Fee))));
+    return;
+}
 if (args.Length > 0 && args[0] == "finance-dump")
 {
     // One line per club at world creation: key, rank, teams, reputation, capacity, wage bill, home games, fan mood

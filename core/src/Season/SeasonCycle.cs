@@ -13,6 +13,8 @@ namespace LegendsFC.Core.Season
         public int SeasonStartYear;
         public List<CompetitionOutcome> Outcomes = new List<CompetitionOutcome>();
         public int Retired, AcademyGraduates, Released, FreeAgentSignings, Renewed, LeftAtContractEnd, NotOfferedRenewal, RefusedRenewal, ClubsAtZero;
+        public int Transfers, Loans, LoansReturned;
+        public double TransferFees;
         public Dictionary<string, Money.IncomeBreakdown> Income = new Dictionary<string, Money.IncomeBreakdown>();
         public Dictionary<string, double> WageBill = new Dictionary<string, double>();
     }
@@ -36,6 +38,7 @@ namespace LegendsFC.Core.Season
             ApplyPromotionAndRelegation(w, report.Outcomes);
 
             w.SeasonStartYear++;
+            report.LoansReturned = Transfers.Market.ReturnLoans(w);   // loans last until the end of the season
             foreach (var p in w.Players.Where(p => !p.Retired && w.SeasonStartYear - p.BirthYear >= p.RetireAge))
             {
                 p.Retired = true; p.ClubId = null; report.Retired++;
@@ -65,6 +68,17 @@ namespace LegendsFC.Core.Season
                 }
             }
             AiFreeAgentWindow(w, rng, report);
+
+            // Summer transfer window before the new season (8 weeks, day by day, deadline rush). The calendar moves on a year.
+            var m = w.Market;
+            m.Day += 365 - _d.Transfers.Windows.SummerDays;
+            int historyBefore = m.History.Count;
+            Transfers.AiMarket.RunWindow(w, "summer", rng, _d);
+            var deals = m.History.Skip(historyBefore).ToList();
+            report.Transfers = deals.Count(x => !x.Loan && !x.FreeAgent);
+            report.Loans = deals.Count(x => x.Loan);
+            report.TransferFees = deals.Sum(x => (double)x.Fee);
+            m.Talks.RemoveAll(t => t.Status != Transfers.TalkStatus.Open && t.Status != Transfers.TalkStatus.Pending);
             return report;
         }
 
@@ -97,10 +111,9 @@ namespace LegendsFC.Core.Season
 
             bool TrySign(Club club, Player p)
             {
-                int age = w.SeasonStartYear - p.BirthYear;
-                int years = age <= 23 ? rng.NextInt(3, 4) : age <= 29 ? rng.NextInt(2, 4) : rng.NextInt(1, 2);
+                // The AI offers his market wage at his preferred length; the chance depends on what he asks (Oct 9 rules).
+                int years = Transfers.Pricing.PreferredYears(w, p, _d);
                 double expected = Transfers.FreeAgents.ExpectedWage(w, club, p, years, _d);
-                if (p.PersonalityId == "PER-BUSINESSMAN") expected *= Money.Contracts.BusinessmanWageFactor;
                 var result = Transfers.FreeAgents.Offer(w, club, p, (long)System.Math.Max(1, System.Math.Round(expected)), years, rng, _d);
                 if (result != Transfers.OfferResult.Accepted) return false;
                 pool.Remove(p); squads[club.Id].Add(p); bill[club.Id] += p.Wage; report.FreeAgentSignings++;
@@ -111,7 +124,7 @@ namespace LegendsFC.Core.Season
             foreach (var club in ai)
             {
                 var squad = squads[club.Id];
-                if (squad.Count == 0 || squad.Count >= c.MaxSquadSize) continue;
+                if (squad.Count == 0 || squad.Count >= _d.Transfers.Ai.NormalSquadSize) continue;   // strengthen only below the normal squad size
                 var ratings = squad.Select(Rating).OrderBy(x => x).ToList();
                 double bar = ratings[(int)System.Math.Min(ratings.Count - 1, System.Math.Floor(fa.AiQualityPercentile * ratings.Count))];
                 int approaches = 0;
@@ -177,7 +190,7 @@ namespace LegendsFC.Core.Season
                 club.FanMood = normal + (club.FanMood - normal) * System.Math.Pow(1 - fm.MonthlyDriftShare, 10); // drift over the season
 
                 var income = Money.Finance.SeasonIncome(club, key, pos, teams, SeasonSimulator.HomeLeagueMatches(key, teams, _d), f);
-                double wages = w.Players.Where(p => p.ClubId == club.Id).Sum(p => (double)p.Wage);
+                double wages = Transfers.Market.WageBill(w, club.Id);   // loans: each club pays its share
                 double upkeep = income.Total * f.UpkeepShareOfIncome;
                 club.Balance = System.Math.Max(0, club.Balance + (long)System.Math.Round(income.Total - wages - upkeep)); // never below zero (Oct 9)
                 if (club.Balance == 0) report.ClubsAtZero++;
@@ -195,9 +208,9 @@ namespace LegendsFC.Core.Season
 
         /// <summary>
         /// Expiring contracts go to a renewal negotiation; the outcome decides if he stays (confirmed Oct 9).
-        /// AI clubs offer to players they still want (PROPOSAL rule in finance.json) at the expected wage;
-        /// the player accepts with the approved signing/renewal chance. The user's club negotiates in the UI;
-        /// headless runs use the same AI rule for it.
+        /// AI clubs talk to players they still want (PROPOSAL rule in finance.json): they open at his market wage
+        /// for his preferred length and move toward what he asks, up to 10% over market (transfers.json ai.maxOverWageDemand).
+        /// The user's club negotiates in the UI; headless runs use the same AI rule for it.
         /// </summary>
         private void RenewContracts(GameWorld w, GameRandom rng, SeasonReport report)
         {
@@ -206,24 +219,31 @@ namespace LegendsFC.Core.Season
             {
                 var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
                 if (squad.Count == 0) continue;
-                double median = squad.Select(Rating).OrderBy(x => x).ElementAt((int)System.Math.Min(squad.Count - 1, System.Math.Floor(rc.AiQualityPercentile * squad.Count)));
+                // Rank by rating: the AI keeps its best (normal squad size − 2) players up to 32, and its prospects (PROPOSAL).
+                var rank = squad.OrderByDescending(Rating).ThenBy(p => p.Id, System.StringComparer.Ordinal).Select((p, i) => (p, i + 1)).ToDictionary(x => x.p, x => x.Item2);
+                int keep = _d.Transfers.Ai.NormalSquadSize - 2;
                 foreach (var p in squad.Where(p => p.ContractEndYear <= w.SeasonStartYear))
                 {
                     int age = w.SeasonStartYear - p.BirthYear;
-                    double rating = Rating(p);
-                    bool wanted = age <= rc.AiOfferYoungAge || (age <= rc.AiOfferMaxAge && rating >= median);
-                    int years = rng.NextInt(rc.YearsMin, rc.YearsMax);
-                    double value = MarketValue.Eur(rating, 6.5, age, p.Potential, years, _d.MarketValue);
-                    double expected = Money.Finance.ExpectedWage(value, w.MoneyKey(club), f);
-                    // The AI offers what he expects (a Businessman expects 20% more); the personality still changes his answer.
-                    double offer = p.PersonalityId == "PER-BUSINESSMAN" ? expected * Money.Contracts.BusinessmanWageFactor : expected;
-                    if (!wanted) { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; report.NotOfferedRenewal++; }
-                    else if (rng.Chance(Money.Contracts.RenewalChance(p.PersonalityId, offer, expected, years, _d.Probability)))
+                    bool wanted = (age <= rc.AiOfferYoungAge && rank[p] <= _d.Development.MaxSquadSize - 2) || (age <= rc.AiOfferMaxAge && rank[p] <= keep);
+                    if (!wanted) { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; report.NotOfferedRenewal++; continue; }
+                    var talk = Transfers.Market.OpenRenewal(w, club, p, _d);
+                    int years = talk.PreferredYears;
+                    double market = Transfers.FreeAgents.ExpectedWage(w, club, p, years, _d);
+                    double max = market * _d.Transfers.Ai.MaxOverWageDemand, wage = market;
+                    bool renewed = false;
+                    for (int round = 0; round < 6 && talk.Status == Transfers.TalkStatus.Open; round++)
                     {
-                        p.ContractEndYear = w.SeasonStartYear + years;
-                        p.Wage = (long)System.Math.Round(offer);
-                        report.Renewed++;
+                        var reply = Transfers.Market.Offer(w, talk, 0, (long)System.Math.Max(1, System.Math.Round(wage)), years, rng, _d, out _);
+                        if (reply == Transfers.Reply.Accepted) { renewed = true; break; }
+                        if (reply == Transfers.Reply.Invalid || reply == Transfers.Reply.WalkedAway) break;
+                        double target = reply == Transfers.Reply.Countered ? talk.CounterWage : talk.WageDemand;
+                        double next = reply == Transfers.Reply.Countered && target <= max ? target : System.Math.Min(max, (wage + target) / 2);
+                        if (next <= wage + 1) break;   // the club won't go higher
+                        wage = next;
                     }
+                    if (talk.Status == Transfers.TalkStatus.Open) talk.Status = Transfers.TalkStatus.Cancelled;
+                    if (renewed) report.Renewed++;
                     else { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; report.RefusedRenewal++; }
                 }
             }

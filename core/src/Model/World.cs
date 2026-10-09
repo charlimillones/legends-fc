@@ -87,5 +87,9 @@ namespace LegendsFC.Core.Model
         public string AcademyClubId;
         /// <summary>Clubs he has left (released or out of contract). Also gives the ex-club bonus.</summary>
         public List<string> FormerClubIds = new List<string>();
+        /// <summary>On loan: the club that owns him (ClubId is the borrowing club). Null when not on loan.</summary>
+        public string LoanFromClubId;
+        /// <summary>Share of his wage the borrowing club pays while on loan (0, 0.5 or 1).</summary>
+        public double LoanWageShare;
     }
 }

@@ -34,6 +34,7 @@ namespace LegendsFC.Core.Data
         public World.ProtegeConfig Protege = new World.ProtegeConfig();
         public Money.FinanceConfig Finance = new Money.FinanceConfig();
         public Money.CurrencyConfig Currencies = new Money.CurrencyConfig();
+        public Transfers.TransferConfig Transfers = new Transfers.TransferConfig();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
@@ -45,7 +46,7 @@ namespace LegendsFC.Core.Data
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
             "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
-            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json",
+            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json",
         };
 
         /// <param name="read">Returns the JSON text for a relative path from <see cref="Files"/>.</param>
@@ -71,6 +72,7 @@ namespace LegendsFC.Core.Data
             d.Protege = Parse<World.ProtegeConfig>(read("config/protege.json"));
             d.Finance = Parse<Money.FinanceConfig>(read("config/finance.json"));
             d.Currencies = Parse<Money.CurrencyConfig>(read("config/currencies.json"));
+            d.Transfers = Parse<Transfers.TransferConfig>(read("config/transfers.json"));
             return d;
         }
 
