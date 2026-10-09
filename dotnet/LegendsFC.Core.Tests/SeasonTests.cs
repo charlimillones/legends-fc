@@ -52,7 +52,7 @@ public class SeasonSimTests
         Assert.All(eng, r => Assert.Equal(38, r.Played));
         Assert.Equal(eng.Sum(r => r.GoalsFor), eng.Sum(r => r.GoalsAgainst));
         Assert.Equal(eng.Sum(r => r.Won), eng.Sum(r => r.Lost));
-        Assert.All(tables["ARG-1"], r => Assert.Equal(29, r.Played));
+        Assert.All(tables["ARG-1"], r => Assert.Equal(32, r.Played)); // annual table: Apertura + Clausura, 16 each
     }
 
     [Fact]

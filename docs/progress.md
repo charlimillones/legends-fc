@@ -42,6 +42,20 @@
   - **Balancing check in CI:** title winners in England's first division average 78–97 points; draws are 18–32%.
   - **Speed:** a full season of all 8 leagues runs in well under 2 s.
 
+- **Argentina zone formats** (branch `feature/argentina-zones`, 68 tests):
+  - **First division (Apertura and Clausura):**
+    - 2 zones of 15, 16 matches per tournament (zone, classic, interzonal);
+    - top 8 per zone go into knockouts, single matches, penalties on a draw;
+    - the annual-table leader is the League champion;
+    - 2 relegated (annual table and averages).
+  - **Second division:**
+    - 2 zones of 18, home and away;
+    - the zone winners play a final for the title and the 1st promotion;
+    - the reducido (2nd-8th of each zone, plus the final's loser) decides the 2nd promotion.
+  - Promotion and relegation are balanced in every country.
+- **No home advantage** (Carlos, Oct 8).
+- **Goalkeepers** use the same random age-decay and retirement ranges as outfield players (Carlos, Oct 8).
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
@@ -50,8 +64,6 @@
 - **Step 6:** player development (training, form, age decay during the season).
 
 ## Open questions for Carlos
-- Argentina's league format: real zones, or a simple single round-robin (current PROPOSAL)?
-- Home advantage in sim mode: none for now (fans have no match effect). Should home teams get a small edge?
 - Can players be two-footed? Right now feet are Left or Right only.
 - How often does each personality appear? For now they're all equally likely (a PROPOSAL).
 

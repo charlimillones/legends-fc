@@ -149,7 +149,7 @@
     ]
   },
   "ageDecay": {
-    "_note": "Confirmed Oct 8: start 28-32, retire 32-40 (at least 2 years after start), total drop 15-25, curve exponent 1.5, goalkeepers +2 years.",
+    "_note": "Confirmed Oct 8: start 28-32, retire 32-40 (at least 2 years after start), total drop 15-25, curve exponent 1.5. Goalkeepers use the same random ranges as outfield players (Carlos, Oct 8).",
     "startMin": 28,
     "startMax": 32,
     "retireMin": 32,
@@ -158,7 +158,7 @@
     "dropMin": 15,
     "dropMax": 25,
     "exponent": 1.5,
-    "goalkeeperExtraYears": 2
+    "goalkeeperExtraYears": 0
   },
   "contracts": {
     "endYearMin": 2027,

@@ -1,13 +1,28 @@
 {
-  "_source": "League formats. PROPOSAL (Oct 8): double round-robin; Argentina single round-robin because of its 30/36-club leagues (real Argentine formats use zones; to decide).",
+  "_source": "League formats. Double round-robin for ENG/ESP/BRA (PROPOSAL Oct 8). Argentina copies the real 2026 zone formats (Carlos, Oct 8: 'copy the zones, change whatever else needs change'); details adapted where noted.",
   "legs": {
     "ENG-1": 2,
     "ENG-2": 2,
     "ESP-1": 2,
     "ESP-2": 2,
     "BRA-1": 2,
-    "BRA-2": 2,
-    "ARG-1": 1,
-    "ARG-2": 1
+    "BRA-2": 2
+  },
+  "argentinaFirst": {
+    "_note": "Liga Profesional 2026: 30 clubs, 2 zones of 15 for Apertura and Clausura (Clausura = same fixtures, home/away swapped). Each club plays its zone once + 1 classic + 1 interzonal = 16 matches. Top 8 per zone -> round of 16 (A1 v B8 ...), single matches, higher seed at home, draws -> penalties. Annual table (both zone phases) leader = League champion. Relegation: last of annual table + last of the averages table (3-season points per game; adapted: uses the seasons available). Penalties are a coin flip until the shootout model exists (PROPOSAL).",
+    "competitionId": "ARG-1",
+    "zones": 2,
+    "playoffQualifiersPerZone": 8,
+    "relegatedByAnnualTable": 1,
+    "relegatedByAverages": 1,
+    "averagesSeasons": 3,
+    "penaltyHomeWinChance": 0.5
+  },
+  "argentinaSecond": {
+    "_note": "Primera Nacional 2026: 36 clubs, 2 zones of 18, home and away in the zone (34 matches). Zone winners play a single-match final: winner = champion and 1st promotion. Reducido (adapted): 2nd-8th of each zone, round 1 crossed (A2 v B8 ... A5 v B5), higher seed at home, draws -> better-placed team advances; the final's loser joins in round 2 (8 teams), then single matches to a final; winner = 2nd promotion. No relegation (no third division in the test world).",
+    "competitionId": "ARG-2",
+    "zones": 2,
+    "reducidoFromPlace": 2,
+    "reducidoToPlace": 8
   }
 }

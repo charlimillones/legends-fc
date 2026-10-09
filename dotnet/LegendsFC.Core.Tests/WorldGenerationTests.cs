@@ -101,7 +101,7 @@ public class WorldGenerationTests
         Assert.All(W.Players, p =>
         {
             int age = W.SeasonStartYear - p.BirthYear;
-            int extra = p.MainPosition == Position.GK ? 2 : 0;
+            int extra = 0; // goalkeepers use the same ranges (Oct 8)
             Assert.True(p.RetireAge > age, p.Id);
             Assert.True(p.RetireAge - p.DeclineStartAge >= 2, p.Id);
             Assert.InRange(p.DeclineAmount, 15, 25);
