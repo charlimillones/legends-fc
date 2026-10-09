@@ -48,6 +48,32 @@ namespace LegendsFC.Core.World
             return _w;
         }
 
+        /// <summary>Season-end academy intake for one club (academy level sets potential, confirmed Oct 8).</summary>
+        public void AddAcademyIntake(GameWorld world, Club club, GameRandom rng, int count)
+        {
+            _w = world; _rng = rng;
+            _playerSeq = world.Players.Count == 0 ? 0 : world.Players.Max(p => int.Parse(p.Id.Substring(4)));
+            int academyLevel = club.Facilities[Facility.Academy].Level;
+            // Fill squad gaps first (positions below the squad template), then random positions (PROPOSAL).
+            var have = world.Players.Where(p => p.ClubId == club.Id).GroupBy(p => p.MainPosition).ToDictionary(g => g.Key, g => g.Count());
+            var needs = new List<Position>();
+            foreach (var pos in Positions.All)
+            {
+                _c.Squad.Slots.TryGetValue(pos.ToString(), out int want);
+                have.TryGetValue(pos, out int got);
+                for (int k = got; k < want; k++) needs.Add(pos);
+            }
+            for (int i = 0; i < count; i++)
+            {
+                Position pos;
+                int gk = needs.IndexOf(Position.GK);   // goalkeepers first: a club must always have 3
+                if (gk >= 0) { pos = Position.GK; needs.RemoveAt(gk); }
+                else if (needs.Count > 0) { int j = _rng.NextInt(0, needs.Count - 1); pos = needs[j]; needs.RemoveAt(j); }
+                else pos = Positions.All[_rng.NextInt(0, Positions.All.Length - 1)];
+                AddPlayer(club, pos, 0, _c.Potential.AcademyAge[0], academyLevel);
+            }
+        }
+
         private double CurveRating(double best, double worst, int index, int count)
         {
             if (count <= 1) return best;

@@ -1,0 +1,49 @@
+{
+  "_source": "Player development. Formulas from balancing-report.md: training growth (PROPOSAL v0), form factor (confirmed rule, numbers PROPOSAL), age decay curve (confirmed Oct 8). AI default training until coaches exist: moderate regime, average coach, one coach per position group (PROPOSAL).",
+  "trainingWeeksPerSeason": 40,
+  "baseGrowth": 0.08,
+  "regimes": {
+    "light": 0.6,
+    "moderate": 1.0,
+    "heavy": 1.4
+  },
+  "crowdPerExtraPlayer": 0.08,
+  "archetypePlusMultiplier": 1.5,
+  "archetypeMinusMultiplier": 0.5,
+  "personalityGrowth": {
+    "PER-PROFESSIONAL": 1.1,
+    "PER-HEALTHY": 0.9
+  },
+  "ageCurve": [
+    {
+      "maxAge": 21,
+      "factor": 1.3
+    },
+    {
+      "maxAge": 25,
+      "factor": 1.0
+    },
+    {
+      "maxAge": 29,
+      "factor": 0.5
+    },
+    {
+      "maxAge": 99,
+      "factor": 0.0
+    }
+  ],
+  "roomDivisor": 10.0,
+  "facilityBase": 0.7,
+  "facilityPerLevel": 0.06,
+  "formNeutral": 6.5,
+  "formSlope": 0.5,
+  "formFactorMax": 1.5,
+  "badFormThreshold": 5.5,
+  "badFormWeeklyLoss": 0.04,
+  "declineWeeklyMax": 0.1,
+  "defaultCoachQuality": 1.0,
+  "defaultRegime": "moderate",
+  "academyIntakePerSeason": 5,
+  "maxSquadSize": 32,
+  "_squadNote": "PROPOSAL: after the academy intake, clubs above maxSquadSize release their lowest-rated players (they leave the world until free agents exist)."
+}

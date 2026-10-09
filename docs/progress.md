@@ -56,6 +56,12 @@
 - **No home advantage** (Carlos, Oct 8).
 - **Goalkeepers** use the same random age-decay and retirement ranges as outfield players (Carlos, Oct 8).
 
+- **Player development and endless seasons** (branch `feature/development-multiseason`, 78 tests):
+  - **Weekly training:** the training formula plus the confirmed form factor and age-decay ceiling. Bad form lowers the rating; potential is never exceeded.
+  - **Season cycle:** sim season, training, promotion and relegation, ageing, random retirements, academy intake (5 per club, filling squad gaps, goalkeepers first) and a squad cap of 32.
+  - **Stability:** over 10 seasons the world stays stable (England's first-division average XI goes from 76.4 to 77.5), with 3 different champions. 10 seasons take about 12 s.
+  - **Interim, until the systems exist:** AI clubs use default training (moderate regime, average coach, one coach per group); form is neutral; surplus players are released instead of sold.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
@@ -68,4 +74,4 @@
 - How often does each personality appear? For now they're all equally likely (a PROPOSAL).
 
 ## Blockers / waiting on Carlos
-- Install on the PC: Git, Unity Hub, Unity 6 LTS with iOS Build Support.
+- **Unity project:** the editor (6.6) and iOS Build Support are installed. Desktop control expired overnight; one approval is needed to create the URP project and run `unity/bootstrap/Editor/LegendsSmokeTest.cs`.

@@ -80,5 +80,8 @@ namespace LegendsFC.Core.Model
         public int ContractEndYear;
         public long Wage;                // per season, club currency
         public List<double> RecentMatchRatings = new List<double>(); // form score = average of the last ~10
+        /// <summary>Fractional training progress per attribute (hidden), so small weekly gains add up.</summary>
+        public double[] AttributeProgress = new double[AttributeSet.Count];
+        public bool Retired;
     }
 }

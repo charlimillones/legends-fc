@@ -29,6 +29,7 @@ namespace LegendsFC.Core.Data
         public World.NameBank Names = new World.NameBank();
         public Season.MatchSimConfig MatchSim = new Season.MatchSimConfig();
         public Season.LeagueFormatConfig LeagueFormats = new Season.LeagueFormatConfig();
+        public Season.DevelopmentConfig Development = new Season.DevelopmentConfig();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
@@ -40,7 +41,7 @@ namespace LegendsFC.Core.Data
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
             "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
-            "config/match-sim.json", "config/league-formats.json",
+            "config/match-sim.json", "config/league-formats.json", "config/development.json",
         };
 
         /// <param name="read">Returns the JSON text for a relative path from <see cref="Files"/>.</param>
@@ -61,6 +62,7 @@ namespace LegendsFC.Core.Data
             d.Names = Parse<World.NameBank>(read("names/names.json"));
             d.MatchSim = Parse<Season.MatchSimConfig>(read("config/match-sim.json"));
             d.LeagueFormats = Parse<Season.LeagueFormatConfig>(read("config/league-formats.json"));
+            d.Development = Parse<Season.DevelopmentConfig>(read("config/development.json"));
             return d;
         }
 
