@@ -102,6 +102,34 @@ public class FinanceTests
     }
 
     [Fact]
+    public void StarsAskASmallerShareOfTheirValue()
+    {
+        double star = Finance.ExpectedWage(182e6, "ENG-1", F), mid = Finance.ExpectedWage(14e6, "ENG-1", F), cheap = Finance.ExpectedWage(1e6, "ENG-1", F);
+        Assert.True(star / 182e6 < mid / 14e6 && mid / 14e6 < cheap / 1e6);
+        Assert.InRange(star, 25e6, 40e6);   // a 90-rated star at 25 earns about €32M a season in England
+    }
+
+    [Fact]
+    public void SamePlayerEarnsLessInAPoorerLeague()
+    {
+        double eng = Finance.ExpectedWage(20e6, "ENG-1", F);
+        Assert.True(Finance.ExpectedWage(20e6, "ESP-1", F) < eng);
+        Assert.True(Finance.ExpectedWage(20e6, "ARG-1", F) < 0.25 * eng);
+        Assert.True(Finance.ExpectedWage(20e6, "ARG-2", F) < Finance.ExpectedWage(20e6, "ARG-1", F));
+    }
+
+    [Fact]
+    public void MoneyNeverGoesBelowZero()
+    {
+        var club = new Club { Balance = 1_000_000 };
+        Assert.False(Finance.TrySpend(club, 1_000_001));
+        Assert.Equal(1_000_000, club.Balance);
+        Assert.True(Finance.TrySpend(club, 1_000_000));
+        Assert.Equal(0, club.Balance);
+        Assert.False(Finance.TrySpend(club, 1));
+    }
+
+    [Fact]
     public void StartingBalanceIsHalfASeasonOfIncome_AndEveryoneHasAWage()
     {
         var d = TestData.Data;
@@ -123,8 +151,9 @@ public class FinanceTests
         var report = new SeasonCycle(d).Advance(w, new GameRandom(1));
         foreach (var c in w.Clubs)
         {
-            double expected = report.Income[c.Id].Total * (1 - F.UpkeepShareOfIncome) - report.WageBill[c.Id];
-            Assert.InRange(c.Balance - before[c.Id] - expected, -1, 1);
+            double expected = Math.Max(0, before[c.Id] + report.Income[c.Id].Total * (1 - F.UpkeepShareOfIncome) - report.WageBill[c.Id]);
+            Assert.InRange(c.Balance - expected, -1, 1);
+            Assert.True(c.Balance >= 0);
             Assert.InRange(c.FanMood, 0, 100);
         }
         // Every academy graduate now has a wage too.
@@ -175,7 +204,7 @@ public class FreeAgentTests
         var p = w.Players.First(x => x.ClubId == w.Clubs[1].Id && x.PersonalityId == null);
         p.ClubId = null;
         var club = w.Clubs[0];
-        long fair = (long)FreeAgents.ExpectedWage(p, w.SeasonStartYear, 3, d);
+        long fair = (long)FreeAgents.ExpectedWage(w, club, p, 3, d);
         double chance = FreeAgents.AcceptChance(w, club, p, fair, 3, d);
         Assert.InRange(chance, 0.65, 0.67);
         int yes = 0, n = 4000; var rng = new GameRandom(7);
@@ -195,13 +224,13 @@ public class FreeAgentTests
         var p = w.Players.First(x => x.ClubId == club.Id && x.AcademyClubId == null);
         Assert.True(Squads.Release(w, p, d));
         Assert.Contains(club.Id, p.FormerClubIds);
-        long fair = (long)FreeAgents.ExpectedWage(p, w.SeasonStartYear, 3, d);
+        long fair = (long)FreeAgents.ExpectedWage(w, club, p, 3, d);
         Assert.True(FreeAgents.AcceptChance(w, club, p, fair, 3, d) > FreeAgents.AcceptChance(w, w.Clubs[5], p, fair, 3, d));
         Assert.Contains(w.Players, x => x.AcademyClubId == club.Id);
     }
 
     [Fact]
-    public void MaxSquadOnlyBindsAiClubs()
+    public void EveryClubHasAtMost32_UserIncluded()
     {
         var (d, w) = Fresh();
         var ai = w.Clubs[0]; var user = w.Clubs[1]; w.UserClubId = user.Id;
@@ -210,7 +239,7 @@ public class FreeAgentTests
             while (Squads.Count(w, c.Id) < d.Development.MaxSquadSize) { var s = spare[0]; spare.RemoveAt(0); s.ClubId = c.Id; }
         var fa = spare[0]; fa.ClubId = null;
         Assert.Equal(OfferResult.SquadFull, FreeAgents.Offer(w, ai, fa, 1_000_000_000, 2, new GameRandom(1), d));
-        Assert.NotEqual(OfferResult.SquadFull, FreeAgents.Offer(w, user, fa, 1_000_000_000, 2, new GameRandom(1), d));
+        Assert.Equal(OfferResult.SquadFull, FreeAgents.Offer(w, user, fa, 1_000_000_000, 2, new GameRandom(1), d));
     }
 
     [Fact]
@@ -244,6 +273,7 @@ public class FinanceSeasonsTests
         var d = TestData.Data;
         var w = new WorldGenerator(d).Generate(31);
         var cycle = new SeasonCycle(d); var rng = new GameRandom(32);
+        var leagueAtStart = w.Clubs.ToDictionary(c => c.Id, c => w.MoneyKey(c));
         for (int s = 0; s < 10; s++)
         {
             var r = cycle.Advance(w, rng);
@@ -251,8 +281,16 @@ public class FinanceSeasonsTests
             Assert.All(w.Players.Where(p => p.ClubId != null), p => Assert.True(p.ContractEndYear > w.SeasonStartYear - 1 && p.Wage > 0));
             foreach (var c in w.Clubs)
                 Assert.InRange(Squads.Count(w, c.Id), d.Development.MinSquadSize, d.Development.MaxSquadSize);
+            Assert.All(w.Clubs, c => Assert.True(c.Balance >= 0));
+            if (s == 0)
+                foreach (var g in w.Clubs.GroupBy(c => r.Income.ContainsKey(c.Id) ? leagueAtStart[c.Id] : null))
+                {   // balancing target (Oct 9): the typical club spends about 65% of income on wages (real football 60-70%)
+                    double median = g.Select(c => r.WageBill[c.Id] / r.Income[c.Id].Total).OrderBy(x => x).ElementAt(g.Count() / 2);
+                    _out.WriteLine($"  {g.Key}: median wages/income {median:P0}");
+                    Assert.InRange(median, 0.55, 0.75);
+                }
             _out.WriteLine($"{r.SeasonStartYear}: renewed {r.Renewed}, left at contract end {r.LeftAtContractEnd}, free-agent signings {r.FreeAgentSignings}, " +
-                           $"free agents now {w.Players.Count(p => !p.Retired && p.ClubId == null)}, clubs in debt {w.Clubs.Count(c => c.Balance < 0)}");
+                           $"free agents now {w.Players.Count(p => !p.Retired && p.ClubId == null)}, clubs at zero {r.ClubsAtZero}");
         }
     }
 }

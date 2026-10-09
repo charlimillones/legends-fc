@@ -79,7 +79,8 @@ namespace LegendsFC.Core.World
             int age = _w.SeasonStartYear - p.BirthYear;
             double rating = PositionRating.Base(p.Attributes, p.MainPosition, _d.PositionRatings);
             double value = MarketValue.Eur(rating, 6.5, age, p.Potential, p.ContractEndYear - _w.SeasonStartYear, _d.MarketValue);
-            p.Wage = (long)Math.Round(Money.Finance.ExpectedWage(value, _d.Finance) * _rng.Uniform(0.85, 1.15));
+            var club = _w.Clubs.First(c => c.Id == p.ClubId);
+            p.Wage = (long)Math.Round(Money.Finance.ExpectedWage(value, _w.MoneyKey(club), _d.Finance) * _rng.Uniform(0.85, 1.15));
         }
 
         /// <summary>Wages from market value (12%, ± a little), fan mood at its normal level, and a starting
@@ -89,7 +90,7 @@ namespace LegendsFC.Core.World
             var f = _d.Finance;
             foreach (var p in _w.Players) SetStartingWage(p);
             foreach (var club in _w.Clubs) club.FanMood = Money.Finance.NormalFanMood(club, f);
-            foreach (var group in _w.Clubs.GroupBy(c => _w.ClubLeague[c.Id] ?? c.CountryId))
+            foreach (var group in _w.Clubs.GroupBy(c => _w.MoneyKey(c)))
             {
                 var ranked = group.OrderByDescending(c => c.Reputation).ToList();
                 for (int i = 0; i < ranked.Count; i++)

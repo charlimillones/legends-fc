@@ -30,12 +30,15 @@ namespace LegendsFC.Core.Transfers
     {
         public static double Rating(Player p, GameData d) => PositionRating.Base(p.Attributes, p.MainPosition, d.PositionRatings);
 
-        /// <summary>What he expects to earn per season (EUR): 12% of his market value for the offered length.</summary>
-        public static double ExpectedWage(Player p, int seasonStartYear, int years, GameData d)
+        public static double MarketValueEur(Player p, int seasonStartYear, int years, GameData d)
+            => MarketValue.Eur(Rating(p, d), 6.5, seasonStartYear - p.BirthYear, p.Potential, years, d.MarketValue);
+
+        /// <summary>What he expects to earn per season (EUR) at this club: the wage curve from his market value, at the club's league wage level.</summary>
+        public static double ExpectedWage(GameWorld w, Club club, Player p, int years, GameData d)
         {
-            int age = seasonStartYear - p.BirthYear;
+            int age = w.SeasonStartYear - p.BirthYear;
             double value = MarketValue.Eur(Rating(p, d), 6.5, age, p.Potential, years, d.MarketValue);
-            return Money.Finance.ExpectedWage(value, d.Finance);
+            return Money.Finance.ExpectedWage(value, w.MoneyKey(club), d.Finance);
         }
 
         public static double Bonus(Player p, Club club)
@@ -44,7 +47,7 @@ namespace LegendsFC.Core.Transfers
         /// <summary>The chance he says yes. Shown in the UI rounded to 5%.</summary>
         public static double AcceptChance(GameWorld w, Club club, Player p, long wageEur, int years, GameData d)
         {
-            double expected = ExpectedWage(p, w.SeasonStartYear, years, d);
+            double expected = ExpectedWage(w, club, p, years, d);
             if (p.PersonalityId == "PER-BUSINESSMAN") expected *= Money.Contracts.BusinessmanWageFactor;
             return Money.Contracts.AcceptChance(wageEur, expected, 0, years, Bonus(p, club), d.Probability);
         }
@@ -55,8 +58,8 @@ namespace LegendsFC.Core.Transfers
             var rc = d.Finance.Renewal;
             if (p.Retired || p.ClubId != null) return OfferResult.NotAFreeAgent;
             if (wageEur <= 0 || years < rc.YearsMin || years > rc.YearsMax) return OfferResult.InvalidTerms;
-            // Max squad size only binds AI clubs; the user is never restricted beyond the 16 minimum (Oct 9).
-            if (club.Id != w.UserClubId && Squads.Count(w, club.Id) >= d.Development.MaxSquadSize) return OfferResult.SquadFull;
+            // Every club, the user's included, has at most 32 players (Carlos, Oct 9).
+            if (Squads.Count(w, club.Id) >= d.Development.MaxSquadSize) return OfferResult.SquadFull;
             if (!rng.Chance(AcceptChance(w, club, p, wageEur, years, d))) return OfferResult.Declined;
             p.ClubId = club.Id;
             p.Wage = wageEur;

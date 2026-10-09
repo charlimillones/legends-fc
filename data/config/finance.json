@@ -1,63 +1,77 @@
 {
-  "_source": "Money model, agreed Oct 9 (numbers are PROPOSALS for balancing). All amounts in EUR. TV: half split equally, half by final position. Prize money: a pot of 20% of TV, by position. Gate: home league games x capacity x fill (0.6 + 0.4 x mood/100, max 1) x ticket price (15 + 65 x (reputation/100)^1.5). Sponsors: 0.4 x league TV per club x (0.5 + reputation/100). Store: 0.15 x league TV per club x (reputation/50) x (0.5 + mood/100). Wage bar (approved): league base x 1.025^(reputation - 50) x objective. Expected wage: 12% of market value per year. Upkeep about 3% of income. Starting balance: half a season's income.",
+  "_source": "Money model, agreed Oct 9; calibrated Oct 9 (PROPOSAL numbers). All amounts in EUR. TV: half split equally, half by final position. Prize money: a pot of 20% of TV, by position. Gate: home league games x capacity x fill (0.6 + 0.4 x mood/100, max 1) x ticket price (15 + 65 x (reputation/100)^1.5). Sponsors: 0.4 x league TV per club x 1.06^(reputation - 50). Store: 0.15 x league TV per club x 1.06^(reputation - 50) x (0.5 + mood/100). Expected wage: 0.28 x 50M x (market value / 50M)^0.65 x the league's wage level (stars ask a smaller share of their value; the same player earns less in a poorer league). Calibration: TV and wage levels set so the median club spends about 65% of income on wages (real football 60-70%). Wage bar (approved formula): league base x 1.025^(reputation - 50) x objective; bases set so the median club's wages are about 90% of its bar, division 2 base = division 1 base / 4. Upkeep about 3% of income. Starting balance: half a season's income. Money never goes below zero (Oct 9).",
   "leagues": {
     "ENG-1": {
-      "tvPerClubEur": 150000000.0,
-      "wageBarBaseEur": 120000000.0
+      "tvPerClubEur": 75000000.0,
+      "wageBarBaseEur": 106100000.0,
+      "wageLevel": 1.0
     },
     "ENG-2": {
-      "tvPerClubEur": 18000000.0,
-      "wageBarBaseEur": 30000000.0
+      "tvPerClubEur": 9000000.0,
+      "wageBarBaseEur": 26500000.0,
+      "wageLevel": 0.339
     },
     "ESP-1": {
-      "tvPerClubEur": 80000000.0,
-      "wageBarBaseEur": 65000000.0
+      "tvPerClubEur": 40000000.0,
+      "wageBarBaseEur": 61700000.0,
+      "wageLevel": 0.62
     },
     "ESP-2": {
-      "tvPerClubEur": 10000000.0,
-      "wageBarBaseEur": 12000000.0
+      "tvPerClubEur": 5000000.0,
+      "wageBarBaseEur": 15400000.0,
+      "wageLevel": 0.259
     },
     "BRA-1": {
-      "tvPerClubEur": 25000000.0,
-      "wageBarBaseEur": 25000000.0
+      "tvPerClubEur": 12500000.0,
+      "wageBarBaseEur": 27000000.0,
+      "wageLevel": 0.298
     },
     "BRA-2": {
-      "tvPerClubEur": 3000000.0,
-      "wageBarBaseEur": 4000000.0
+      "tvPerClubEur": 1500000.0,
+      "wageBarBaseEur": 6700000.0,
+      "wageLevel": 0.142
     },
     "ARG-1": {
-      "tvPerClubEur": 8000000.0,
-      "wageBarBaseEur": 8000000.0
+      "tvPerClubEur": 4000000.0,
+      "wageBarBaseEur": 16000000.0,
+      "wageLevel": 0.17
     },
     "ARG-2": {
-      "tvPerClubEur": 1000000.0,
-      "wageBarBaseEur": 1500000.0
+      "tvPerClubEur": 500000.0,
+      "wageBarBaseEur": 4000000.0,
+      "wageLevel": 0.098
     }
   },
   "cupOnly": {
     "POR": {
-      "tvPerClubEur": 12000000.0,
-      "wageBarBaseEur": 20000000.0
+      "tvPerClubEur": 6000000.0,
+      "wageBarBaseEur": 7400000.0,
+      "wageLevel": 0.104
     },
     "NED": {
-      "tvPerClubEur": 12000000.0,
-      "wageBarBaseEur": 20000000.0
+      "tvPerClubEur": 6000000.0,
+      "wageBarBaseEur": 8100000.0,
+      "wageLevel": 0.111
     },
     "MEX": {
-      "tvPerClubEur": 10000000.0,
-      "wageBarBaseEur": 15000000.0
+      "tvPerClubEur": 5000000.0,
+      "wageBarBaseEur": 6900000.0,
+      "wageLevel": 0.111
     },
     "USA": {
-      "tvPerClubEur": 10000000.0,
-      "wageBarBaseEur": 15000000.0
+      "tvPerClubEur": 5000000.0,
+      "wageBarBaseEur": 7000000.0,
+      "wageLevel": 0.125
     },
     "URU": {
-      "tvPerClubEur": 2000000.0,
-      "wageBarBaseEur": 3000000.0
+      "tvPerClubEur": 1000000.0,
+      "wageBarBaseEur": 1400000.0,
+      "wageLevel": 0.027
     },
     "COL": {
-      "tvPerClubEur": 2500000.0,
-      "wageBarBaseEur": 4000000.0
+      "tvPerClubEur": 1200000.0,
+      "wageBarBaseEur": 1700000.0,
+      "wageLevel": 0.029
     }
   },
   "tvEqualShare": 0.5,
@@ -75,15 +89,21 @@
     "ambitious": 1.15
   },
   "wageBarRepGrowth": 1.025,
-  "expectedWageShareOfValue": 0.12,
+  "wageCurve": {
+    "shareAtReference": 0.28,
+    "referenceValueEur": 50000000,
+    "exponent": 0.65
+  },
+  "commercialRepGrowth": 1.06,
   "upkeepShareOfIncome": 0.03,
   "startingBalanceSeasons": 0.5,
   "renewal": {
-    "_note": "Confirmed Oct 9: an expiring contract goes to a renewal negotiation; the outcome decides if he stays. AI clubs offer a renewal to players they still want (PROPOSAL: under 33 and at or above the squad median rating, or 23 and under).",
+    "_note": "Confirmed Oct 9: an expiring contract goes to a renewal negotiation; the outcome decides if he stays. AI clubs offer a renewal to players they still want (PROPOSAL: 23 and under, or under 33 and at or above the squad's 25th-percentile rating), at his expected wage, for 1-5 years.",
     "aiOfferMaxAge": 32,
     "aiOfferYoungAge": 23,
     "yearsMin": 1,
-    "yearsMax": 5
+    "yearsMax": 5,
+    "aiQualityPercentile": 0.25
   },
   "freeAgents": {
     "_note": "Free transfers added Oct 9: a player without a club joins for no fee if he accepts the wage (approved signing chance, +0.6 for his academy or a former club). AI rules are PROPOSALS: each AI club, best reputation first, approaches up to 3 free agents per window who are at least as good as its squad median and fit under its wage bar (standard objective). AI clubs below 16 players sign the best free agents they can afford.",

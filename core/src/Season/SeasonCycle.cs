@@ -12,7 +12,7 @@ namespace LegendsFC.Core.Season
     {
         public int SeasonStartYear;
         public List<CompetitionOutcome> Outcomes = new List<CompetitionOutcome>();
-        public int Retired, AcademyGraduates, Released, FreeAgentSignings, Renewed, LeftAtContractEnd;
+        public int Retired, AcademyGraduates, Released, FreeAgentSignings, Renewed, LeftAtContractEnd, NotOfferedRenewal, RefusedRenewal, ClubsAtZero;
         public Dictionary<string, Money.IncomeBreakdown> Income = new Dictionary<string, Money.IncomeBreakdown>();
         public Dictionary<string, double> WageBill = new Dictionary<string, double>();
     }
@@ -78,11 +78,11 @@ namespace LegendsFC.Core.Season
         {
             var f = _d.Finance; var fa = f.FreeAgents; var c = _d.Development;
             var rating = new Dictionary<Player, double>();
-            var wish = new Dictionary<Player, double>();   // expected wage on a 2-year deal, for affordability checks
+            var value = new Dictionary<Player, double>();  // market value on a 2-year deal, for affordability checks
             void Track(Player p)
             {
                 rating[p] = Rating(p);
-                wish[p] = Transfers.FreeAgents.ExpectedWage(p, w.SeasonStartYear, 2, _d);
+                value[p] = Transfers.FreeAgents.MarketValueEur(p, w.SeasonStartYear, 2, _d);
             }
             var pool = Transfers.FreeAgents.List(w);
             foreach (var p in pool) Track(p);
@@ -92,13 +92,14 @@ namespace LegendsFC.Core.Season
             foreach (var club in w.Clubs) if (!squads.ContainsKey(club.Id)) squads[club.Id] = new List<Player>();
             var bill = squads.ToDictionary(kv => kv.Key, kv => kv.Value.Sum(p => (double)p.Wage));
             var ai = w.Clubs.Where(x => x.Id != w.UserClubId).OrderByDescending(x => x.Reputation).ThenBy(x => x.Id, System.StringComparer.Ordinal).ToList();
-            double Headroom(Club club) => Money.Finance.WageBar(club, w.ClubLeague[club.Id] ?? club.CountryId, fa.AiWageObjective, f) - bill[club.Id];
+            double Headroom(Club club) => Money.Finance.WageBar(club, w.MoneyKey(club), fa.AiWageObjective, f) - bill[club.Id];
+            double Wish(Club club, Player p) => Money.Finance.ExpectedWage(value[p], w.MoneyKey(club), f);
 
             bool TrySign(Club club, Player p)
             {
                 int age = w.SeasonStartYear - p.BirthYear;
                 int years = age <= 23 ? rng.NextInt(3, 4) : age <= 29 ? rng.NextInt(2, 4) : rng.NextInt(1, 2);
-                double expected = Transfers.FreeAgents.ExpectedWage(p, w.SeasonStartYear, years, _d);
+                double expected = Transfers.FreeAgents.ExpectedWage(w, club, p, years, _d);
                 if (p.PersonalityId == "PER-BUSINESSMAN") expected *= Money.Contracts.BusinessmanWageFactor;
                 var result = Transfers.FreeAgents.Offer(w, club, p, (long)System.Math.Max(1, System.Math.Round(expected)), years, rng, _d);
                 if (result != Transfers.OfferResult.Accepted) return false;
@@ -118,7 +119,7 @@ namespace LegendsFC.Core.Season
                 {
                     if (approaches >= fa.AiApproachesPerClub || squad.Count >= c.MaxSquadSize) break;
                     if (rating[p] < bar) break;   // pool is sorted best first
-                    if (wish[p] > Headroom(club)) continue;
+                    if (Wish(club, p) > Headroom(club)) continue;
                     approaches++;
                     TrySign(club, p);
                 }
@@ -141,7 +142,7 @@ namespace LegendsFC.Core.Season
                         Track(weakest); pool.Add(weakest); report.Released++;
                     }
                     double room = Headroom(club);
-                    var pick = candidates.FirstOrDefault(p => wish[p] <= room) ?? candidates.OrderBy(p => wish[p]).First();
+                    var pick = candidates.FirstOrDefault(p => Wish(club, p) <= room) ?? candidates.OrderBy(p => value[p]).First();
                     if (!TrySign(club, pick)) saidNo.Add(pick);   // he said no to this club: try the next one
                 }
             }
@@ -165,7 +166,7 @@ namespace LegendsFC.Core.Season
             }
             foreach (var club in w.Clubs)
             {
-                string key = w.ClubLeague[club.Id] ?? club.CountryId;
+                string key = w.MoneyKey(club);
                 int pos = 1, teams = 1;
                 if (rows.TryGetValue(club.Id, out var r))
                 {
@@ -178,7 +179,8 @@ namespace LegendsFC.Core.Season
                 var income = Money.Finance.SeasonIncome(club, key, pos, teams, SeasonSimulator.HomeLeagueMatches(key, teams, _d), f);
                 double wages = w.Players.Where(p => p.ClubId == club.Id).Sum(p => (double)p.Wage);
                 double upkeep = income.Total * f.UpkeepShareOfIncome;
-                club.Balance += (long)System.Math.Round(income.Total - wages - upkeep);
+                club.Balance = System.Math.Max(0, club.Balance + (long)System.Math.Round(income.Total - wages - upkeep)); // never below zero (Oct 9)
+                if (club.Balance == 0) report.ClubsAtZero++;
                 report.Income[club.Id] = income; report.WageBill[club.Id] = wages;
             }
         }
@@ -204,7 +206,7 @@ namespace LegendsFC.Core.Season
             {
                 var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
                 if (squad.Count == 0) continue;
-                double median = squad.Select(Rating).OrderBy(x => x).ElementAt(squad.Count / 2);
+                double median = squad.Select(Rating).OrderBy(x => x).ElementAt((int)System.Math.Min(squad.Count - 1, System.Math.Floor(rc.AiQualityPercentile * squad.Count)));
                 foreach (var p in squad.Where(p => p.ContractEndYear <= w.SeasonStartYear))
                 {
                     int age = w.SeasonStartYear - p.BirthYear;
@@ -212,14 +214,17 @@ namespace LegendsFC.Core.Season
                     bool wanted = age <= rc.AiOfferYoungAge || (age <= rc.AiOfferMaxAge && rating >= median);
                     int years = rng.NextInt(rc.YearsMin, rc.YearsMax);
                     double value = MarketValue.Eur(rating, 6.5, age, p.Potential, years, _d.MarketValue);
-                    double expected = Money.Finance.ExpectedWage(value, f);
-                    if (wanted && rng.Chance(Money.Contracts.RenewalChance(p.PersonalityId, expected, expected, years, _d.Probability)))
+                    double expected = Money.Finance.ExpectedWage(value, w.MoneyKey(club), f);
+                    // The AI offers what he expects (a Businessman expects 20% more); the personality still changes his answer.
+                    double offer = p.PersonalityId == "PER-BUSINESSMAN" ? expected * Money.Contracts.BusinessmanWageFactor : expected;
+                    if (!wanted) { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; report.NotOfferedRenewal++; }
+                    else if (rng.Chance(Money.Contracts.RenewalChance(p.PersonalityId, offer, expected, years, _d.Probability)))
                     {
                         p.ContractEndYear = w.SeasonStartYear + years;
-                        p.Wage = (long)System.Math.Round(p.PersonalityId == "PER-BUSINESSMAN" ? expected * Money.Contracts.BusinessmanWageFactor : expected);
+                        p.Wage = (long)System.Math.Round(offer);
                         report.Renewed++;
                     }
-                    else { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; }
+                    else { Transfers.Squads.Leave(p); report.LeftAtContractEnd++; report.RefusedRenewal++; }
                 }
             }
         }

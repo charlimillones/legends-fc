@@ -39,7 +39,7 @@ if (args.Length > 0 && args[0] == "finance-dump")
         for (int i = 0; i < ranked.Count; i++)
         {
             var c = ranked[i];
-            Console.WriteLine($"{g.Key},{i + 1},{ranked.Count},{c.Reputation},{c.StadiumCapacity},{dw.Players.Where(p => p.ClubId == c.Id).Sum(p => (double)p.Wage):F0},{home},{c.FanMood:F1},{string.Join(";", dw.Players.Where(p => p.ClubId == c.Id).Select(p => (p.Wage / data.Finance.ExpectedWageShareOfValue).ToString("F0")))}");
+            Console.WriteLine($"{g.Key},{i + 1},{ranked.Count},{c.Reputation},{c.StadiumCapacity},{dw.Players.Where(p => p.ClubId == c.Id).Sum(p => (double)p.Wage):F0},{home},{c.FanMood:F1},{string.Join(";", dw.Players.Where(p => p.ClubId == c.Id).Select(p => LegendsFC.Core.Transfers.FreeAgents.MarketValueEur(p, dw.SeasonStartYear, p.ContractEndYear - dw.SeasonStartYear, data).ToString("F0")))}");
         }
     }
     return;
@@ -64,7 +64,7 @@ if (args.Length > 0 && args[0] == "finance-report")
         history.Add(fw.Clubs.ToDictionary(c => c.Id, c => (double)c.Balance));
         if (s == 9)
         {
-            Console.WriteLine($"Season 10 ({rep.SeasonStartYear}/{rep.SeasonStartYear + 1 - 2000}): {rep.Renewed} renewed, {rep.LeftAtContractEnd} left at contract end, {rep.FreeAgentSignings} free-agent signings");
+            Console.WriteLine($"Season 10 ({rep.SeasonStartYear}/{rep.SeasonStartYear + 1 - 2000}): {rep.Renewed} renewed, {rep.LeftAtContractEnd} left at contract end ({rep.NotOfferedRenewal} not offered, {rep.RefusedRenewal} said no), {rep.FreeAgentSignings} free-agent signings, {rep.ClubsAtZero} clubs at zero");
         }
     }
     Console.WriteLine();
