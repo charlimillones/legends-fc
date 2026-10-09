@@ -19,7 +19,7 @@ namespace LegendsFC.Core.Season
         public double FormNeutral = 6.5, FormSlope = 0.5, FormFactorMax = 1.5, BadFormThreshold = 5.5, BadFormWeeklyLoss = 0.04;
         public double DeclineWeeklyMax = 0.1, DefaultCoachQuality = 1.0;
         public string DefaultRegime = "moderate";
-        public int AcademyIntakePerSeason = 5, MaxSquadSize = 32;
+        public int AcademyIntakeMin = 2, AcademyIntakeMax = 4, MinSquadSize = 16, MaxSquadSize = 32, AiMinGoalkeepers = 2;
     }
 
     public sealed class AgeBand { public int MaxAge; public double Factor; }

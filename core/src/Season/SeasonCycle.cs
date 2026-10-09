@@ -12,7 +12,7 @@ namespace LegendsFC.Core.Season
     {
         public int SeasonStartYear;
         public List<CompetitionOutcome> Outcomes = new List<CompetitionOutcome>();
-        public int Retired, AcademyGraduates, Released;
+        public int Retired, AcademyGraduates, Released, FreeAgentSignings;
     }
 
     /// <summary>
@@ -39,22 +39,49 @@ namespace LegendsFC.Core.Season
             }
 
             var gen = new WorldGenerator(_d);
+            var c = _d.Development;
             foreach (var club in w.Clubs)
             {
-                gen.AddAcademyIntake(w, club, rng, _d.Development.AcademyIntakePerSeason);
-                report.AcademyGraduates += _d.Development.AcademyIntakePerSeason;
+                int intake = rng.NextInt(c.AcademyIntakeMin, c.AcademyIntakeMax);
+                gen.AddAcademyIntake(w, club, rng, intake);
+                report.AcademyGraduates += intake;
+                if (club.Id == w.UserClubId) continue;   // the user's squad is never trimmed or topped up for him
                 var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
-                int excess = squad.Count - _d.Development.MaxSquadSize;
+                int excess = squad.Count - c.MaxSquadSize;
                 if (excess <= 0) continue;
-                // Release the least valuable (rating, plus half the remaining potential for players 21 and under),
-                // but never below 3 goalkeepers. PROPOSAL until contracts and free agents exist.
+                // AI: release the least valuable (rating + half the remaining potential for players 21 and under),
+                // keeping at least the AI goalkeeper minimum. PROPOSAL until contracts and transfers exist.
                 int year = w.SeasonStartYear;
-                var releasable = squad.OrderBy(p => Rating(p) + (year - p.BirthYear <= 21 ? 0.5 * System.Math.Max(0, p.Potential - Rating(p)) : 0)).ToList();
-                foreach (var p in releasable)
+                foreach (var p in squad.OrderBy(p => Rating(p) + (year - p.BirthYear <= 21 ? 0.5 * System.Math.Max(0, p.Potential - Rating(p)) : 0)))
                 {
                     if (excess == 0) break;
-                    if (p.MainPosition == Position.GK && squad.Count(x => x.ClubId == club.Id && x.MainPosition == Position.GK) <= 3) continue;
+                    if (p.MainPosition == Position.GK && squad.Count(x => x.ClubId == club.Id && x.MainPosition == Position.GK) <= c.AiMinGoalkeepers) continue;
                     p.ClubId = null; excess--; report.Released++;
+                }
+            }
+            // Minimum squad of 16 at all times (confirmed Oct 9): clubs below it sign the best free agents.
+            // AI clubs sign a goalkeeper first if they are under their goalkeeper minimum.
+            var freeAgents = w.Players.Where(p => !p.Retired && p.ClubId == null).OrderByDescending(Rating).ToList();
+            foreach (var club in w.Clubs)
+            {
+                bool ai = club.Id != w.UserClubId;
+                // AI balance: below the goalkeeper minimum, sign the best free-agent goalkeeper.
+                while (ai && w.Players.Count(p => p.ClubId == club.Id && p.MainPosition == Position.GK) < c.AiMinGoalkeepers)
+                {
+                    var gk = freeAgents.FirstOrDefault(p => p.MainPosition == Position.GK);
+                    if (gk == null) break;
+                    if (w.Players.Count(p => p.ClubId == club.Id) >= c.MaxSquadSize)
+                    {   // make room: release the weakest outfield player
+                        var weakest = w.Players.Where(p => p.ClubId == club.Id && p.MainPosition != Position.GK).OrderBy(Rating).First();
+                        weakest.ClubId = null; report.Released++;
+                    }
+                    gk.ClubId = club.Id; freeAgents.Remove(gk); report.FreeAgentSignings++;
+                }
+                while (w.Players.Count(p => p.ClubId == club.Id) < c.MinSquadSize && freeAgents.Count > 0)
+                {
+                    bool needGk = ai && w.Players.Count(p => p.ClubId == club.Id && p.MainPosition == Position.GK) < c.AiMinGoalkeepers;
+                    var pick = (needGk ? freeAgents.FirstOrDefault(p => p.MainPosition == Position.GK) : null) ?? freeAgents[0];
+                    pick.ClubId = club.Id; freeAgents.Remove(pick); report.FreeAgentSignings++;
                 }
             }
             return report;

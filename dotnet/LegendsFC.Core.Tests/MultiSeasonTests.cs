@@ -90,10 +90,11 @@ public class MultiSeasonTests
             foreach (var club in w.Clubs)
             {
                 int n = w.Players.Count(p => p.ClubId == club.Id);
-                Assert.InRange(n, 25, d.Development.MaxSquadSize);
-                Assert.True(w.Players.Count(p => p.ClubId == club.Id && p.MainPosition == Position.GK) >= 3);
+                Assert.InRange(n, d.Development.MinSquadSize, d.Development.MaxSquadSize);
+                Assert.True(w.Players.Count(p => p.ClubId == club.Id && p.MainPosition == Position.GK) >= d.Development.AiMinGoalkeepers);
             }
-            _out.WriteLine($"{report.SeasonStartYear}/{report.SeasonStartYear + 1 - 2000}: ENG-1 avg XI {LeagueAvg("ENG-1"):F1}, retired {report.Retired}, released {report.Released}");
+            Assert.InRange(report.AcademyGraduates, 2 * w.Clubs.Count, 4 * w.Clubs.Count);
+            _out.WriteLine($"{report.SeasonStartYear}/{report.SeasonStartYear + 1 - 2000}: ENG-1 avg XI {LeagueAvg("ENG-1"):F1}, retired {report.Retired}, academy {report.AcademyGraduates}, released {report.Released}, free-agent signings {report.FreeAgentSignings}");
         }
         Assert.Equal(2036, w.SeasonStartYear);
         Assert.InRange(LeagueAvg("ENG-1") - startEng, -4.0, 4.0);
@@ -116,5 +117,19 @@ public class MultiSeasonTests
             return string.Join(",", w.Players.Where(p => p.ClubId != null).Take(200).Select(p => p.Id + ":" + Rating(p).ToString("F2")));
         }
         Assert.Equal(Run(), Run());
+    }
+
+    [Fact]
+    public void UserClubIsNeverTrimmed_ButKeepsAtLeast16()
+    {
+        var d = TestData.Data;
+        var w = new WorldGenerator(d).Generate(8);
+        var club = w.Clubs.First();
+        w.UserClubId = club.Id;
+        // Strip the user's squad down to 10 and give him 40 others: the cycle must not trim him, only top him up to 16.
+        var mine = w.Players.Where(p => p.ClubId == club.Id).ToList();
+        foreach (var p in mine.Skip(10)) p.ClubId = null;
+        new SeasonCycle(d).Advance(w, new GameRandom(3));
+        Assert.True(w.Players.Count(p => p.ClubId == club.Id) >= 16);
     }
 }

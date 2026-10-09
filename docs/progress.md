@@ -58,7 +58,7 @@
 
 - **Player development and endless seasons** (branch `feature/development-multiseason`, 78 tests):
   - **Weekly training:** the training formula plus the confirmed form factor and age-decay ceiling. Bad form lowers the rating; potential is never exceeded.
-  - **Season cycle:** sim season, training, promotion and relegation, ageing, random retirements, academy intake (5 per club, filling squad gaps, goalkeepers first) and a squad cap of 32.
+  - **Season cycle:** sim season, training, promotion and relegation, ageing, random retirements, random academy intake of 2-4 per club, at least 16 players per club at all times (any positions), and AI-only squad balance (at least 2 GKs, at most 32, free-agent signings below 16).
   - **Stability:** over 10 seasons the world stays stable (England's first-division average XI goes from 76.4 to 77.5), with 3 different champions. 10 seasons take about 12 s.
   - **Interim, until the systems exist:** AI clubs use default training (moderate regime, average coach, one coach per group); form is neutral; surplus players are released instead of sold.
 

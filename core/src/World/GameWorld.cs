@@ -14,5 +14,7 @@ namespace LegendsFC.Core.World
         public List<Player> Players = new List<Player>();
         /// <summary>Club id → competition id of its league (null for cup-only clubs).</summary>
         public Dictionary<string, string> ClubLeague = new Dictionary<string, string>();
+        /// <summary>The user's club (null until one is picked). Rules never treat it differently, except that the AI's squad management doesn't touch it.</summary>
+        public string UserClubId;
     }
 }

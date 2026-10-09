@@ -43,7 +43,10 @@
   "declineWeeklyMax": 0.1,
   "defaultCoachQuality": 1.0,
   "defaultRegime": "moderate",
-  "academyIntakePerSeason": 5,
   "maxSquadSize": 32,
-  "_squadNote": "PROPOSAL: after the academy intake, clubs above maxSquadSize release their lowest-rated players (they leave the world until free agents exist)."
+  "academyIntakeMin": 2,
+  "academyIntakeMax": 4,
+  "minSquadSize": 16,
+  "aiMinGoalkeepers": 2,
+  "_squadNote": "Confirmed Oct 9: every club keeps at least 16 players at all times, any positions; random academy intake of 2-4 per season (no gap filling). AI clubs keep a balanced squad (PROPOSAL: at least 2 goalkeepers, max 32 players; below 16 they sign the best free agents). The user's club is never restricted beyond the 16 minimum."
 }
