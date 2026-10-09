@@ -35,14 +35,17 @@ namespace LegendsFC.Core.Data
         public Money.FinanceConfig Finance = new Money.FinanceConfig();
         public Money.CurrencyConfig Currencies = new Money.CurrencyConfig();
         public Transfers.TransferConfig Transfers = new Transfers.TransferConfig();
+        public List<FacilityInfo> Facilities = new List<FacilityInfo>();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
+        /// <summary>The name players see for a facility (e.g. TrainingGround → "Training Grounds").</summary>
+        public string FacilityName(Facility f) => Facilities.First(x => x.Id == f).Name;
 
         /// <summary>Files the loader expects, relative to the data root.</summary>
         public static readonly string[] Files =
         {
-            "rules/archetypes.json", "rules/personalities.json", "rules/positions.json",
+            "rules/archetypes.json", "rules/personalities.json", "rules/positions.json", "rules/facilities.json",
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
             "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
@@ -56,6 +59,7 @@ namespace LegendsFC.Core.Data
             d.Archetypes = Section<List<Archetype>>(read("rules/archetypes.json"), "archetypes");
             d.Personalities = Section<List<Personality>>(read("rules/personalities.json"), "personalities");
             d.PositionRules = Parse<PositionRules>(read("rules/positions.json"));
+            d.Facilities = Section<List<FacilityInfo>>(read("rules/facilities.json"), "facilities");
             d.PositionRatings = Parse<PositionRatingConfig>(read("config/position-ratings.json"));
             d.OutOfPosition = Parse<OutOfPositionConfig>(read("config/out-of-position.json"));
             d.Probability = Parse<ProbabilityConfig>(read("config/probability.json"));

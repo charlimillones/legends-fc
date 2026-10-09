@@ -15,7 +15,7 @@ if (args.Length > 0 && args[0] == "protege-report")
 {
     var g = new WorldGenerator(data);
     var wr = g.Generate(seed);
-    Console.WriteLine("Academy level | avg potential | avg price (EUR) | price share");
+    Console.WriteLine($"{data.FacilityName(LegendsFC.Core.Model.Facility.Academy)} level | avg potential | avg price (EUR) | price share");
     foreach (var lvl in new[] { 1, 3, 5, 8, 10 })
     {
         var club = wr.Clubs.First();

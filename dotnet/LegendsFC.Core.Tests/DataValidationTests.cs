@@ -12,6 +12,20 @@ public class DataValidationTests
     public void AllFilesLoad() => Assert.All(GameData.Files, f => Assert.True(System.IO.File.Exists(System.IO.Path.Combine(TestData.Root, f)), f));
 
     [Fact]
+    public void SixFacilities_WithTheirDisplayNames_IdsUnchanged()
+    {
+        Assert.Equal(new[] { "Stadium", "TrainingGround", "Academy", "MedicalCentre", "ClubStore", "ScoutingCentre" }, Enum.GetNames(typeof(Facility)));
+        Assert.Equal(6, D.Facilities.Count);
+        Assert.Equal(Enum.GetValues(typeof(Facility)).Cast<Facility>(), D.Facilities.Select(f => f.Id));
+        Assert.Equal("Stadium", D.FacilityName(Facility.Stadium));
+        Assert.Equal("Training Grounds", D.FacilityName(Facility.TrainingGround));
+        Assert.Equal("Youth Academy", D.FacilityName(Facility.Academy));
+        Assert.Equal("Medical Building", D.FacilityName(Facility.MedicalCentre));
+        Assert.Equal("Club Store", D.FacilityName(Facility.ClubStore));
+        Assert.Equal("Scouting Centre", D.FacilityName(Facility.ScoutingCentre));
+    }
+
+    [Fact]
     public void ThirtySevenArchetypes_FourPerGroup_PlusOneRare()
     {
         Assert.Equal(37, D.Archetypes.Count);
