@@ -93,6 +93,29 @@ if (args.Length > 0 && args[0] == "wage-room")
     }
     return;
 }
+if (args.Length > 0 && args[0] == "save-size")
+{
+    // Save size and speed after N seasons. Usage: save-size [seed] [seasons]
+    int n = args.Length > 2 ? int.Parse(args[2]) : 1;
+    var sw0 = new WorldGenerator(data).Generate(seed);
+    var sc = new LegendsFC.Core.Season.SeasonCycle(data); var sr = new LegendsFC.Core.Util.GameRandom(seed + 3);
+    void Measure(string label)
+    {
+        var t = System.Diagnostics.Stopwatch.StartNew();
+        string json = Newtonsoft.Json.JsonConvert.SerializeObject(sw0);
+        double ser = t.Elapsed.TotalMilliseconds; t.Restart();
+        var ms = new MemoryStream();
+        using (var gz = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionLevel.Optimal, true))
+        using (var wr = new StreamWriter(gz)) wr.Write(json);
+        double zip = t.Elapsed.TotalMilliseconds; t.Restart();
+        var back = Newtonsoft.Json.JsonConvert.DeserializeObject<GameWorld>(json);
+        double de = t.Elapsed.TotalMilliseconds;
+        Console.WriteLine($"{label}: players {sw0.Players.Count} (retired {sw0.Players.Count(p => p.Retired)}, at clubs {sw0.Players.Count(p => p.ClubId != null)}, free agents {sw0.Players.Count(p => !p.Retired && p.ClubId == null)}), json {json.Length / 1e6:F1} MB, gzip {ms.Length / 1e6:F2} MB, serialize {ser:F0} ms, gzip {zip:F0} ms, load {de:F0} ms");
+    }
+    Measure("new world");
+    for (int i = 0; i < n; i++) { sc.Advance(sw0, sr); Measure($"after {i + 1} seasons"); }
+    return;
+}
 if (args.Length > 0 && args[0] == "cups-report")
 {
     // Cups over N seasons: entrants, winners, prize money. Usage: cups-report [seed] [seasons]

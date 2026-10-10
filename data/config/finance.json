@@ -109,7 +109,9 @@
     "_note": "Free transfers added Oct 9: a player without a club joins for no fee if he accepts the wage (approved signing chance, +0.6 for his academy or a former club). AI rules are PROPOSALS: each AI club, best reputation first, approaches up to 3 free agents per window who are at least as good as its squad median and fit under its wage bar (standard objective). AI clubs below 16 players sign the best free agents they can afford.",
     "aiApproachesPerClub": 3,
     "aiQualityPercentile": 0.5,
-    "aiWageObjective": "standard"
+    "aiWageObjective": "standard",
+    "_retireNote": "Carlos, Oct 9: a free agent who goes 2 full seasons without a club retires (keeps the market and saves from filling up with unsigned players).",
+    "retireAfterUnsignedSeasons": 2
   },
   "fanMood": {
     "_note": "Agreed Oct 9.",

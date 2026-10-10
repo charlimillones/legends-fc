@@ -16,6 +16,17 @@ namespace LegendsFC.Core.Util
             _s0 = SplitMix(ref x); _s1 = SplitMix(ref x); _s2 = SplitMix(ref x); _s3 = SplitMix(ref x);
         }
 
+        /// <summary>The generator's state, for saves: a reloaded game continues the exact same random sequence.</summary>
+        public ulong[] GetState() => new[] { _s0, _s1, _s2, _s3 };
+
+        public static GameRandom FromState(ulong[] state)
+        {
+            if (state == null || state.Length != 4) throw new ArgumentException("A random state has 4 numbers.", nameof(state));
+            var r = new GameRandom(0);
+            r._s0 = state[0]; r._s1 = state[1]; r._s2 = state[2]; r._s3 = state[3];
+            return r;
+        }
+
         private static ulong SplitMix(ref ulong x)
         {
             ulong z = (x += 0x9E3779B97F4A7C15UL);

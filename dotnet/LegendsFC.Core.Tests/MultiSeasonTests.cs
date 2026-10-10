@@ -98,7 +98,8 @@ public class MultiSeasonTests
         }
         Assert.Equal(2036, w.SeasonStartYear);
         Assert.InRange(LeagueAvg("ENG-1") - startEng, -4.0, 4.0);
-        Assert.All(w.Players.Where(p => p.Retired), p => Assert.True(2036 - p.BirthYear >= p.RetireAge || p.RetireAge <= 2036 - p.BirthYear));
+        // Retired: reached his retirement age, or a free agent 2 full seasons without a club (Oct 9).
+        Assert.All(w.Players.Where(p => p.Retired), p => Assert.True(2036 - p.BirthYear >= p.RetireAge || p.UnsignedSeasons > d.Finance.FreeAgents.RetireAfterUnsignedSeasons));
         Assert.DoesNotContain(w.Players, p => !p.Retired && p.ClubId != null && 2036 - p.BirthYear >= p.RetireAge);
         Assert.True(champions.Count >= 2, "same champion every season");
         Assert.True(sw.Elapsed.TotalSeconds < 120, sw.Elapsed.TotalSeconds + " s");

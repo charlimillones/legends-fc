@@ -219,7 +219,8 @@ namespace LegendsFC.Core.World
             var ad = _c.AgeDecay;
             int gkExtra = main == Position.GK ? ad.GoalkeeperExtraYears : 0;
             p.DeclineStartAge = _rng.NextInt(ad.StartMin, ad.StartMax) + gkExtra;
-            p.RetireAge = _rng.NextInt(Math.Max(ad.RetireMin, p.DeclineStartAge - gkExtra + ad.MinYearsBetween), ad.RetireMax) + gkExtra;
+            // Retirement age on a normal curve, 32-44 centred on 38 (Carlos, Oct 9). The decline start moves earlier if needed (below).
+            p.RetireAge = Math.Max(ad.RetireMin, Math.Min(ad.RetireMax, (int)Math.Round(_rng.Gaussian(ad.RetireMean, ad.RetireSd)))) + gkExtra;
             if (p.RetireAge <= age) p.RetireAge = age + _rng.NextInt(1, 2);   // veterans still have a season or two
             if (p.DeclineStartAge > p.RetireAge - ad.MinYearsBetween) p.DeclineStartAge = p.RetireAge - ad.MinYearsBetween;
             p.DeclineAmount = Math.Round(_rng.Uniform(ad.DropMin, ad.DropMax), 1);
