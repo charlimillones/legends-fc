@@ -193,6 +193,12 @@
   - Landscape only (proposal); checked on a phone-shaped screen in the Device Simulator (safe area respected).
   - Found while playing: some clubs start with 32 players, so the free first protégé is refused until someone leaves; the academy intake took the user's squad to 34 (max 32); a relegated club keeps top-flight wages (wage room -44M). (Fixed: the season summary now says promoted or relegated.)
 
+- **Squad limits, relegation money, assistant manager** (Carlos, Oct 10; branch `feature/squad-limits`):
+  - The user's club starts with at most 31 players (the least valuable leave as free agents), so the first protégé makes 32. You inherit the formation that fits the squad best.
+  - Academy graduates join only while there is room; the rest leave as free agents. The academy director warns in week 46 if there's room for fewer than 4 (2 new manager messages: 47 triggers, 46 live).
+  - Relegation: every contract at a relegated club drops 30%; a club leaving a top division gets a parachute of 40% of the TV gap with next season's income (England about 26M).
+  - Assistant manager, on by default: sets the mentality for each match by the AI rule (choosing one yourself turns it off) and rests players under 60 energy, back to their regime at 85. The weakest English club left unmanaged: 18 points on average before, 22 now (26 when the AI runs it); the rest of the gap is transfers, coaches and repairs nobody made.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 

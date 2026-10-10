@@ -19,6 +19,8 @@ namespace LegendsFC.Core.Squad
         public Dictionary<string, double> WeeklyRecovery = new Dictionary<string, double>();
         public Dictionary<string, double> PersonalityRecovery = new Dictionary<string, double>();
         public double AiLightRegimeBelowEnergy = 60, AiMentalityGap = 8, AiVeryMentalityGap = 15;
+        /// <summary>The assistant puts a rested player back on his regime from this energy (Oct 10).</summary>
+        public double AssistantBackAboveEnergy = 85;
     }
 
     /// <summary>data/config/match-events.json (PROPOSAL numbers, agreed Oct 9).</summary>

@@ -82,7 +82,7 @@ public class SquadTests
         {
             var w = new WorldGenerator(D).Generate(5);
             var a = ClubIn(w, "ENG-1", 5); var b = ClubIn(w, "ENG-1", 6);
-            w.UserClubId = a.Id; a.Tactics.Mentality = mentality;
+            w.UserClubId = a.Id; a.Tactics.Mentality = mentality; a.Tactics.AssistantMentality = false;
             var ctx = Ctx(w, 77);
             int total = 0;
             for (int i = 0; i < 600; i++)

@@ -54,7 +54,7 @@ namespace LegendsFC.Core.Season
         {
             var report = new SeasonReport { SeasonStartYear = w.SeasonStartYear, Outcomes = outcomes };
             SettleFinances(w, report);
-            ApplyPromotionAndRelegation(w, report.Outcomes);
+            ApplyPromotionAndRelegation(w, report.Outcomes, _d);
             // The board's verdict, the season summary, awards, sacking or job offers (Oct 9 night).
             Career.Board.SeasonEnd(w, report, outcomes, rng, _d);
 
@@ -302,6 +302,7 @@ namespace LegendsFC.Core.Season
 
                 var income = Money.Finance.SeasonIncome(club, key, pos, teams, SeasonSimulator.HomeLeagueMatches(key, teams, _d), f, _d.FacilityRules);
                 income.Cups = cupMoney.TryGetValue(club.Id, out var prize) ? prize : 0;
+                income.Parachute = club.ParachuteEur; club.ParachuteEur = 0;
                 double wages = Transfers.Market.WageBill(w, club.Id);   // loans: each club pays its share
                 double upkeep = income.Total * f.UpkeepShareOfIncome;
                 club.Balance = System.Math.Max(0, club.Balance + (long)System.Math.Round(income.Total - wages - upkeep)); // never below zero (Oct 9)
@@ -399,15 +400,31 @@ namespace LegendsFC.Core.Season
             }
         }
 
-        private static void ApplyPromotionAndRelegation(GameWorld w, List<CompetitionOutcome> outcomes)
+        private static void ApplyPromotionAndRelegation(GameWorld w, List<CompetitionOutcome> outcomes, GameData d)
         {
             var byId = w.Clubs.ToDictionary(c => c.Id);
+            var f = d.Finance;
             foreach (var o in outcomes.Where(o => o != null && (o.Relegated.Count > 0 || o.Promoted.Count > 0)))
             {
                 var comp = w.Competitions.First(c => c.Id == o.CompetitionId);
-                foreach (var id in o.Relegated) Move(w, byId[id], comp.CountryId, comp.Level + 1);
+                foreach (var id in o.Relegated)
+                {
+                    var club = byId[id];
+                    Move(w, club, comp.CountryId, comp.Level + 1);
+                    // Carlos, Oct 10: relegation clauses cut every contract's wage; a club leaving a top division gets a parachute.
+                    foreach (var p in w.Players.Where(p => (p.ClubId == id && p.LoanFromClubId == null) || p.LoanFromClubId == id))
+                        p.Wage = (long)System.Math.Round(p.Wage * (1 - f.RelegationWageCut));
+                    long parachute = 0;
+                    if (comp.Level == 1)
+                        parachute = (long)System.Math.Round(System.Math.Max(0, f.For(comp.Id).TvPerClubEur - f.For(w.ClubLeague[id]).TvPerClubEur) * f.ParachuteShareOfTvGap);
+                    club.ParachuteEur = parachute;
+                    if (id == w.UserClubId)
+                        Inbox.InboxEngine.Post(w, $"Relegation clauses: every player's wage drops by {f.RelegationWageCut:P0}." +
+                            (parachute > 0 ? $" The league pays a parachute of {d.Currencies.Format(parachute, w.CurrencyCode)} with next season's income." : ""), "The board");
+                }
                 foreach (var id in o.Promoted) Move(w, byId[id], comp.CountryId, comp.Level - 1);
             }
+            w.Market.SquadsChanged();
         }
 
         private static void Move(GameWorld w, Club club, string countryId, int level)

@@ -67,6 +67,8 @@ namespace LegendsFC.Core.Saves
             if (World.Clubs.TrueForAll(c => c.Id != clubId)) throw new ArgumentException("Unknown club " + clubId, nameof(clubId));
             World.UserClubId = clubId;
             SeasonCycle.TrimSquad(World, UserClub, _d.Development.UserStartMaxSquad, _d);   // room for the first protégé (Carlos, Oct 10)
+            // You inherit the formation that fits the squad best (the lineup itself is picked each match until you set one).
+            UserClub.Tactics.Formation = LegendsFC.Core.Squad.Lineups.BestFormation(MySquad, new LegendsFC.Core.Squad.RatingTable(_d), _d);
             World.Market.SquadsChanged();
             LegendsFC.Core.Career.Board.Start(World, UserClub, _d);
             Save(nowUtc);
@@ -134,7 +136,20 @@ namespace LegendsFC.Core.Saves
         }
 
         /// <summary>-2 very defensive ... +2 very attacking.</summary>
-        public void SetMentality(int mentality) => UserClub.Tactics.Mentality = Math.Max(-2, Math.Min(2, mentality));
+        public void SetMentality(int mentality)
+        {
+            UserClub.Tactics.Mentality = Math.Max(-2, Math.Min(2, mentality));
+            UserClub.Tactics.AssistantMentality = false;   // you decide now
+        }
+
+        /// <summary>The assistant manager (on by default): mentality for each match, and resting tired players.</summary>
+        public void SetAssistant(bool mentality, bool rest)
+        {
+            var t = UserClub.Tactics;
+            t.AssistantMentality = mentality;
+            if (t.AssistantRest && !rest) foreach (var p in MySquad.Where(p => p.RestedFrom != null)) { p.Regime = p.RestedFrom; p.RestedFrom = null; }
+            t.AssistantRest = rest;
+        }
 
         /// <summary>11 player ids in the formation's slot order, and up to 9 on the bench. Unavailable players are replaced at kick-off.</summary>
         public void SetLineup(IList<string> starters, IList<string> bench)
@@ -194,7 +209,8 @@ namespace LegendsFC.Core.Saves
         public void SetRegime(string playerId, string regime)
         {
             if (!_d.Development.Regimes.ContainsKey(regime)) throw new ArgumentException("Unknown regime " + regime);
-            Mine(playerId).Regime = regime;
+            var p = Mine(playerId);
+            p.Regime = regime; p.RestedFrom = null;
         }
 
         // ---- coaches (Oct 9 night; rules decided Oct 7)

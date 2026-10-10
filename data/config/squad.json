@@ -211,6 +211,8 @@
   },
   "_aiNote": "AI clubs: the formation that best fits their squad (rechecked each week); the best 11 for it, counting energy; light regime for players under 60 energy, otherwise moderate; mentality by relative strength: defensive as a clear underdog (8+ points weaker), attacking as a clear favourite (8+ stronger); unrelated positions only in emergencies.",
   "aiLightRegimeBelowEnergy": 60,
+  "_assistantNote": "Assistant manager (Carlos, Oct 10; on by default, the user can switch each part off): picks the mentality for each match by the AI rule, and moves the user's players under 60 energy to the light regime, back to their regime at 85.",
+  "assistantBackAboveEnergy": 85,
   "aiMentalityGap": 8,
   "aiVeryMentalityGap": 15
 }

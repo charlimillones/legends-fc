@@ -29,6 +29,10 @@ namespace LegendsFC.Core.Money
         public double ReserveSeasons = 1.0;
         /// <summary>Share of the spare money added to the wage bar each season (approved Oct 10; 0 = off).</summary>
         public double SpareMoneyToWageBar = 0.25;
+        /// <summary>Relegation clause (Carlos, Oct 10): every contract at a relegated club loses this share of its wage.</summary>
+        public double RelegationWageCut = 0.30;
+        /// <summary>Parachute (Carlos, Oct 10): a club relegated from a top division gets this share of the TV gap for one season.</summary>
+        public double ParachuteShareOfTvGap = 0.40;
         public WageCurveConfig WageCurve = new WageCurveConfig();
         public RenewalConfig Renewal = new RenewalConfig();
         public FanMoodConfig FanMood = new FanMoodConfig();
@@ -43,7 +47,9 @@ namespace LegendsFC.Core.Money
         public double Tv, Prize, Gate, Sponsors, Store;
         /// <summary>Cup and continental prize money (Oct 9).</summary>
         public double Cups;
-        public double Total => Tv + Prize + Gate + Sponsors + Store + Cups;
+        /// <summary>Parachute payment after relegation from a top division (Oct 10).</summary>
+        public double Parachute;
+        public double Total => Tv + Prize + Gate + Sponsors + Store + Cups + Parachute;
     }
 
     /// <summary>Season income and the wage bar. Same rules for every club.</summary>

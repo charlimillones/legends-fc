@@ -142,7 +142,7 @@ namespace LegendsFC.App
                 UIKit.Cell(row, p.ContractEndYear.ToString(), 120, 22, p.ContractEndYear <= w.SeasonStartYear ? UIKit.Warn : UIKit.Ink);
                 UIKit.Cell(row, Fmt.Money(p.Wage), 130, 22);
                 string next = Regimes[(Array.IndexOf(Regimes, p.Regime) + 1) % Regimes.Length];
-                UIKit.Button(row, Fmt.Cap(p.Regime), () => { S.SetRegime(id, next); A.Refresh(); }, UIKit.Panel2, 22, 170, 48);
+                UIKit.Button(row, Fmt.Cap(p.Regime) + (p.RestedFrom != null ? " (rest)" : ""), () => { S.SetRegime(id, next); A.Refresh(); }, UIKit.Panel2, 22, 170, 48);
             }
         }
     }
@@ -255,12 +255,16 @@ namespace LegendsFC.App
                 UIKit.Button(forms, f, () => { S.SetFormation(form); S.AutoPick(league); _selected = -1; A.Refresh(); }, f == t.Formation ? UIKit.AccentDark : UIKit.Panel2, 22, 150, 60);
             }
             var ment = UIKit.Row(list, 60, 8);
+            UIKit.Button(ment, "Assistant decides", () => { S.SetAssistant(true, t.AssistantRest); A.Refresh(); }, t.AssistantMentality ? UIKit.AccentDark : UIKit.Panel2, 22, 260, 60);
             string[] names = { "Very defensive", "Defensive", "Balanced", "Attacking", "Very attacking" };
             for (int m = -2; m <= 2; m++)
             {
                 int mm = m;
-                UIKit.Button(ment, names[m + 2], () => { S.SetMentality(mm); A.Refresh(); }, t.Mentality == m ? UIKit.AccentDark : UIKit.Panel2, 22, 240, 60);
+                UIKit.Button(ment, names[m + 2], () => { S.SetMentality(mm); A.Refresh(); }, !t.AssistantMentality && t.Mentality == m ? UIKit.AccentDark : UIKit.Panel2, 22, 220, 60);
             }
+            var rest = UIKit.Row(list, 56, 8);
+            UIKit.Button(rest, t.AssistantRest ? "Assistant rests tired players: on" : "Assistant rests tired players: off", () => { S.SetAssistant(t.AssistantMentality, !t.AssistantRest); A.Refresh(); }, t.AssistantRest ? UIKit.AccentDark : UIKit.Panel2, 22, 520, 56);
+            UIKit.Cell(rest, t.AssistantMentality ? "   The assistant sets the mentality for each match (defensive against stronger teams)." : "", 0, 20, UIKit.Muted);
             var tools = UIKit.Row(list, 60, 8);
             UIKit.Button(tools, "Auto pick", () => { S.AutoPick(league); _selected = -1; A.Refresh(); }, UIKit.Accent, 24, 220, 60);
             UIKit.Button(tools, "Best formation", () => { S.AutoPick(league, keepFormation: false); _selected = -1; A.Refresh(); }, UIKit.Panel2, 22, 260, 60);

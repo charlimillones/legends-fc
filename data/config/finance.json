@@ -131,5 +131,8 @@
   "_upkeepNote": "Oct 9: the flat 3% upkeep is replaced by real repairs (facilities.json: each 1% of condition costs 0.2% of the level's price), paid when a club repairs.",
   "_spareMoneyNote": "Approved by Carlos (Oct 10): rich clubs piled up cash (ENG-1 average 189M to 1.3B over 20 seasons) because the wage bar stopped them spending. The wage bar now adds 25% of the spare money: what a club holds above one season of income. Same rule for the user. 0 turns it off.",
   "reserveSeasons": 1.0,
-  "spareMoneyToWageBar": 0.25
+  "spareMoneyToWageBar": 0.25,
+  "_relegationNote": "Carlos, Oct 10: relegation clauses cut every contract at a relegated club by 30% (AI and user alike). A club relegated from a top division gets a parachute: 40% of the TV gap between the two divisions, paid with the next season's income (England: (75M - 9M) x 0.4 = about 26M).",
+  "relegationWageCut": 0.30,
+  "parachuteShareOfTvGap": 0.40
 }

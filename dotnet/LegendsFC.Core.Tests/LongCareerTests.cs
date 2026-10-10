@@ -4,6 +4,7 @@ using System.Linq;
 using LegendsFC.Core.Career;
 using LegendsFC.Core.Inbox;
 using LegendsFC.Core.Model;
+using Squad = LegendsFC.Core.Squad;
 using LegendsFC.Core.Money;
 using LegendsFC.Core.Saves;
 using LegendsFC.Core.Season;
@@ -147,5 +148,52 @@ public class LongCareerTests
         Assert.True(noRoom);
         Assert.True(s.World.Players.Count(p => p.ClubId == club.Id) <= D.Development.MaxSquadSize);
         Assert.Contains(s.World.Players, p => p.AcademyClubId == club.Id && p.ClubId == null && p.FormerClubIds.Contains(club.Id) && p.BirthYear >= year - 17);
+    }
+
+    [Fact]
+    public void Relegation_CutsWages30Percent_AndATopDivisionClubGetsAParachute()
+    {
+        var w = new WorldGenerator(D).Generate(61);
+        var cycle = new SeasonCycle(D); var rng = new LegendsFC.Core.Util.GameRandom(62);
+        var wagesBefore = w.Players.Where(p => p.ClubId != null).ToDictionary(p => p.Id, p => p.Wage);
+        var leagueBefore = new System.Collections.Generic.Dictionary<string, string>(w.ClubLeague);
+        var cal = new SeasonCalendar(D);
+        cal.Start(w, rng);
+        while (!w.Calendar.SeasonOver) cal.PlayWeek(w, rng);
+        var outcomes = cal.Outcomes(w);
+        var down = outcomes.First(o => o?.CompetitionId == "ENG-1").Relegated[0];
+        var wagesAtEnd = w.Players.Where(p => p.ClubId == down && p.LoanFromClubId == null).ToDictionary(p => p.Id, p => p.Wage);
+        cycle.EndSeason(w, rng, outcomes);
+        var club = w.Clubs.First(c => c.Id == down);
+        Assert.Equal("ENG-2", w.ClubLeague[down]);
+        // Players who renewed at the season end have new wages; the rest kept 70% of theirs.
+        Assert.True(wagesAtEnd.Keys.Count(id => w.Players.Any(p => p.Id == id && p.ClubId == down && Math.Abs(p.Wage - wagesAtEnd[id] * 0.7) <= 1)) > 10);
+        double gap = D.Finance.For("ENG-1").TvPerClubEur - D.Finance.For("ENG-2").TvPerClubEur;
+        Assert.Equal((long)Math.Round(gap * D.Finance.ParachuteShareOfTvGap), club.ParachuteEur);
+    }
+
+    [Fact]
+    public void TheAssistant_PicksTheMentality_AndRestsTiredPlayers_UntilYouTakeOver()
+    {
+        var store = new SaveStore(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "lfc-asst-" + System.Guid.NewGuid().ToString("N")), D.Saves);
+        var s = GameSession.NewWorld(D, store, "x", 63, "EUR", "t");
+        s.Autosave = false;
+        s.PickClub(s.World.Clubs.First(c => s.World.ClubLeague[c.Id] == "ENG-1").Id, "t");
+        var t = s.UserClub.Tactics;
+        Assert.True(t.AssistantMentality && t.AssistantRest);
+        var p = s.World.Players.First(x => x.ClubId == s.World.UserClubId && x.MainPosition != Position.GK);
+        s.SetRegime(p.Id, "heavy");
+        p.Energy = 40;
+        Squad.Fitness.AiRegimes(s.World, D);
+        Assert.Equal("light", p.Regime);                 // rested
+        p.Energy = 90;
+        Squad.Fitness.AiRegimes(s.World, D);
+        Assert.Equal("heavy", p.Regime);                 // back on the regime you chose
+        s.SetMentality(2);
+        Assert.False(t.AssistantMentality);              // choosing yourself turns it off
+        s.SetAssistant(true, false);
+        p.Energy = 40;
+        Squad.Fitness.AiRegimes(s.World, D);
+        Assert.Equal("heavy", p.Regime);                 // resting is off
     }
 }

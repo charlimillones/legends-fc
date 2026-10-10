@@ -75,6 +75,8 @@ namespace LegendsFC.Core.Model
         public long SpentOnCoaches;
         /// <summary>Income of the last settled season (EUR). Sets the reserve for the wage bar's spare-money part.</summary>
         public long LastSeasonIncome;
+        /// <summary>Parachute money paid with the next season's income (relegation from a top division, Oct 10).</summary>
+        public long ParachuteEur;
         /// <summary>Running total of money from random events and board bonuses (EUR; negative = fines), for reports.</summary>
         public long OtherMoney;
     }
@@ -131,6 +133,8 @@ namespace LegendsFC.Core.Model
         public List<StatLine> Stats = new List<StatLine>();
         /// <summary>The coach who trains him (null = he develops naturally, without a coach).</summary>
         public string CoachId;
+        /// <summary>The regime he had before the assistant rested him (null = not rested by the assistant).</summary>
+        public string RestedFrom;
         /// <summary>The season he retired (0 = still playing).</summary>
         public int RetiredYear;
         public bool Injured => Injury != null;
@@ -228,6 +232,11 @@ namespace LegendsFC.Core.Model
         public List<string> Bench = new List<string>();
         public string Captain, PenaltyTaker, FreeKickTaker, CornerTaker;
         public List<SavedLineup> Saved = new List<SavedLineup>();
+        /// <summary>Assistant manager (Carlos, Oct 10; on by default): picks the mentality for each match by the AI rule.
+        /// Choosing a mentality yourself turns it off.</summary>
+        public bool AssistantMentality = true;
+        /// <summary>Assistant manager: moves tired players to the light regime and back once they've recovered.</summary>
+        public bool AssistantRest = true;
     }
 
     public sealed class SavedLineup

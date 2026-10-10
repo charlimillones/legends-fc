@@ -75,8 +75,9 @@ namespace LegendsFC.Core.Squad
             var w = x.World; var d = x.Data; var rng = x.Rng; var c = d.Squad; var e = d.MatchEvents;
             var home = Prepare(w.Clubs.First(k => k.Id == f.Home), competitionId, x);
             var away = Prepare(w.Clubs.First(k => k.Id == f.Away), competitionId, x);
-            if (home.Club.Id != w.UserClubId) home.Sheet.Mentality = Lineups.AiMentality(home.Overall, away.Overall, c);
-            if (away.Club.Id != w.UserClubId) away.Sheet.Mentality = Lineups.AiMentality(away.Overall, home.Overall, c);
+            // AI clubs, and the user's club while the assistant picks the mentality (Oct 10).
+            if (home.Club.Id != w.UserClubId || home.Club.Tactics.AssistantMentality) home.Sheet.Mentality = Lineups.AiMentality(home.Overall, away.Overall, c);
+            if (away.Club.Id != w.UserClubId || away.Club.Tactics.AssistantMentality) away.Sheet.Mentality = Lineups.AiMentality(away.Overall, home.Overall, c);
 
             var events = new List<MatchEvent>();
             // ---- minute-by-minute: injuries, cards, substitutions

@@ -84,9 +84,19 @@ namespace LegendsFC.Core.Squad
         /// <summary>AI clubs set regimes by the same rules the user can use: light below 60 energy, otherwise moderate.</summary>
         public static void AiRegimes(GameWorld w, GameData d)
         {
+            var user = w.UserClubId == null ? null : w.Clubs.FirstOrDefault(c => c.Id == w.UserClubId);
+            bool assistant = user != null && user.Tactics.AssistantRest;
             foreach (var p in w.Players)
             {
-                if (p.ClubId == null || p.ClubId == w.UserClubId || p.Retired) continue;
+                if (p.ClubId == null || p.Retired) continue;
+                if (p.ClubId == w.UserClubId)
+                {
+                    if (!assistant) continue;
+                    // Assistant (Oct 10): rest tired players, then put them back on the regime you chose.
+                    if (p.RestedFrom == null && p.Energy < d.Squad.AiLightRegimeBelowEnergy && p.Regime != "light") { p.RestedFrom = p.Regime; p.Regime = "light"; }
+                    else if (p.RestedFrom != null && p.Energy >= d.Squad.AssistantBackAboveEnergy) { p.Regime = p.RestedFrom; p.RestedFrom = null; }
+                    continue;
+                }
                 p.Regime = p.Energy < d.Squad.AiLightRegimeBelowEnergy ? "light" : d.Development.DefaultRegime;
             }
         }
