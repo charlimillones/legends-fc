@@ -43,6 +43,10 @@ namespace LegendsFC.Core.Data
         public Saves.SaveConfig Saves = new Saves.SaveConfig();
         public Inbox.MessageBank Messages = new Inbox.MessageBank();
         public Inbox.InboxConfig InboxRules = new Inbox.InboxConfig();
+        public Squad.SquadConfig Squad = new Squad.SquadConfig();
+        public Squad.MatchEventConfig MatchEvents = new Squad.MatchEventConfig();
+        public List<Squad.InjuryType> Injuries = new List<Squad.InjuryType>();
+        public Squad.DisciplineData Discipline = new Squad.DisciplineData();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
@@ -56,7 +60,7 @@ namespace LegendsFC.Core.Data
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
             "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
-            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json", "world/cups.json", "config/saves.json", "text/manager-messages.json", "config/inbox.json",
+            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json", "world/cups.json", "config/saves.json", "text/manager-messages.json", "config/inbox.json", "config/squad.json", "config/match-events.json", "rules/injuries.json", "rules/discipline.json",
         };
 
         /// <param name="read">Returns the JSON text for a relative path from <see cref="Files"/>.</param>
@@ -90,6 +94,10 @@ namespace LegendsFC.Core.Data
             d.Saves = Parse<Saves.SaveConfig>(read("config/saves.json"));
             d.Messages = Parse<Inbox.MessageBank>(read("text/manager-messages.json"));
             d.InboxRules = Parse<Inbox.InboxConfig>(read("config/inbox.json"));
+            d.Squad = Parse<Squad.SquadConfig>(read("config/squad.json"));
+            d.MatchEvents = Parse<Squad.MatchEventConfig>(read("config/match-events.json"));
+            d.Injuries = Section<List<Squad.InjuryType>>(read("rules/injuries.json"), "injuries");
+            d.Discipline = Parse<Squad.DisciplineData>(read("rules/discipline.json"));
             return d;
         }
 

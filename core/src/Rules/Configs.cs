@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 
 namespace LegendsFC.Core.Rules
@@ -31,6 +32,21 @@ namespace LegendsFC.Core.Rules
     public sealed class PositionRatingConfig
     {
         public Dictionary<string, Dictionary<string, double>> Weights = new Dictionary<string, Dictionary<string, double>>();
+
+        [Newtonsoft.Json.JsonIgnore] private Dictionary<string, (int attr, double weight)[]> _compiled;
+        /// <summary>The weights as (attribute index, weight) arrays, built once (rating is computed millions of times a season).</summary>
+        public (int attr, double weight)[] Compiled(string key)
+        {
+            var c = _compiled;
+            if (c == null)
+            {
+                c = new Dictionary<string, (int, double)[]>();
+                foreach (var kv in Weights)
+                    c[kv.Key] = kv.Value.Select(x => ((int)(Model.Attr)System.Enum.Parse(typeof(Model.Attr), x.Key), x.Value)).ToArray();
+                _compiled = c;   // built whole, then published: safe if two threads race
+            }
+            return c.TryGetValue(key, out var w) ? w : null;
+        }
     }
 
     /// <summary>data/rules/positions.json: related positions per group, as position tokens.</summary>

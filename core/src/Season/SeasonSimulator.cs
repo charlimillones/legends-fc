@@ -59,12 +59,22 @@ namespace LegendsFC.Core.Season
         /// <summary>Plays every league season at once in sim mode (headless tools and tests). The weekly calendar uses the same runs.</summary>
         public List<CompetitionOutcome> PlaySeason(GameWorld w, GameRandom rng)
         {
-            var strength = Strengths(w);
-            double S(string id) => strength[id];
             var runs = NewRuns(w, rng);
-            foreach (var run in runs)
-                for (var round = run.Next(_d); round != null; round = run.Next(_d))
-                    run.Record(RoundPlayer.Sim(round, S, _d, rng), _d);
+            var ctx = new Squad.MatchEngine.Context { World = w, Data = _d, Ratings = new Squad.RatingTable(_d), Rng = rng };
+            // Round by round across the leagues, with a week's rest after each (energy and injuries, Oct 9).
+            while (true)
+            {
+                bool any = false;
+                foreach (var run in runs)
+                {
+                    var round = run.Next(_d);
+                    if (round == null) continue;
+                    any = true;
+                    run.Record(RoundPlayer.Sim(round, run.CompetitionId, ctx), _d);
+                }
+                if (!any) break;
+                Squad.Fitness.WeekEnd(w, _d, rng, null);
+            }
             return runs.Select(r => r.Outcome).ToList();
         }
     }

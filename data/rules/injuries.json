@@ -1,0 +1,15 @@
+{
+  "_source": "Injury types (Carlos Oct 9: simulated matches produce injuries; decided: injury types with recovery times, no medical kits, the Medical Building speeds recovery). Shares and lengths are PROPOSALS based on typical elite football injury data. Weeks are before the Medical Building multiplier.",
+  "injuries": [
+    { "id": "INJ-KNOCK", "name": "knock", "share": 0.30, "weeksMin": 1, "weeksMax": 1, "serious": false },
+    { "id": "INJ-THIGH", "name": "thigh strain", "share": 0.18, "weeksMin": 2, "weeksMax": 4, "serious": false },
+    { "id": "INJ-HAMSTRING", "name": "hamstring injury", "share": 0.14, "weeksMin": 3, "weeksMax": 6, "serious": false },
+    { "id": "INJ-CALF", "name": "calf strain", "share": 0.10, "weeksMin": 2, "weeksMax": 4, "serious": false },
+    { "id": "INJ-ANKLE", "name": "ankle sprain", "share": 0.10, "weeksMin": 2, "weeksMax": 5, "serious": false },
+    { "id": "INJ-GROIN", "name": "groin strain", "share": 0.07, "weeksMin": 2, "weeksMax": 5, "serious": false },
+    { "id": "INJ-KNEE", "name": "knee ligament injury", "share": 0.05, "weeksMin": 6, "weeksMax": 10, "serious": true },
+    { "id": "INJ-CONCUSSION", "name": "concussion", "share": 0.02, "weeksMin": 1, "weeksMax": 2, "serious": false },
+    { "id": "INJ-FRACTURE", "name": "broken bone", "share": 0.025, "weeksMin": 8, "weeksMax": 16, "serious": true },
+    { "id": "INJ-ACL", "name": "cruciate ligament rupture", "share": 0.015, "weeksMin": 26, "weeksMax": 40, "serious": true }
+  ]
+}

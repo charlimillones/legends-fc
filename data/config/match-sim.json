@@ -1,7 +1,7 @@
 {
-  "_source": "Sim-mode result model approved Oct 8 (balancing report v1, change 9): each team's goals ~ Poisson(base x e^(+-k x strength difference)). No home advantage until decided. Extra time (Oct 9, cups): 30 minutes at a third of the 90-minute scoring rate (PROPOSAL).",
+  "_source": "Sim-mode result model approved Oct 8 (balancing report v1, change 9): each team's goals ~ Poisson(base x e^(+-k x strength difference)). No home advantage until decided. Extra time (Oct 9, cups): 30 minutes at a third of the 90-minute scoring rate (PROPOSAL). Oct 9 (squad and tactics): strength now = the lineup's attack v the other side's defence; strengthFactor 0.05 -> 0.056 to keep title winners at 78-97 points.",
   "baseGoals": 1.35,
-  "strengthFactor": 0.05,
+  "strengthFactor": 0.056,
   "homeAdvantage": 0.0,
   "pointsWin": 3,
   "pointsDraw": 1,

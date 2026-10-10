@@ -9,10 +9,9 @@ namespace LegendsFC.Core.Rules
         public static double Base(AttributeSet attrs, Position pos, PositionRatingConfig c)
         {
             var key = WeightKey(pos);
-            if (!c.Weights.TryGetValue(key, out var weights)) throw new InvalidOperationException("No rating weights for " + key);
+            var weights = c.Compiled(key) ?? throw new InvalidOperationException("No rating weights for " + key);
             double sum = 0;
-            foreach (var kv in weights)
-                sum += attrs[(Attr)Enum.Parse(typeof(Attr), kv.Key)] * kv.Value;
+            foreach (var (attr, weight) in weights) sum += attrs[(Attr)attr] * weight;
             return sum;
         }
 

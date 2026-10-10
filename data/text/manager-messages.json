@@ -1,5 +1,5 @@
 {
-  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings.",
+  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45).",
   "roles": {
     "Stadium": "groundskeeper",
     "TrainingGround": "head of training",
@@ -210,7 +210,6 @@
       "name": "Heavy regime too long",
       "sender": "TrainingGround",
       "priority": 1,
-      "waitsFor": "per-player training regimes",
       "wordings": [
         "[player] looks tired. Maybe ease off the heavy sessions.",
         "[player] has been on heavy training for weeks. He needs a break.",
@@ -331,7 +330,6 @@
       "name": "Academy graduate debuts",
       "sender": "Academy",
       "priority": 4,
-      "waitsFor": "match lineups",
       "wordings": [
         "Proud day. [player] made his debut!",
         "From our Youth Academy to the first team: well done, [player]!",
@@ -358,7 +356,6 @@
       "name": "Player injured",
       "sender": "MedicalCentre",
       "priority": 1,
-      "waitsFor": "injuries",
       "wordings": [
         "We're taking care of [player]. He should be out for about [n] weeks.",
         "[player] picked up a [injury]. [n] weeks out.",
@@ -372,7 +369,6 @@
       "name": "Serious injury",
       "sender": "MedicalCentre",
       "priority": 1,
-      "waitsFor": "injuries",
       "wordings": [
         "It's serious, boss. [player] will miss [n] months.",
         "The scans aren't good. [player] is out for [n] months.",
@@ -386,7 +382,6 @@
       "name": "Recovery ahead of schedule",
       "sender": "MedicalCentre",
       "priority": 1,
-      "waitsFor": "injuries",
       "wordings": [
         "Good news: [player] is recovering faster than expected.",
         "[player] is ahead of schedule. Maybe [n] weeks less.",
@@ -400,7 +395,6 @@
       "name": "Player back in training",
       "sender": "MedicalCentre",
       "priority": 1,
-      "waitsFor": "injuries",
       "wordings": [
         "[player] is back in training and fit to play.",
         "[player] has been cleared. He's available.",
@@ -428,7 +422,6 @@
       "name": "Too many injuries",
       "sender": "MedicalCentre",
       "priority": 1,
-      "waitsFor": "injuries",
       "wordings": [
         "We've got [n] players in the treatment room. It's stretching us thin.",
         "[n] injured at once. We're working overtime.",
@@ -442,7 +435,6 @@
       "name": "Player at injury risk",
       "sender": "MedicalCentre",
       "priority": 1,
-      "waitsFor": "injuries",
       "wordings": [
         "[player] is showing signs of strain. I'd rest him.",
         "[player] is close to the limit. One more game could be one too many.",

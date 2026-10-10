@@ -70,6 +70,7 @@ namespace LegendsFC.Core.Model
         public double FanMood = 50;      // 0-100 (Oct 8)
         /// <summary>Running total spent on facility upgrades and repairs (EUR), for reports.</summary>
         public long SpentOnFacilities;
+        public Tactics Tactics = new Tactics();
     }
 
     /// <summary>A player. Hidden fields are never shown directly (architecture rule 7).</summary>
@@ -111,5 +112,63 @@ namespace LegendsFC.Core.Model
         public int UnsignedSeasons;
         /// <summary>Share of his wage the borrowing club pays while on loan (0, 0.5 or 1).</summary>
         public double LoanWageShare;
+
+        // Fitness, discipline and stats (squad and tactics, Oct 9)
+        /// <summary>0-100. Matches cost energy; the training regime sets the weekly rest (light = full).</summary>
+        public double Energy = 100;
+        /// <summary>"light", "moderate" or "heavy" (development.json regimes).</summary>
+        public string Regime = "moderate";
+        public Injury Injury;
+        public List<Ban> Bans = new List<Ban>();
+        /// <summary>Yellow cards this season per competition (wiped by each competition's rules).</summary>
+        public Dictionary<string, int> Yellows = new Dictionary<string, int>();
+        public List<StatLine> Stats = new List<StatLine>();
+        public bool Injured => Injury != null;
+    }
+
+    public sealed class Injury
+    {
+        public string TypeId, Name;
+        public double WeeksLeft;
+        public int TotalWeeks;
+        public bool Serious;
+    }
+
+    /// <summary>A suspension: matches left to miss, in one competition, a country's competitions, or a confederation's cups.</summary>
+    public sealed class Ban
+    {
+        public string Scope, Key;
+        public int MatchesLeft;
+        public string Reason;
+    }
+
+    /// <summary>A player's numbers for one competition in one season at one club (older seasons are merged per club).</summary>
+    public sealed class StatLine
+    {
+        public int Season;
+        public string CompetitionId, ClubId;
+        public int Apps, Starts, SubApps, Minutes, Goals, Assists, CleanSheets, Yellows, Reds, Rated, PlayerOfTheMatch;
+        public double RatingSum;
+        public double AverageRating => Rated == 0 ? 0 : RatingSum / Rated;
+    }
+
+    /// <summary>A club's team choices. The user sets them; AI clubs pick by the same rules.</summary>
+    public sealed class Tactics
+    {
+        public string Formation = "4-4-2";
+        /// <summary>-2 very defensive ... +2 very attacking.</summary>
+        public int Mentality;
+        /// <summary>Player ids by formation slot (11) and the bench (up to 9). Empty = pick automatically.</summary>
+        public List<string> Lineup = new List<string>();
+        public List<string> Bench = new List<string>();
+        public string Captain, PenaltyTaker, FreeKickTaker, CornerTaker;
+        public List<SavedLineup> Saved = new List<SavedLineup>();
+    }
+
+    public sealed class SavedLineup
+    {
+        public string Name, Formation;
+        public int Mentality;
+        public List<string> Lineup = new List<string>(), Bench = new List<string>();
     }
 }

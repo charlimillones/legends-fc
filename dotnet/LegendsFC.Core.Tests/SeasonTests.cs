@@ -41,12 +41,13 @@ public class FixtureTests
 
 public class SeasonSimTests
 {
-    private static readonly Lazy<GameWorld> World = new Lazy<GameWorld>(() => new WorldGenerator(TestData.Data).Generate(4242));
+    // A season changes the world (energy, injuries, bans, stats since Oct 9), so every test plays a fresh copy.
+    private static GameWorld Fresh() => new WorldGenerator(TestData.Data).Generate(4242);
 
     [Fact]
     public void TableAddsUp()
     {
-        var tables = new SeasonSimulator(TestData.Data).PlayLeagues(World.Value, new GameRandom(5));
+        var tables = new SeasonSimulator(TestData.Data).PlayLeagues(Fresh(), new GameRandom(5));
         var eng = tables["ENG-1"];
         Assert.Equal(20, eng.Count);
         Assert.All(eng, r => Assert.Equal(38, r.Played));
@@ -59,8 +60,8 @@ public class SeasonSimTests
     public void SameSeedSameTables()
     {
         var sim = new SeasonSimulator(TestData.Data);
-        var a = sim.PlayLeagues(World.Value, new GameRandom(9))["ESP-1"].Select(r => r.ClubId + r.Points);
-        var b = sim.PlayLeagues(World.Value, new GameRandom(9))["ESP-1"].Select(r => r.ClubId + r.Points);
+        var a = sim.PlayLeagues(Fresh(), new GameRandom(9))["ESP-1"].Select(r => r.ClubId + r.Points);
+        var b = sim.PlayLeagues(Fresh(), new GameRandom(9))["ESP-1"].Select(r => r.ClubId + r.Points);
         Assert.Equal(a, b);
     }
 
@@ -69,7 +70,7 @@ public class SeasonSimTests
     public void BalancingTarget_TitlePointsAndDraws()
     {
         var sim = new SeasonSimulator(TestData.Data);
-        var champs = Enumerable.Range(0, 20).Select(s => sim.PlayLeagues(World.Value, new GameRandom((ulong)s))["ENG-1"]).ToList();
+        var champs = Enumerable.Range(0, 20).Select(s => sim.PlayLeagues(Fresh(), new GameRandom((ulong)s))["ENG-1"]).ToList();
         double avgTitle = champs.Average(t => t[0].Points);
         double drawRate = champs.Average(t => t.Sum(r => r.Drawn) / (double)t.Sum(r => r.Played));
         Assert.InRange(avgTitle, 78, 97);
@@ -80,7 +81,7 @@ public class SeasonSimTests
     public void AllLeaguesSimulateQuickly()
     {
         var sw = Stopwatch.StartNew();
-        new SeasonSimulator(TestData.Data).PlayLeagues(World.Value, new GameRandom(1));
+        new SeasonSimulator(TestData.Data).PlayLeagues(Fresh(), new GameRandom(1));
         Assert.True(sw.ElapsedMilliseconds < 2000, sw.ElapsedMilliseconds + " ms");
     }
 }
