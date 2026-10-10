@@ -19,3 +19,5 @@ unity/**/*.sln
 Thumbs.db
 unity/**/Assets/StreamingAssets/data/
 unity/**/Assets/StreamingAssets/data.meta
+unity/**/Assets/StreamingAssets.meta
+unity/**/Assets/StreamingAssets/
