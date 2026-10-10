@@ -37,6 +37,7 @@ namespace LegendsFC.Core.Season
         public double EnergyBeforeRest;
         /// <summary>The user's scout reports filed this week.</summary>
         public List<Model.ScoutReport> ScoutReports = new List<Model.ScoutReport>();
+        public bool Sacked;
     }
 
     /// <summary>
@@ -141,6 +142,10 @@ namespace LegendsFC.Core.Season
             report.EnergyBeforeRest = nE == 0 ? 100 : sumE / nE;
             Squad.Fitness.WeekEnd(w, _d, rng, report);
             report.ScoutReports = Scouting.Scouts.Week(w, _d);   // own random stream
+
+            // Random events for every club; the board's weekly mood for the user (Oct 9 night).
+            Career.Events.Week(w, rng, _d);
+            if (w.UserClubId != null) report.Sacked = Career.Board.Week(w, report, _d);
 
             // Weekly training (40 weeks from the first training week).
             if (cal.Week >= c.FirstTrainingWeek && cal.Week < c.FirstTrainingWeek + _d.Development.TrainingWeeksPerSeason)

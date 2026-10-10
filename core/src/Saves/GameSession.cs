@@ -65,6 +65,7 @@ namespace LegendsFC.Core.Saves
             if (World.Clubs.TrueForAll(c => c.Id != clubId)) throw new ArgumentException("Unknown club " + clubId, nameof(clubId));
             World.UserClubId = clubId;
             World.Market.SquadsChanged();
+            LegendsFC.Core.Career.Board.Start(World, UserClub, _d);
             Save(nowUtc);
         }
 
@@ -257,6 +258,47 @@ namespace LegendsFC.Core.Saves
         /// <summary>Any player as the user sees him (own players exact; others by scouting).</summary>
         public LegendsFC.Core.Scouting.PlayerView ViewPlayer(string playerId)
             => LegendsFC.Core.Scouting.Scouts.View(World, UserClub, World.Players.First(p => p.Id == playerId), _d);
+
+        // ---- career: board, jobs, decisions, summaries, awards (Oct 9 night; rules decided Oct 7-8)
+
+        public LegendsFC.Core.Career.CareerState Career => World.Career;
+        public Dictionary<string, int> ObjectiveOptions() => LegendsFC.Core.Career.Board.Options(World, UserClub, _d);
+        /// <summary>safe, standard or ambitious; before the league starts (week 9).</summary>
+        public bool ChooseObjective(string kind) => LegendsFC.Core.Career.Board.SetObjective(World, _d, kind);
+        public double WageAskChance(double extraShare) => LegendsFC.Core.Career.Board.WageAskChance(World, extraShare, _d);
+        public bool AskForWages(double extraShare) => LegendsFC.Core.Career.Board.AskForWages(World, extraShare, Rng, _d);
+        public bool AcceptJob(string clubId) => LegendsFC.Core.Career.Board.Accept(World, clubId, _d);
+        public double ApplyChance(string clubId) => LegendsFC.Core.Career.Board.ApplyChance(World, World.Clubs.First(c => c.Id == clubId), _d);
+        public bool ApplyForJob(string clubId) => LegendsFC.Core.Career.Board.Apply(World, clubId, Rng, _d);
+        public bool Decide(int decisionId, int option) => LegendsFC.Core.Career.Events.Decide(World, decisionId, option, Rng, _d);
+        public List<LegendsFC.Core.Career.AwardRecord> AwardsOf(int season) => World.Awards.Where(a => a.Season == season).ToList();
+
+        // ---- protégé (confirmed Oct 7-9)
+
+        /// <summary>The first protégé: free, fully custom, once per save.</summary>
+        public Model.Player CreateFirstProtege(string name, string nationalityId, Model.Position position, Model.Foot? foot, string personalityId)
+        {
+            if (Career.FirstProtegeDone) throw new InvalidOperationException("The first protégé has already been created.");
+            if (MySquad.Count >= _d.Development.MaxSquadSize) throw new InvalidOperationException("The squad is full (32).");
+            var p = new WorldGenerator(_d).CreateFirstProtege(World, UserClub, Rng, name, nationalityId, position, foot, personalityId);
+            World.Market.SquadsChanged();
+            Career.FirstProtegeDone = true;
+            Inbox.InboxEngine.Queue(World, "MSG-PROTEGE", Model.Facility.Academy, _d, ("player", p.Name));
+            return p;
+        }
+
+        /// <summary>The yearly protégé: choose his position OR his personality; one per season; costs a share of his value.</summary>
+        public (Model.Player player, long price) BuyProtege(Model.Position? position, string personalityId)
+        {
+            if (Career.LastProtegeSeason == World.SeasonStartYear) throw new InvalidOperationException("One protégé per season.");
+            if (MySquad.Count >= _d.Development.MaxSquadSize) throw new InvalidOperationException("The squad is full (32).");
+            var (p, price) = new WorldGenerator(_d).CreateYearlyProtege(World, UserClub, Rng, position, personalityId);
+            if (!Money.Finance.TrySpend(UserClub, price)) { World.Players.Remove(p); World.Market.SquadsChanged(); return (null, price); }
+            World.Market.SquadsChanged();
+            Career.LastProtegeSeason = World.SeasonStartYear;
+            Inbox.InboxEngine.Queue(World, "MSG-PROTEGE", Model.Facility.Academy, _d, ("player", p.Name));
+            return (p, price);
+        }
 
         public void Save(string nowUtc) => _store?.Save(SlotId, World, Rng, Name, nowUtc);
     }

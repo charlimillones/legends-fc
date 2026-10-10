@@ -37,6 +37,12 @@ namespace LegendsFC.Core.World
         /// <summary>Titles won, per club: "Champions Cup 2027/28" style entries (competition id, season start year).</summary>
         public List<Season.TitleRecord> Honours = new List<Season.TitleRecord>();
 
+        /// <summary>The user's career: board, objectives, jobs, reputation, season summaries, decisions (Oct 9 night).</summary>
+        public Career.CareerState Career = new Career.CareerState();
+        public List<Career.AwardRecord> Awards = new List<Career.AwardRecord>();
+        /// <summary>Random events per club (balance and no-repeats).</summary>
+        public Dictionary<string, List<Career.EventRecord>> ClubEvents = new Dictionary<string, List<Career.EventRecord>>();
+
         /// <summary>The user's inbox (manager messages) and what its triggers remember.</summary>
         public Inbox.InboxState Inbox = new Inbox.InboxState();
 

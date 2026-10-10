@@ -55,14 +55,14 @@ public class InboxTests : IDisposable
     }
 
     [Fact]
-    public void Data_45Triggers_5WordingsEach_42Live()
+    public void Data_45Triggers_5WordingsEach_44Live()
     {
         var bank = D.Messages;
         Assert.Equal(45, bank.Triggers.Count);
         Assert.Equal(45, bank.Triggers.Select(t => t.Id).Distinct().Count());
         Assert.All(bank.Triggers, t => Assert.Equal(5, t.Wordings.Count));
         Assert.All(bank.Triggers, t => Assert.InRange(t.Priority, 1, 4));
-        Assert.Equal(42, bank.Triggers.Count(t => t.Live));   // 27 + 8 squad and tactics + 3 coaches + 4 scouting (Oct 9)
+        Assert.Equal(44, bank.Triggers.Count(t => t.Live));   // 27 + 8 squad and tactics + 3 coaches + 4 scouting + 2 events (Oct 9)
         Assert.All(bank.Triggers.Where(t => t.Name.Contains("injur") || t.Name.Contains("Illness")), t => Assert.Equal(1, t.Priority));
         var senders = new HashSet<string>(Enum.GetNames(typeof(Facility))) { "any" };
         Assert.All(bank.Triggers, t => Assert.Contains(t.Sender, senders));
@@ -78,7 +78,7 @@ public class InboxTests : IDisposable
     {
         var (s, weeks) = Career();
         Assert.All(weeks, w => Assert.InRange(w.msgs.Count, 0, 2));
-        var all = s.World.Inbox.Messages;
+        var all = s.World.Inbox.Messages.Where(m => m.Kind == MessageKind.Manager).ToList();
         Assert.True(all.Count >= 40, all.Count + " messages in 2 seasons");
         foreach (var g in all.GroupBy(m => m.Sender))
         {
@@ -102,7 +102,7 @@ public class InboxTests : IDisposable
     public void WordingsNeverRepeatWithinASeason()
     {
         var (s, _) = Career();
-        foreach (var g in s.World.Inbox.Messages.GroupBy(m => (m.SeasonStartYear, m.TriggerId)))
+        foreach (var g in s.World.Inbox.Messages.Where(m => m.Kind == MessageKind.Manager).GroupBy(m => (m.SeasonStartYear, m.TriggerId)))
         {
             var t = D.Messages.Get(g.Key.TriggerId);
             if (t.Repeatable) continue;
@@ -118,7 +118,7 @@ public class InboxTests : IDisposable
     {
         var (s, _) = Career();
         var hidden = D.Archetypes.Select(a => a.Name).Concat(D.Personalities.Select(p => p.Name)).Where(x => !string.IsNullOrWhiteSpace(x) && x.Length > 3).ToList();
-        foreach (var m in s.World.Inbox.Messages)
+        foreach (var m in s.World.Inbox.Messages.Where(m => m.Kind == MessageKind.Manager))
         {
             Assert.DoesNotContain("potential", m.Text, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("archetype", m.Text, StringComparison.OrdinalIgnoreCase);

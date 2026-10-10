@@ -1,5 +1,5 @@
 {
-  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45). Coaches (Oct 9 night): 3 more live (38 of 45). Scouting (Oct 9 night): 4 more live (42 of 45).",
+  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45). Coaches (Oct 9 night): 3 more live (38 of 45). Scouting (Oct 9 night): 4 more live (42 of 45). Random events (Oct 9 night): illness and event damage live (44 of 45; only the new kit waits).",
   "roles": {
     "Stadium": "groundskeeper",
     "TrainingGround": "head of training",
@@ -105,7 +105,6 @@
       "name": "Random event hits the facility",
       "sender": "any",
       "priority": 2,
-      "waitsFor": "events",
       "wordings": [
         "The storm did some damage here. I've listed the repairs.",
         "We've had some trouble at the [facility]: [event]. Condition is down to [n]%.",
@@ -405,7 +404,6 @@
       "name": "Illness spreading",
       "sender": "MedicalCentre",
       "priority": 1,
-      "waitsFor": "injuries",
       "wordings": [
         "A bug is going round the dressing room. We're isolating the sick players.",
         "[n] players are ill this week. We're keeping them apart.",

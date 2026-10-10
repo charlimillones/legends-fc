@@ -73,6 +73,8 @@ namespace LegendsFC.Core.Model
         public Tactics Tactics = new Tactics();
         /// <summary>Running total spent on coach contracts (EUR), for reports.</summary>
         public long SpentOnCoaches;
+        /// <summary>Running total of money from random events and board bonuses (EUR; negative = fines), for reports.</summary>
+        public long OtherMoney;
     }
 
     /// <summary>A player. Hidden fields are never shown directly (architecture rule 7).</summary>

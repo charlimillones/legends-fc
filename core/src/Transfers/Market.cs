@@ -62,9 +62,15 @@ namespace LegendsFC.Core.Transfers
             return m.SquadCache.TryGetValue(clubId, out var s) ? s : new List<Player>();
         }
 
-        /// <summary>Room left under the club's wage bar (the board's objective is "standard" until boards exist).</summary>
+        /// <summary>Room left under the club's wage bar (AI clubs: the standard objective; the user: the board's objective).</summary>
         public static double WageRoom(GameWorld w, Club club, GameData d)
-            => Money.Finance.WageBar(club, w.MoneyKey(club), "standard", d.Finance) - WageBill(w, club.Id);
+        {
+            // The board's objective sets the user's wage bar (ambitious raises it); asking mid-season can add more (Oct 9 night).
+            bool user = club.Id == w.UserClubId;
+            string objective = user && d.Finance.ObjectiveMultipliers.ContainsKey(w.Career.ObjectiveKind ?? "") ? w.Career.ObjectiveKind : "standard";
+            double bar = Money.Finance.WageBar(club, w.MoneyKey(club), objective, d.Finance) * (user ? 1 + w.Career.WageBarBonus : 1);
+            return bar - WageBill(w, club.Id);
+        }
 
         private static Talk NewTalk(GameWorld w, TalkKind kind, Player p, string buyer, string seller)
         {

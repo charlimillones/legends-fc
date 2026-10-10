@@ -267,6 +267,27 @@ namespace LegendsFC.Core.World
             return (p, (long)Math.Round(value * share));
         }
 
+        /// <summary>
+        /// The first protégé (confirmed Oct 7): free and fully custom (name, nationality, position, foot, personality). His abilities
+        /// follow the Youth Academy level but sit a little higher: potential = the academy's average + the protégé bonus (5).
+        /// </summary>
+        public Player CreateFirstProtege(GameWorld world, Club club, GameRandom rng, string name, string nationalityId, Position position, Foot? foot, string personalityId)
+        {
+            if (personalityId != null && _d.Personalities.Any(x => x.Id == personalityId && x.ArchetypeOnly)) throw new ArgumentException("That personality can't be chosen.");
+            _w = world; _rng = rng;
+            _playerSeq = world.Players.Count == 0 ? 0 : world.Players.Max(p => int.Parse(p.Id.Substring(4)));
+            int level = Math.Max(1, (int)Math.Round(Facilities.FacilityRules.WorkingLevel(club.Facilities[Facility.Academy], _d.FacilityRules)));
+            var pc = _c.Potential;
+            int potential = Clamp((int)Math.Round(pc.AcademyBase + pc.AcademyPerLevel * level + _d.Protege.FirstProtegeBonus), pc.AcademyMin, pc.AcademyMax);
+            var p = AddPlayer(club, position, 0, pc.AcademyAge[0], level, potential, personalityId);
+            if (!string.IsNullOrWhiteSpace(name)) p.Name = name.Trim();
+            if (nationalityId != null && world.Countries.Any(c => c.Id == nationalityId)) p.NationalityId = nationalityId;
+            if (foot != null) p.Foot = foot.Value;
+            p.PersonalityId = personalityId;
+            SetStartingWage(p);
+            return p;
+        }
+
         private int SeniorPotential(int current, int age)
         {
             var pc = _c.Potential;

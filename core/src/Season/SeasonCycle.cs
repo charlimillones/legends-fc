@@ -54,6 +54,8 @@ namespace LegendsFC.Core.Season
             var report = new SeasonReport { SeasonStartYear = w.SeasonStartYear, Outcomes = outcomes };
             SettleFinances(w, report);
             ApplyPromotionAndRelegation(w, report.Outcomes);
+            // The board's verdict, the season summary, awards, sacking or job offers (Oct 9 night).
+            Career.Board.SeasonEnd(w, report, outcomes, rng, _d);
 
             // Cups (Oct 9): coefficients, honours, and the results next season's places and super cups come from.
             CupRewards.UpdateCoefficients(w, CupRewards.SeasonPoints(w.Calendar.Runs, _d), _d);

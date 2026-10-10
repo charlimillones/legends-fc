@@ -40,7 +40,7 @@ namespace LegendsFC.Core.Inbox
         public double InjuryRiskBelowEnergy = 50;
     }
 
-    public enum MessageKind { Manager }
+    public enum MessageKind { Manager, Club, Decision }
 
     public sealed class InboxMessage
     {
@@ -52,6 +52,9 @@ namespace LegendsFC.Core.Inbox
         public string From;
         public int Priority, SeasonStartYear, Week;
         public bool Read;
+        /// <summary>Decision messages: the choices, answered with GameSession.Decide(DecisionId, option).</summary>
+        public int DecisionId;
+        public List<string> Options;
     }
 
     /// <summary>A message waiting for a free slot (at most 2 a week, by priority).</summary>
@@ -406,6 +409,19 @@ namespace LegendsFC.Core.Inbox
             return list.OrderByDescending(x => x.week).Take(n).Count(x => x.won);
         }
 
+        /// <summary>Club news, board and job messages, and event decisions: delivered at once (the 2-a-week limit is for managers only).</summary>
+        public static InboxMessage Post(GameWorld w, string text, string from, int decisionId = 0, List<string> options = null)
+        {
+            if (w.UserClubId == null && decisionId == 0 && from != "The board" && from != "Job offer") return null;
+            var m = new InboxMessage
+            {
+                Id = ++w.Inbox.Seq, Kind = decisionId > 0 ? MessageKind.Decision : MessageKind.Club, Text = text, From = from, Priority = 0,
+                SeasonStartYear = w.SeasonStartYear, Week = Math.Max(1, w.Calendar.Week), DecisionId = decisionId, Options = options?.ToList(),
+            };
+            w.Inbox.Messages.Add(m);
+            return m;
+        }
+
         /// <summary>Messages for an upgrade the user just paid for (delivered with the next week's messages).</summary>
         public static void QueueUpgrade(GameWorld w, Club club, Facility f, GameData d)
         {
@@ -481,6 +497,7 @@ namespace LegendsFC.Core.Inbox
         private static bool CanFill(string wording, Dictionary<string, string> values)
         {
             if (wording.IndexOf("derby", StringComparison.OrdinalIgnoreCase) >= 0 && !values.ContainsKey("derby")) return false;
+            if (wording.IndexOf("storm", StringComparison.OrdinalIgnoreCase) >= 0 && !values.ContainsKey("storm")) return false;
             return Slot.Matches(wording).Cast<Match>().All(x => values.ContainsKey(x.Groups[1].Value));
         }
 
