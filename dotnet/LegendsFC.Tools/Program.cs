@@ -281,6 +281,32 @@ if (args.Length > 0 && args[0] == "market-report")
     Console.WriteLine("Biggest fees: " + string.Join(", ", top.Select(h => Mm(h.Fee))));
     return;
 }
+if (args.Length > 0 && args[0] == "passive")
+{
+    // The weakest ENG-1 club over one season: as an AI club, and as a user club with nobody managing it. Usage: passive [seed]
+    string Run(bool user, out (int gf, int ga, int pos, int worst) r)
+    {
+        var data2 = data;
+        var store = new LegendsFC.Core.Saves.SaveStore(Path.Combine(Path.GetTempPath(), "lfc-passive-" + seed + user), data2.Saves);
+        foreach (var f in Directory.GetFiles(Path.Combine(Path.GetTempPath(), "lfc-passive-" + seed + user, "worlds"))) File.Delete(f);
+        var s = LegendsFC.Core.Saves.GameSession.NewWorld(data2, store, "P", seed, "EUR", "t");
+        s.Autosave = false;
+        var club = s.World.Clubs.Where(c => s.World.ClubLeague[c.Id] == "ENG-1").OrderBy(c => c.Reputation).First();
+        if (user) s.PickClub(club.Id, "t");
+        for (int k = 0; k < 51; k++) s.AdvanceWeek("t");
+        var run = s.World.Calendar.Runs.FirstOrDefault(x => x.CompetitionId == "ENG-1");
+        var table = LegendsFC.Core.Career.Board.TableSoFar(s.World, "ENG-1", data2);
+        int pos = table.FindIndex(x => x.ClubId == club.Id) + 1; var row = table[pos - 1];
+        int worst = run.PlayedRounds.SelectMany(x => x).Where(m => m.Home == club.Id || m.Away == club.Id).Max(m => m.Home == club.Id ? m.AwayGoals - m.HomeGoals : m.HomeGoals - m.AwayGoals);
+        r = (row.GoalsFor, row.GoalsAgainst, pos, worst);
+        var last = table.Last();
+        return $"{(user ? "passive user" : "AI club    ")}: {club.Name} {Ordinal(pos)} {row.Points} pts, goals {row.GoalsFor}-{row.GoalsAgainst}, worst defeat by {worst}; table last {last.Points} pts {last.GoalsFor}-{last.GoalsAgainst}";
+    }
+    string Ordinal(int n) => n + "th";
+    Console.WriteLine(Run(false, out _));
+    Console.WriteLine(Run(true, out _));
+    return;
+}
 if (args.Length > 0 && args[0] == "objectives")
 {
     // How often clubs meet each board objective (set in week 9 from squad strength). Usage: objectives [seed] [seasons]
