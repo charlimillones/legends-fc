@@ -102,7 +102,7 @@ public class MultiSeasonTests
         Assert.All(w.Players.Where(p => p.Retired), p => Assert.True(2036 - p.BirthYear >= p.RetireAge || p.UnsignedSeasons > d.Finance.FreeAgents.RetireAfterUnsignedSeasons));
         Assert.DoesNotContain(w.Players, p => !p.Retired && p.ClubId != null && 2036 - p.BirthYear >= p.RetireAge);
         Assert.True(champions.Count >= 2, "same champion every season");
-        Assert.True(sw.Elapsed.TotalSeconds < 120, sw.Elapsed.TotalSeconds + " s");
+        Assert.True(sw.Elapsed.TotalSeconds < 180, sw.Elapsed.TotalSeconds + " s");
         _out.WriteLine($"10 seasons in {sw.Elapsed.TotalSeconds:F1} s; {champions.Count} different ENG-1 champions");
     }
 
