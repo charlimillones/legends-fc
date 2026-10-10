@@ -287,3 +287,26 @@ public class FinanceSeasonsTests
         }
     }
 }
+
+public class UnsignedFreeAgentTests
+{
+    [Fact]
+    public void AFreeAgentUnsignedForTwoFullSeasons_Retires()
+    {
+        var d = TestData.Data;
+        var w = new LegendsFC.Core.World.WorldGenerator(d).Generate(4);
+        var released = w.Players.First(p => p.ClubId != null);
+        var signedAgain = w.Players.Where(p => p.ClubId != null).Skip(1).First();
+        string club = signedAgain.ClubId;
+        Squads.Leave(w, released); Squads.Leave(w, signedAgain);
+        LegendsFC.Core.Season.SeasonCycle.RetireLongUnsigned(w, d);      // season end when he was released
+        signedAgain.ClubId = club;                                         // signed during the next season
+        LegendsFC.Core.Season.SeasonCycle.RetireLongUnsigned(w, d);      // 1 full season unsigned
+        Assert.False(released.Retired);
+        Squads.Leave(w, signedAgain);                                      // released again: the count starts over
+        Assert.Equal(1, LegendsFC.Core.Season.SeasonCycle.RetireLongUnsigned(w, d));   // 2 full seasons unsigned
+        Assert.True(released.Retired);
+        Assert.False(signedAgain.Retired);
+        Assert.Equal(1, signedAgain.UnsignedSeasons);
+    }
+}

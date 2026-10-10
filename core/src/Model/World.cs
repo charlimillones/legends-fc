@@ -107,6 +107,8 @@ namespace LegendsFC.Core.Model
         public List<string> FormerClubIds = new List<string>();
         /// <summary>On loan: the club that owns him (ClubId is the borrowing club). Null when not on loan.</summary>
         public string LoanFromClubId;
+        /// <summary>Season ends in a row he finished without a club (0 when he has one).</summary>
+        public int UnsignedSeasons;
         /// <summary>Share of his wage the borrowing club pays while on loan (0, 0.5 or 1).</summary>
         public double LoanWageShare;
     }

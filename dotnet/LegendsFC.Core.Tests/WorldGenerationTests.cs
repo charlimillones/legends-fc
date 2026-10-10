@@ -138,3 +138,23 @@ public class WorldGenerationTests
         Assert.True(sw.ElapsedMilliseconds < 3000, sw.ElapsedMilliseconds + " ms");
     }
 }
+
+public class RetirementAgeTests
+{
+    [Fact]
+    public void RetirementAges_NormalCurve_32To44_32AsRareAs44()
+    {
+        var w = new LegendsFC.Core.World.WorldGenerator(TestData.Data).Generate(21);
+        // Players generated near the end of their career get "a season or two" more, so look at the ones 31 or younger.
+        var young = w.Players.Where(p => w.SeasonStartYear - p.BirthYear <= 31).ToList();
+        Assert.All(young, p => Assert.InRange(p.RetireAge, 32, 44));
+        double Share(Func<Player, bool> f) => young.Count(f) / (double)young.Count;
+        Assert.InRange(young.Average(p => p.RetireAge), 37.8, 38.2);          // centred on 38
+        Assert.InRange(Share(p => p.RetireAge == 38), 0.17, 0.22);            // the peak
+        Assert.InRange(Share(p => p.RetireAge <= 35), 0.08, 0.14);            // symmetric tails
+        Assert.InRange(Share(p => p.RetireAge >= 41), 0.08, 0.14);
+        Assert.InRange(Share(p => p.RetireAge == 32), 0.0005, 0.006);         // rare at both ends
+        Assert.InRange(Share(p => p.RetireAge == 44), 0.0005, 0.006);
+        Assert.All(young, p => Assert.True(p.DeclineStartAge <= p.RetireAge - 2));
+    }
+}

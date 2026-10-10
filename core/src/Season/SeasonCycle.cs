@@ -12,7 +12,7 @@ namespace LegendsFC.Core.Season
     {
         public int SeasonStartYear;
         public List<CompetitionOutcome> Outcomes = new List<CompetitionOutcome>();
-        public int Retired, AcademyGraduates, Released, FreeAgentSignings, Renewed, LeftAtContractEnd, NotOfferedRenewal, RefusedRenewal, ClubsAtZero;
+        public int Retired, FreeAgentsRetired, AcademyGraduates, Released, FreeAgentSignings, Renewed, LeftAtContractEnd, NotOfferedRenewal, RefusedRenewal, ClubsAtZero;
         public int Transfers, Loans, LoansReturned, FacilityLevelDrops, ManagerHandovers;
         public double TransferFees;
         public Dictionary<string, Money.IncomeBreakdown> Income = new Dictionary<string, Money.IncomeBreakdown>();
@@ -98,11 +98,29 @@ namespace LegendsFC.Core.Season
                 }
             }
             AiFreeAgentWindow(w, rng, report);
+            report.FreeAgentsRetired = RetireLongUnsigned(w, _d);
 
             // Ready for the next season: a fresh calendar; old finished talks are cleared.
             w.Market.Talks.RemoveAll(t => t.Status != Transfers.TalkStatus.Open && t.Status != Transfers.TalkStatus.Pending);
             w.Calendar = new CalendarState();
             return report;
+        }
+
+        /// <summary>
+        /// Carlos, Oct 9: a free agent who goes 2 full seasons without a club retires. Counted at each season end, after the
+        /// free-agent window: a player released now is retired at the third season end still without a club.
+        /// </summary>
+        public static int RetireLongUnsigned(GameWorld w, GameData d)
+        {
+            int limit = d.Finance.FreeAgents.RetireAfterUnsignedSeasons, retired = 0;
+            foreach (var p in w.Players)
+            {
+                if (p.Retired) continue;
+                if (p.ClubId != null) { p.UnsignedSeasons = 0; continue; }
+                p.UnsignedSeasons++;
+                if (p.UnsignedSeasons > limit) { p.Retired = true; retired++; }
+            }
+            return retired;
         }
 
         /// <summary>

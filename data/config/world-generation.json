@@ -149,11 +149,13 @@
     ]
   },
   "ageDecay": {
-    "_note": "Confirmed Oct 8: start 28-32, retire 32-40 (at least 2 years after start), total drop 15-25, curve exponent 1.5. Goalkeepers use the same random ranges as outfield players (Carlos, Oct 8).",
+    "_note": "Confirmed Oct 8: start 28-32, retire 32-40 (at least 2 years after start), total drop 15-25, curve exponent 1.5. Goalkeepers use the same random ranges as outfield players (Carlos, Oct 8). Changed Oct 9 (Carlos): retirement age follows a normal curve from 32 to 44, centred on 38, so retiring at 32 is as rare as retiring at 44 (sd 2: about 0.3% each; 11% retire after 40).",
     "startMin": 28,
     "startMax": 32,
     "retireMin": 32,
-    "retireMax": 40,
+    "retireMax": 44,
+    "retireMean": 38,
+    "retireSd": 2.0,
     "minYearsBetween": 2,
     "dropMin": 15,
     "dropMax": 25,

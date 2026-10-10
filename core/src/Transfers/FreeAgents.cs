@@ -15,6 +15,8 @@ namespace LegendsFC.Core.Transfers
     {
         /// <summary>How many free agents an AI club approaches per window.</summary>
         public int AiApproachesPerClub = 3;
+        /// <summary>A free agent unsigned for this many full seasons retires (Carlos, Oct 9).</summary>
+        public int RetireAfterUnsignedSeasons = 2;
         /// <summary>AI only signs a free agent at least this good: its squad's rating at this percentile (0.5 = median).</summary>
         public double AiQualityPercentile = 0.5;
         /// <summary>AI keeps its wage bill under the wage bar for this objective.</summary>

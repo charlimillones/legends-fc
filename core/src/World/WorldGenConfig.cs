@@ -63,7 +63,9 @@ namespace LegendsFC.Core.World
 
     public sealed class AgeDecaySettings
     {
-        public int StartMin = 28, StartMax = 32, RetireMin = 32, RetireMax = 40, MinYearsBetween = 2;
+        public int StartMin = 28, StartMax = 32, RetireMin = 32, RetireMax = 44, MinYearsBetween = 2;
+        /// <summary>Retirement age ~ normal(mean, sd), kept inside RetireMin-RetireMax (Carlos, Oct 9: 32 as rare as 44).</summary>
+        public double RetireMean = 38, RetireSd = 2;
         public double DropMin = 15, DropMax = 25, Exponent = 1.5;
         public int GoalkeeperExtraYears = 2;
     }

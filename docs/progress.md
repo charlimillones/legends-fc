@@ -138,7 +138,9 @@
   - **Never lose a save:** compressed JSON written to a temp file first, then swapped in; the last 2 saves kept as backups; a damaged or half-written save loads the newest good copy.
   - **Same game after reloading:** the random state is saved too; a career saved and reloaded 5 times (mid-season, at the season's end, early next season) ends identical to one played straight.
   - **Versions:** schema version in every save, step-by-step upgrades for old saves, a clear message for saves from a newer game.
-  - **Size:** about 1 MB per world after a season (0.5 MB new); grows about 0.1 MB a season. Save or load takes about 0.1-0.2 s on a PC.
+  - **Size:** about 1 MB per world after a season (0.5 MB new), 1.6 MB after 10 seasons. Save or load takes about 0.1-0.2 s on a PC.
+  - **Confirmed by Carlos (Oct 9):** 5 worlds, autosave every week, 2 backups.
+- **Retirement (Carlos, Oct 9):** retirement age on a normal curve from 32 to 44 centred on 38 (32 as rare as 44, about 0.3% each; 11% play past 40). A free agent who goes 2 full seasons without a club retires: free agents now level off at about 1,550 instead of growing past 4,000.
 
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).

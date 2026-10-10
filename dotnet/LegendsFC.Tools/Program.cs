@@ -110,7 +110,7 @@ if (args.Length > 0 && args[0] == "save-size")
         double zip = t.Elapsed.TotalMilliseconds; t.Restart();
         var back = Newtonsoft.Json.JsonConvert.DeserializeObject<GameWorld>(json);
         double de = t.Elapsed.TotalMilliseconds;
-        Console.WriteLine($"{label}: players {sw0.Players.Count} (retired {sw0.Players.Count(p => p.Retired)}), json {json.Length / 1e6:F1} MB, gzip {ms.Length / 1e6:F2} MB, serialize {ser:F0} ms, gzip {zip:F0} ms, load {de:F0} ms");
+        Console.WriteLine($"{label}: players {sw0.Players.Count} (retired {sw0.Players.Count(p => p.Retired)}, at clubs {sw0.Players.Count(p => p.ClubId != null)}, free agents {sw0.Players.Count(p => !p.Retired && p.ClubId == null)}), json {json.Length / 1e6:F1} MB, gzip {ms.Length / 1e6:F2} MB, serialize {ser:F0} ms, gzip {zip:F0} ms, load {de:F0} ms");
     }
     Measure("new world");
     for (int i = 0; i < n; i++) { sc.Advance(sw0, sr); Measure($"after {i + 1} seasons"); }
