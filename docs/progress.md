@@ -132,11 +132,18 @@
   - **Engine:** extra time (a third of the 90-minute scoring rate), two-legged ties on aggregate, coefficient over 5 seasons for pots and seeds, prize money paid at season end, honours list. Half-played seasons survive a save (tested at weeks 7, 28 and 45).
   - **Sim (10 seasons):** most matches for one club in one week: 3. English top-flight clubs earn about €11M a season from cups on average (winners up to €65M); English top-flight cash after 10 seasons rises from €441M to €519M per club. Cup-only countries earn 2-3x their small income from continental cups (no wage-share target for them).
 
+- **Step 11: saves** (branch `feature/saves`, 164 tests; settings in `data/config/saves.json`, PROPOSAL):
+  - **Worlds:** up to 5 on a device (slots W01-W05), listed most recent first with club, season, week and money; delete frees the slot.
+  - **Autosave** after every week through `GameSession.AdvanceWeek` (the UI's "continue" button). The end of the season runs inside it.
+  - **Never lose a save:** compressed JSON written to a temp file first, then swapped in; the last 2 saves kept as backups; a damaged or half-written save loads the newest good copy.
+  - **Same game after reloading:** the random state is saved too; a career saved and reloaded 5 times (mid-season, at the season's end, early next season) ends identical to one played straight.
+  - **Versions:** schema version in every save, step-by-step upgrades for old saves, a clear message for saves from a newer game.
+  - **Size:** about 1 MB per world after a season (0.5 MB new); grows about 0.1 MB a season. Save or load takes about 0.1-0.2 s on a PC.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
 ## Next
-- **Saves** (step 11): slots, autosave, migrations.
 - Inbox and the 45 manager messages (step 9b); match attendance per game (Stadium messages, cup gate split).
 - First playable test build in Unity.
 
