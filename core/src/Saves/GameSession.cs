@@ -66,6 +66,7 @@ namespace LegendsFC.Core.Saves
         {
             if (World.Clubs.TrueForAll(c => c.Id != clubId)) throw new ArgumentException("Unknown club " + clubId, nameof(clubId));
             World.UserClubId = clubId;
+            SeasonCycle.TrimSquad(World, UserClub, _d.Development.UserStartMaxSquad, _d);   // room for the first protégé (Carlos, Oct 10)
             World.Market.SquadsChanged();
             LegendsFC.Core.Career.Board.Start(World, UserClub, _d);
             Save(nowUtc);

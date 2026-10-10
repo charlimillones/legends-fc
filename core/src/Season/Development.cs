@@ -20,6 +20,8 @@ namespace LegendsFC.Core.Season
         public double DeclineWeeklyMax = 0.1, DefaultCoachQuality = 1.0;
         public string DefaultRegime = "moderate";
         public int AcademyIntakeMin = 2, AcademyIntakeMax = 4, MinSquadSize = 16, MaxSquadSize = 32, AiMinGoalkeepers = 2;
+        /// <summary>The user's club starts with at most this many players, so the first protégé fits (Carlos, Oct 10).</summary>
+        public int UserStartMaxSquad = 31;
     }
 
     public sealed class AgeBand { public int MaxAge; public double Factor; }

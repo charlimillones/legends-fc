@@ -37,6 +37,8 @@ namespace LegendsFC.Core.Inbox
         public int YoungsterMaxAge = 21, YoungsterReadyRank = 18, StarSigningTopRank = 3;
         public int ShirtsPerReputationMin = 20, ShirtsPerReputationMax = 60, WeeksPerMonth = 4;
         public int TooManyInjuries = 4, HeavyTooLongWeeks = 6, CoachContractReminderWeek = 40;
+        /// <summary>The academy director warns this week when the squad has no room for a full intake (Carlos, Oct 10).</summary>
+        public int AcademyRoomWarningWeek = 46;
         public double InjuryRiskBelowEnergy = 50;
         /// <summary>Messages kept: the newest 100; open decisions always stay (Carlos, Oct 10).</summary>
         public int MaxMessages = 100;
@@ -307,6 +309,12 @@ namespace LegendsFC.Core.Inbox
 
             // ---- squad: training, youngsters, signings
             var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
+            // ---- academy: no room for the coming intake (graduates who don't fit leave as free agents at the season end)
+            if (w.Calendar.Week == c.AcademyRoomWarningWeek)
+            {
+                int room = d.Development.MaxSquadSize - squad.Count;
+                if (room < d.Development.AcademyIntakeMax) Add("MSG-ACADEMY-ROOM", Facility.Academy, ("n", Math.Max(0, room).ToString()));
+            }
             var ranked = squad.OrderByDescending(Rating).ThenBy(p => p.Id, StringComparer.Ordinal).ToList();
             var improved = new List<(Player p, int attr, int gain)>();
             foreach (var p in squad)

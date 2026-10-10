@@ -88,22 +88,22 @@ namespace LegendsFC.Core.Season
             foreach (var club in w.Clubs)
             {
                 int intake = rng.NextInt(c.AcademyIntakeMin, c.AcademyIntakeMax);
+                int before = w.Players.Count(p => p.ClubId == club.Id);
                 gen.AddAcademyIntake(w, club, rng, intake);
                 w.Market.SquadsChanged();
                 report.AcademyGraduates += intake;
-                if (club.Id == w.UserClubId) continue;   // the user's squad is never trimmed or topped up for him
-                var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
-                int excess = squad.Count - c.MaxSquadSize;
-                if (excess <= 0) continue;
-                // AI: release the least valuable (rating + half the remaining potential for players 21 and under),
-                // keeping at least the AI goalkeeper minimum. PROPOSAL until contracts and transfers exist.
-                int year = w.SeasonStartYear;
-                foreach (var p in squad.OrderBy(p => Rating(p) + (year - p.BirthYear <= 21 ? 0.5 * System.Math.Max(0, p.Potential - Rating(p)) : 0)))
+                if (club.Id == w.UserClubId)
                 {
-                    if (excess == 0) break;
-                    if (p.MainPosition == Position.GK && squad.Count(x => x.ClubId == club.Id && x.MainPosition == Position.GK) <= c.AiMinGoalkeepers) continue;
-                    Transfers.Squads.Leave(w, p); excess--; report.Released++;
+                    // Carlos, Oct 10: graduates join only while there is room; the rest leave as free agents (he was warned in week 46).
+                    int room = System.Math.Max(0, c.MaxSquadSize - before);
+                    var newcomers = w.Players.Where(p => p.ClubId == club.Id).Skip(before).ToList();
+                    var left = newcomers.Skip(room).ToList();
+                    foreach (var p in left) { Transfers.Squads.Leave(w, p); report.Released++; }
+                    if (left.Count > 0)
+                        Inbox.InboxEngine.Queue(w, "MSG-ACADEMY-NO-ROOM", Facility.Academy, _d, ("n", left.Count.ToString()), ("player", left[0].Name));
+                    continue;
                 }
+                TrimSquad(w, club, c.MaxSquadSize, _d, report);
             }
             AiFreeAgentWindow(w, rng, report);
             report.FreeAgentsRetired = RetireLongUnsigned(w, _d);
@@ -133,6 +133,29 @@ namespace LegendsFC.Core.Season
             w.Market.Talks.RemoveAll(t => t.Status != Transfers.TalkStatus.Open && t.Status != Transfers.TalkStatus.Pending);
             w.Calendar = new CalendarState();
             return report;
+        }
+
+        /// <summary>
+        /// Releases the least valuable players (rating + half the remaining potential for players 21 and under) until the squad
+        /// has at most max players, keeping at least the AI goalkeeper minimum. Used for AI clubs at the season end and for
+        /// the user's club when a career starts (31, Carlos Oct 10). Returns how many left.
+        /// </summary>
+        public static int TrimSquad(GameWorld w, Club club, int max, GameData d, SeasonReport report = null)
+        {
+            var c = d.Development;
+            var squad = w.Players.Where(p => p.ClubId == club.Id).ToList();
+            int excess = squad.Count - max, released = 0;
+            if (excess <= 0) return 0;
+            int year = w.SeasonStartYear;
+            double Rate(Player p) => Transfers.Pricing.Rating(p, d);
+            foreach (var p in squad.OrderBy(p => Rate(p) + (year - p.BirthYear <= 21 ? 0.5 * System.Math.Max(0, p.Potential - Rate(p)) : 0)).ThenBy(p => p.Id, System.StringComparer.Ordinal).ToList())
+            {
+                if (excess == 0) break;
+                if (p.MainPosition == Position.GK && w.Players.Count(x => x.ClubId == club.Id && x.MainPosition == Position.GK) <= c.AiMinGoalkeepers) continue;
+                Transfers.Squads.Leave(w, p); excess--; released++;
+                if (report != null) report.Released++;
+            }
+            return released;
         }
 
         /// <summary>

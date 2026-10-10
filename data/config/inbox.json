@@ -27,5 +27,7 @@
   "_coachNote": "Coaches (Oct 9 night): contract reminder in week 40 for coaches whose contract ends this season; group too big = a coach training 7+ players (coaches.json groupTooBig).",
   "coachContractReminderWeek": 40,
   "_capNote": "Carlos, Oct 10: the inbox keeps the newest 100 messages; older ones are deleted after each week. Open decisions are never deleted. (Replaces the reset at each transfer window, which could erase unread messages.)",
-  "maxMessages": 100
+  "maxMessages": 100,
+  "_academyRoomNote": "Carlos, Oct 10: in week 46 the academy director warns if the squad has room for fewer than 4 graduates (the most an intake brings). Graduates who don't fit leave as free agents at the season end.",
+  "academyRoomWarningWeek": 46
 }

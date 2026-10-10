@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LegendsFC.Core.Career;
@@ -95,5 +96,56 @@ public class LongCareerTests
         Assert.All(w.RetiredPlayers, a => Assert.Equal(a.Stats.Count, a.Stats.Select(s => (s.Season, s.ClubId)).Distinct().Count()));   // one line per season and club
         var any = w.RetiredPlayers[0];
         Assert.Equal(any.Name, w.PlayerName(any.Id));
+    }
+
+    [Fact]
+    public void TheUsersClub_StartsWith31AtMost_SoTheFirstProtegeFits()
+    {
+        var store = new SaveStore(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "lfc-31-" + System.Guid.NewGuid().ToString("N")), D.Saves);
+        var s = GameSession.NewWorld(D, store, "x", 31, "EUR", "t");
+        s.Autosave = false;
+        var full = s.World.Clubs.First(c => s.World.ClubLeague[c.Id] == "ENG-1");
+        var donor = s.World.Clubs.First(c => s.World.ClubLeague[c.Id] == "ENG-2");
+        foreach (var p in s.World.Players.Where(p => p.ClubId == donor.Id).Take(32 - s.World.Players.Count(x => x.ClubId == full.Id)).ToList()) p.ClubId = full.Id;
+        Assert.Equal(32, s.World.Players.Count(p => p.ClubId == full.Id));
+        s.PickClub(full.Id, "t");
+        Assert.Equal(D.Development.UserStartMaxSquad, s.World.Players.Count(p => p.ClubId == full.Id));
+        Assert.True(s.World.Players.Count(p => p.ClubId == full.Id && p.MainPosition == Position.GK) >= D.Development.AiMinGoalkeepers);
+        var pro = s.CreateFirstProtege("Test Kid", full.CountryId, Position.ST, Foot.Right, null);
+        Assert.Equal(32, s.World.Players.Count(p => p.ClubId == full.Id));
+    }
+
+    [Fact]
+    public void AFullSquad_GetsAWarning_AndGraduatesWithoutRoomLeaveAsFreeAgents()
+    {
+        var store = new SaveStore(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "lfc-room-" + System.Guid.NewGuid().ToString("N")), D.Saves);
+        var s = GameSession.NewWorld(D, store, "x", 32, "EUR", "t");
+        s.Autosave = false;
+        var club = s.World.Clubs.First(c => s.World.ClubLeague[c.Id] == "ESP-1");
+        s.PickClub(club.Id, "t");
+        int year = s.World.SeasonStartYear;
+        void Fill()
+        {
+            // Nobody leaves at the season end, and the squad is full.
+            foreach (var p in s.World.Players.Where(p => p.ClubId == club.Id)) p.ContractEndYear = Math.Max(p.ContractEndYear, year + 3);
+            var donor = s.World.Clubs.First(c => s.World.ClubLeague[c.Id] == "ESP-2");
+            foreach (var p in s.World.Players.Where(p => p.ClubId == donor.Id).Take(32 - s.World.Players.Count(x => x.ClubId == club.Id)).ToList())
+            { p.ClubId = club.Id; p.ContractEndYear = year + 3; }
+            s.World.Market.SquadsChanged();
+        }
+        var warned = false; var noRoom = false;
+        for (int i = 0; i < 52; i++)
+        {
+            if (i == 40 || i == 50) Fill();
+            s.AdvanceWeek("t");
+            if (s.World.UserClubId == null) return;   // sacked: nothing more to check in this world
+            warned |= s.NewMessages.Any(m => m.TriggerId == "MSG-ACADEMY-ROOM");
+            noRoom |= s.NewMessages.Any(m => m.TriggerId == "MSG-ACADEMY-NO-ROOM");
+        }
+        for (int i = 0; i < 2; i++) { s.AdvanceWeek("t"); noRoom |= s.NewMessages.Any(m => m.TriggerId == "MSG-ACADEMY-NO-ROOM"); }
+        Assert.True(warned);
+        Assert.True(noRoom);
+        Assert.True(s.World.Players.Count(p => p.ClubId == club.Id) <= D.Development.MaxSquadSize);
+        Assert.Contains(s.World.Players, p => p.AcademyClubId == club.Id && p.ClubId == null && p.FormerClubIds.Contains(club.Id) && p.BirthYear >= year - 17);
     }
 }

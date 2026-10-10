@@ -1,5 +1,5 @@
 {
-  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45). Coaches (Oct 9 night): 3 more live (38 of 45). Scouting (Oct 9 night): 4 more live (42 of 45). Random events (Oct 9 night): illness and event damage live (44 of 45; only the new kit waits).",
+  "_source": "Facility manager messages, 47 triggers x 5 wordings (MSG-ACADEMY-ROOM and MSG-ACADEMY-NO-ROOM added Oct 10 for the squad limit), accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45). Coaches (Oct 9 night): 3 more live (38 of 45). Scouting (Oct 9 night): 4 more live (42 of 45). Random events (Oct 9 night): illness and event damage live (44 of 45; only the new kit waits).",
   "roles": {
     "Stadium": "groundskeeper",
     "TrainingGround": "head of training",
@@ -594,6 +594,32 @@
         "Do we keep [scout]? His deal is nearly over.",
         "[scout] asked about a new contract.",
         "Reminder: [scout]'s contract runs out at the end of the season."
+      ]
+    },
+    {
+      "id": "MSG-ACADEMY-ROOM",
+      "name": "No room for the intake",
+      "sender": "Academy",
+      "priority": 2,
+      "wordings": [
+        "The new intake arrives at the end of the season, but the squad only has room for [n]. Release someone first or the rest will have to leave.",
+        "Heads up: we can only promote [n] youngsters this summer. The squad is nearly full.",
+        "If the squad stays this full, only [n] of the new kids can join. The others will go elsewhere as free agents.",
+        "We need space for the youngsters. Right now there's room for [n] at most.",
+        "Before the season ends, think about the squad size: only [n] academy graduates will fit."
+      ]
+    },
+    {
+      "id": "MSG-ACADEMY-NO-ROOM",
+      "name": "Graduates left, no room",
+      "sender": "Academy",
+      "priority": 2,
+      "wordings": [
+        "There was no room in the squad, so [n] of our graduates left as free agents, [player] among them.",
+        "[n] youngsters couldn't join the squad and have left the club. [player] was one of them.",
+        "We lost [n] academy graduates because the squad was full, including [player].",
+        "No space for them: [n] kids, [player] included, are now free agents.",
+        "[player] and the others ([n] in all) had to go. The squad had no room."
       ]
     }
   ]

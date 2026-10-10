@@ -44,6 +44,8 @@
   "defaultCoachQuality": 1.0,
   "defaultRegime": "moderate",
   "maxSquadSize": 32,
+  "_userStartNote": "Carlos, Oct 10: the user's club starts with at most 31 players (the least valuable leave as free agents), so the first protégé makes 32. Youth academy graduates join only while there is room: the rest leave as free agents, and the academy director warns in week 46 when the squad is too full.",
+  "userStartMaxSquad": 31,
   "academyIntakeMin": 2,
   "academyIntakeMax": 4,
   "minSquadSize": 16,
