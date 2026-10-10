@@ -20,6 +20,8 @@ namespace LegendsFC.Core.Season
         /// <summary>Competition id → the week each of its rounds is played in.</summary>
         public Dictionary<string, List<int>> RoundWeeks = new Dictionary<string, List<int>>();
         public bool SeasonOver;
+        /// <summary>Club seeds frozen at the start of the season (cup draws use them, so a reloaded season draws the same).</summary>
+        public Dictionary<string, ClubSeed> Seeds = new Dictionary<string, ClubSeed>();
     }
 
     /// <summary>What happened in one week (for the inbox, reports and tests).</summary>
@@ -47,10 +49,43 @@ namespace LegendsFC.Core.Season
             cal.Week = 0; cal.SeasonOver = false;
             cal.Runs = new SeasonSimulator(_d).NewRuns(w, rng);
             cal.RoundWeeks = new Dictionary<string, List<int>>();
-            int weeks = c.LastMatchWeek - c.FirstMatchWeek + 1;
             foreach (var run in cal.Runs)
-                cal.RoundWeeks[run.CompetitionId] = Enumerable.Range(0, run.PlannedRounds)
-                    .Select(i => c.FirstMatchWeek + (int)((long)i * weeks / System.Math.Max(1, run.PlannedRounds))).ToList();
+                cal.RoundWeeks[run.CompetitionId] = Spread(run.PlannedRounds, c.FirstMatchWeek, c.LastMatchWeek);
+
+            // Cups (Oct 9): entrants from last season's results, seeds frozen now, rounds in the weeks set in cups.json.
+            cal.Seeds = Qualification.Seeds(w);
+            var entrants = Qualification.Resolve(w, _d);
+            foreach (var def in _d.Cups.Cups)
+            {
+                var e = entrants[def.Id];
+                var run = new CompetitionRun
+                {
+                    CompetitionId = def.Id, Seed = rng.NextUInt64(), Clubs = e.All,
+                    Pools = new Dictionary<string, List<string>> { ["Direct"] = e.Direct, ["Qualifying"] = e.Qualifying, ["Late"] = e.Late },
+                    Info = cal.Seeds,
+                };
+                run.PlannedRounds = CompetitionRun.CountRounds(def.Id, run.Clubs, run.Seed, _d, cal.Seeds, run.Pools);
+                cal.Runs.Add(run);
+                cal.RoundWeeks[def.Id] = CupWeeks(def, run.PlannedRounds);
+            }
+        }
+
+        /// <summary>Rounds spread evenly from the first to the last week.</summary>
+        public static List<int> Spread(int rounds, int first, int last)
+        {
+            int weeks = last - first + 1;
+            return Enumerable.Range(0, rounds).Select(i => first + (int)((long)i * weeks / System.Math.Max(1, rounds))).ToList();
+        }
+
+        /// <summary>
+        /// A cup's weeks from cups.json. If the draw needs fewer rounds than weeks listed (fewer early rounds this season),
+        /// the last weeks are used so the final keeps its date; if it needs more, the rounds are spread over the same span.
+        /// </summary>
+        public static List<int> CupWeeks(CupDef def, int rounds)
+        {
+            if (def.SpreadWeeks.Count == 2) return Spread(rounds, def.SpreadWeeks[0], def.SpreadWeeks[1]);
+            if (rounds <= def.Weeks.Count) return def.Weeks.Skip(def.Weeks.Count - rounds).ToList();
+            return Spread(rounds, def.Weeks.First(), def.Weeks.Last());
         }
 
         /// <summary>Plays the next week. Returns false once the season's last week has been played.</summary>
@@ -73,6 +108,7 @@ namespace LegendsFC.Core.Season
             Dictionary<string, double> strength = null;
             foreach (var run in cal.Runs)
             {
+                run.Info = cal.Seeds;
                 var weeks = cal.RoundWeeks[run.CompetitionId];
                 while (!run.Finished && run.PlayedRounds.Count < weeks.Count && weeks[run.PlayedRounds.Count] <= cal.Week)
                 {
@@ -81,6 +117,7 @@ namespace LegendsFC.Core.Season
                     if (round == null) break;
                     var results = RoundPlayer.Sim(round, id => strength[id], _d, rng);
                     run.Record(results, _d);
+                    SendExports(cal, run);
                     report.MatchesPlayed += results.Count;
                     if (w.UserClubId != null) report.UserMatches.AddRange(results.Where(r => r.Home == w.UserClubId || r.Away == w.UserClubId));
                 }
@@ -106,10 +143,26 @@ namespace LegendsFC.Core.Season
                     {
                         strength = strength ?? sim.Strengths(w);
                         run.Record(RoundPlayer.Sim(round, id => strength[id], _d, rng), _d);
+                        SendExports(cal, run);
                     }
                 cal.SeasonOver = true;
             }
             return report;
+        }
+
+        /// <summary>Clubs a competition sends on (qualifying losers, 3rd-placed clubs) reach the competitions waiting for them.</summary>
+        private void SendExports(CalendarState cal, CompetitionRun from)
+        {
+            foreach (var kv in from.Exports)
+            {
+                string key = from.CompetitionId + ":" + kv.Key;
+                foreach (var to in cal.Runs)
+                {
+                    if (to == from || to.Inputs.ContainsKey(key)) continue;
+                    var def = _d.Cups.Cups.FirstOrDefault(c => c.Id == to.CompetitionId);
+                    if (def != null && def.ImportCount(key) > 0) to.Inputs[key] = kv.Value.ToList();
+                }
+            }
         }
 
         public List<CompetitionOutcome> Outcomes(GameWorld w) => w.Calendar.Runs.Select(r => r.Outcome).ToList();

@@ -37,7 +37,9 @@ namespace LegendsFC.Core.Money
     public sealed class IncomeBreakdown
     {
         public double Tv, Prize, Gate, Sponsors, Store;
-        public double Total => Tv + Prize + Gate + Sponsors + Store;
+        /// <summary>Cup and continental prize money (Oct 9).</summary>
+        public double Cups;
+        public double Total => Tv + Prize + Gate + Sponsors + Store + Cups;
     }
 
     /// <summary>Season income and the wage bar. Same rules for every club.</summary>

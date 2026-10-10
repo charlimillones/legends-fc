@@ -23,6 +23,13 @@ namespace LegendsFC.Core.World
         /// <summary>The season in progress, week by week.</summary>
         public Season.CalendarState Calendar = new Season.CalendarState();
 
+        /// <summary>Last season's results (tables and titles): continental places and super cups come from them.</summary>
+        public List<Season.CompetitionOutcome> LastOutcomes = new List<Season.CompetitionOutcome>();
+        /// <summary>Club coefficient: continental points per season, newest last (up to 5 seasons).</summary>
+        public Dictionary<string, List<double>> Coefficients = new Dictionary<string, List<double>>();
+        /// <summary>Titles won, per club: "Champions Cup 2027/28" style entries (competition id, season start year).</summary>
+        public List<Season.TitleRecord> Honours = new List<Season.TitleRecord>();
+
         /// <summary>League id for league clubs, country id for cup-only clubs (keys of the finance config).</summary>
         public string MoneyKey(Model.Club club) => ClubLeague.TryGetValue(club.Id, out var l) && l != null ? l : club.CountryId;
     }

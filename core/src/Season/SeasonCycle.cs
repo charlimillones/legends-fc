@@ -55,6 +55,13 @@ namespace LegendsFC.Core.Season
             SettleFinances(w, report);
             ApplyPromotionAndRelegation(w, report.Outcomes);
 
+            // Cups (Oct 9): coefficients, honours, and the results next season's places and super cups come from.
+            CupRewards.UpdateCoefficients(w, CupRewards.SeasonPoints(w.Calendar.Runs, _d), _d);
+            foreach (var o in outcomes.Where(o => o != null))
+                foreach (var t in o.Titles.Where(t => t.Key != CupFormats.RunnerUp))
+                    w.Honours.Add(new TitleRecord { CompetitionId = o.CompetitionId, Title = t.Key, ClubId = t.Value, SeasonStartYear = w.SeasonStartYear });
+            w.LastOutcomes = outcomes.Where(o => o != null).ToList();
+
             report.FacilityLevelDrops = Facilities.FacilityRules.LevelDrops(w, rng, _d.FacilityRules).Count;
             w.SeasonStartYear++;
             report.ManagerHandovers = Facilities.FacilityRules.ManagerHandovers(w, rng, _d).Count;
@@ -185,12 +192,15 @@ namespace LegendsFC.Core.Season
         {
             var f = _d.Finance; var fm = f.FanMood;
             var rows = new Dictionary<string, (int pos, int teams, string league, TableRow row)>();
-            foreach (var o in report.Outcomes)
+            var cupMoney = CupRewards.PrizeMoney(w.Calendar.Runs, _d);
+            var leagues = new HashSet<string>(w.Competitions.Where(c => c.Type == CompetitionType.League).Select(c => c.Id));
+            foreach (var o in report.Outcomes.Where(o => o != null))
             {
+                foreach (var id in o.Titles.Where(t => t.Key != CupFormats.RunnerUp).Select(t => t.Value).Distinct()) Mood(w, id, fm.Title);
+                if (!leagues.Contains(o.CompetitionId)) continue;
                 var table = o.Tables.TryGetValue("League", out var t) ? t : o.Tables.TryGetValue("Annual", out var a) ? a
                           : o.Tables.Values.SelectMany(x => x).OrderByDescending(r => r.Points).ThenByDescending(r => r.GoalDifference).ToList();
                 for (int i = 0; i < table.Count; i++) rows[table[i].ClubId] = (i + 1, table.Count, o.CompetitionId, table[i]);
-                foreach (var id in o.Titles.Values.Distinct()) Mood(w, id, fm.Title);
                 foreach (var id in o.Promoted) Mood(w, id, fm.Promotion);
                 foreach (var id in o.Relegated) Mood(w, id, fm.Relegation);
             }
@@ -207,6 +217,7 @@ namespace LegendsFC.Core.Season
                 club.FanMood = normal + (club.FanMood - normal) * System.Math.Pow(1 - fm.MonthlyDriftShare, 10); // drift over the season
 
                 var income = Money.Finance.SeasonIncome(club, key, pos, teams, SeasonSimulator.HomeLeagueMatches(key, teams, _d), f, _d.FacilityRules);
+                income.Cups = cupMoney.TryGetValue(club.Id, out var prize) ? prize : 0;
                 double wages = Transfers.Market.WageBill(w, club.Id);   // loans: each club pays its share
                 double upkeep = income.Total * f.UpkeepShareOfIncome;
                 club.Balance = System.Math.Max(0, club.Balance + (long)System.Math.Round(income.Total - wages - upkeep)); // never below zero (Oct 9)
@@ -298,7 +309,7 @@ namespace LegendsFC.Core.Season
         private static void ApplyPromotionAndRelegation(GameWorld w, List<CompetitionOutcome> outcomes)
         {
             var byId = w.Clubs.ToDictionary(c => c.Id);
-            foreach (var o in outcomes)
+            foreach (var o in outcomes.Where(o => o != null && (o.Relegated.Count > 0 || o.Promoted.Count > 0)))
             {
                 var comp = w.Competitions.First(c => c.Id == o.CompetitionId);
                 foreach (var id in o.Relegated) Move(w, byId[id], comp.CountryId, comp.Level + 1);

@@ -124,12 +124,21 @@
   - **10-season sim:** levels show wealth (England 8.0 → Argentina's 2nd division 3.3); English top-flight cash after 10 seasons falls from €694M to €441M per club.
   - **Next:** the inbox and the 45 manager messages (step 9b).
 
+- **Step 4b: cups and competitions** (branch `feature/cups`, 157 tests; accepted by Carlos Oct 9, `data/world/cups.json`):
+  - **Domestic cups:** English Cup (second division starts, extra time and penalties, final week 51), English League Cup (straight to penalties, European clubs join in the last 32, two-legged semis), Spanish Cup (lower division at home, Super Cup clubs join in the last 32), Brazilian Cup (Champions Cup clubs join in the last 16, two legs from there, two-legged final), Argentine Cup (neutral, straight to penalties).
+  - **Super cups:** England, Spain (4 clubs in January), Brazil, Argentina (Apertura v Clausura), Europe, South America (two legs), and the Intercontinental Cup (North v South America, then v Europe).
+  - **Continental:** Champions Cup and Europa Cup (12-club league phase, 2 opponents per pot, no same-country games, play-off for 5th-12th, qualifying losers drop down); South American Champions Cup and South American Cup (4 groups of 4, 3rds drop down, qualifying losers drop down); North American Champions Cup (8 clubs).
+  - **Places:** from last season's tables and titles; a cup winner already placed passes the spot down the table. Cup-only countries are ranked by a simulated background league.
+  - **Engine:** extra time (a third of the 90-minute scoring rate), two-legged ties on aggregate, coefficient over 5 seasons for pots and seeds, prize money paid at season end, honours list. Half-played seasons survive a save (tested at weeks 7, 28 and 45).
+  - **Sim (10 seasons):** most matches for one club in one week: 3. English top-flight clubs earn about €11M a season from cups on average (winners up to €65M); English top-flight cash after 10 seasons rises from €441M to €519M per club. Cup-only countries earn 2-3x their small income from continental cups (no wage-share target for them).
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
 ## Next
-- **Step 4b:** domestic and continental cups, plus promotion and relegation. Formats need DaiVinci proposals and Carlos's OK.
-- **Step 9:** facilities (levels, wear, upkeep, Repair all) and the money sink for rich clubs.
+- **Saves** (step 11): slots, autosave, migrations.
+- Inbox and the 45 manager messages (step 9b); match attendance per game (Stadium messages, cup gate split).
+- First playable test build in Unity.
 
 ## Open questions for Carlos
 - Can players be two-footed? Right now feet are Left or Right only.

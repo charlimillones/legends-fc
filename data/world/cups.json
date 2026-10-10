@@ -1,0 +1,154 @@
+{
+  "_source": "Cups and competitions v1 (proposed Oct 9, accepted by Carlos Oct 9 12:40: competitions-draft.md). Real-football formats scaled to the test world. Names are fictional placeholders like the league names. Cups are resolved in this order each season (continental first, so cup winners already qualified pass their spot down). Prize money in EUR (PROPOSAL, tune with the sim). South American prizes halved (Carlos, Oct 9): they were 2-3x the income of Uruguayan and Colombian clubs. Weeks: week 1 = start of July; league matches in weeks 9-50.",
+  "coefficient": {
+    "_note": "Club coefficient (PROPOSAL): continental points over the last 5 seasons. Used for pots and seeding; reputation breaks ties (and seeds the first season).",
+    "seasons": 5,
+    "win": 2,
+    "draw": 1,
+    "stageBonus": { "Quarter-final": 1, "Semi-final": 1, "Final": 1 },
+    "winnerBonus": 1
+  },
+  "cups": [
+    {
+      "id": "UEFA-CC", "name": "Champions Cup", "kind": "LeaguePhase", "confederation": "UEFA", "scope": "UEFA",
+      "_note": "12-club league phase, 6 matches each (2 opponents from each of 3 pots, 1 home 1 away), no same-country meetings. 1st-4th to the quarter-finals, 5th-12th two-legged play-off. Pre-season qualifying round (two legs): 2 winners in, 2 losers drop to the Europa Cup.",
+      "entry": [ { "league": "ENG-1", "count": 4 }, { "league": "ESP-1", "count": 4 }, { "league": "POR-R", "count": 1 }, { "league": "NED-R", "count": 1 } ],
+      "qualifying": [ { "league": "ENG-1", "count": 1 }, { "league": "ESP-1", "count": 1 }, { "league": "POR-R", "count": 1 }, { "league": "NED-R", "count": 1 } ],
+      "pots": 3, "tieDraw": "ExtraTime", "finalDraw": "ExtraTime",
+      "weeks": [6, 7, 11, 14, 17, 20, 23, 29, 32, 33, 37, 38, 42, 43, 52],
+      "prizes": { "stages": { "Qualifying": 3000000, "League phase": 15000000, "Quarter-final": 6000000, "Semi-final": 8000000, "Final": 10000000 }, "winDrawStages": ["League phase"], "win": 2000000, "draw": 700000, "winner": 6000000 }
+    },
+    {
+      "id": "UEFA-EC", "name": "Europa Cup", "kind": "LeaguePhase", "confederation": "UEFA", "scope": "UEFA",
+      "_note": "Same format as the Champions Cup, 12 clubs. A cup winner already qualified passes the spot to the next club in that league's table.",
+      "entry": [ { "import": "UEFA-CC:QualifyingLosers", "count": 2 }, { "title": "ENG-FA:Winner", "fallback": "ENG-1" }, { "title": "ENG-LC:Winner", "fallback": "ENG-1" }, { "league": "ENG-1", "count": 1 },
+                 { "title": "ESP-CDR:Winner", "fallback": "ESP-1" }, { "league": "ESP-1", "count": 2 }, { "league": "POR-R", "count": 2 }, { "league": "NED-R", "count": 2 } ],
+      "pots": 3, "tieDraw": "ExtraTime", "finalDraw": "ExtraTime",
+      "weeks": [12, 15, 18, 21, 24, 30, 33, 34, 39, 40, 44, 45, 49],
+      "prizes": { "stages": { "League phase": 4000000, "Quarter-final": 2000000, "Semi-final": 3000000, "Final": 4000000 }, "winDrawStages": ["League phase"], "win": 500000, "draw": 200000, "winner": 2500000 }
+    },
+    {
+      "id": "CONMEBOL-LIB", "name": "South American Champions Cup", "kind": "Groups", "confederation": "CONMEBOL", "scope": "CONMEBOL",
+      "_note": "16 clubs, 4 groups of 4, home and away (same-country clubs kept apart as far as possible). Top 2 to two-legged quarter-finals (winners v runners-up), 3rd drops into the South American Cup play-off. Level two-legged ties go straight to penalties; the final has extra time. Pre-season qualifying (two legs): 4 winners in, 4 losers drop to the South American Cup.",
+      "entry": [ { "league": "BRA-1", "count": 4 }, { "title": "BRA-CUP:Winner", "fallback": "BRA-1" },
+                 { "title": "ARG-1:Apertura", "fallback": "ARG-1" }, { "title": "ARG-1:Clausura", "fallback": "ARG-1" }, { "title": "ARG-CUP:Winner", "fallback": "ARG-1" }, { "league": "ARG-1", "count": 2 },
+                 { "league": "URU-R", "count": 1 }, { "league": "COL-R", "count": 1 } ],
+      "qualifying": [ { "league": "BRA-1", "count": 2 }, { "league": "ARG-1", "count": 2 }, { "league": "URU-R", "count": 2 }, { "league": "COL-R", "count": 2 } ],
+      "groupThirdsDropDown": true, "tieDraw": "Penalties", "finalDraw": "ExtraTime",
+      "weeks": [6, 7, 11, 14, 17, 20, 23, 26, 31, 32, 38, 39, 52],
+      "prizes": { "stages": { "Qualifying": 250000, "Group stage": 1500000, "Quarter-final": 1500000, "Semi-final": 2000000, "Final": 2500000 }, "winDrawStages": ["Group stage"], "win": 150000, "draw": 50000, "winner": 3000000 }
+    },
+    {
+      "id": "CONMEBOL-SUD", "name": "South American Cup", "kind": "Groups", "confederation": "CONMEBOL", "scope": "CONMEBOL",
+      "_note": "16 clubs, 4 groups of 4. Group winners to the quarter-finals; runners-up play the South American Champions Cup 3rd-placed clubs in a two-legged play-off (the 3rds host the 2nd leg).",
+      "entry": [ { "import": "CONMEBOL-LIB:QualifyingLosers", "count": 4 }, { "league": "BRA-1", "count": 5 }, { "league": "ARG-1", "count": 5 }, { "league": "URU-R", "count": 1 }, { "league": "COL-R", "count": 1 } ],
+      "imports": { "CONMEBOL-LIB:GroupThirds": 4 },
+      "tieDraw": "Penalties", "finalDraw": "ExtraTime",
+      "weeks": [12, 15, 18, 21, 24, 27, 29, 30, 34, 35, 41, 42, 51],
+      "prizes": { "stages": { "Group stage": 400000, "Knockout play-off": 150000, "Quarter-final": 400000, "Semi-final": 600000, "Final": 750000 }, "winDrawStages": ["Group stage"], "win": 50000, "draw": 25000, "winner": 1000000 }
+    },
+    {
+      "id": "CONCACAF-CC", "name": "North American Champions Cup", "kind": "Knockout", "confederation": "CONCACAF", "scope": "CONCACAF",
+      "_note": "8 clubs, seeded 1v8 ... two-legged quarter-finals and semi-finals (higher seed hosts the 2nd leg), single final.",
+      "entry": [ { "league": "MEX-R", "count": 4 }, { "league": "USA-R", "count": 4 } ],
+      "tieDraw": "ExtraTime", "finalDraw": "ExtraTime", "twoLegsFromSize": 8, "twoLegSemis": true, "finalNeutral": false,
+      "weeks": [30, 31, 36, 37, 44],
+      "prizes": { "stages": { "Quarter-final": 300000, "Semi-final": 700000, "Final": 1500000 }, "winner": 2500000 }
+    },
+    {
+      "id": "UEFA-SUP", "name": "European Super Cup", "kind": "SuperCup", "confederation": "UEFA",
+      "entry": [ { "title": "UEFA-CC:Winner", "fallback": "confed:UEFA" }, { "title": "UEFA-EC:Winner", "fallback": "confed:UEFA" } ],
+      "finalDraw": "Penalties", "weeks": [8],
+      "prizes": { "stages": { "Final": 2000000 }, "winner": 1000000 }
+    },
+    {
+      "id": "CONMEBOL-REC", "name": "South American Super Cup", "kind": "TwoLegSuperCup", "confederation": "CONMEBOL",
+      "entry": [ { "title": "CONMEBOL-SUD:Winner", "fallback": "confed:CONMEBOL" }, { "title": "CONMEBOL-LIB:Winner", "fallback": "confed:CONMEBOL" } ],
+      "tieDraw": "Penalties", "weeks": [9, 10],
+      "prizes": { "stages": { "Final": 400000 }, "winner": 400000 }
+    },
+    {
+      "id": "INT-CUP", "name": "Intercontinental Cup",  "kind": "Intercontinental",
+      "_note": "North American champion v South American champion (the 'Derby of the Americas'); the winner meets the European champion in the final. Last season's winners. Neutral venues.",
+      "entry": [ { "title": "CONCACAF-CC:Winner", "fallback": "confed:CONCACAF" }, { "title": "CONMEBOL-LIB:Winner", "fallback": "confed:CONMEBOL" }, { "title": "UEFA-CC:Winner", "fallback": "confed:UEFA" } ],
+      "finalDraw": "ExtraTime", "weeks": [24, 25],
+      "prizes": { "stages": { "Derby of the Americas": 1000000, "Final": 2000000 }, "winner": 2000000 }
+    },
+    {
+      "id": "ENG-SUP", "name": "English Super Cup", "kind": "SuperCup", "countryId": "ENG",
+      "_note": "League champion v cup winner (if the same club, the league runner-up). Straight to penalties.",
+      "entry": [ { "title": "ENG-1:Champion", "fallback": "ENG-1" }, { "title": "ENG-FA:Winner", "fallback": "ENG-1" } ],
+      "finalDraw": "Penalties", "weeks": [8],
+      "prizes": { "stages": { "Final": 500000 }, "winner": 500000 }
+    },
+    {
+      "id": "ESP-SUP", "name": "Spanish Super Cup", "kind": "SuperCupFour", "countryId": "ESP",
+      "_note": "League 1st and 2nd plus both cup finalists (replaced by the next league club if already in). Semi-finals: champion v cup runner-up, runner-up v cup winner. January, neutral venue, straight to penalties.",
+      "entry": [ { "league": "ESP-1", "count": 2 }, { "title": "ESP-CDR:Winner", "fallback": "ESP-1" }, { "title": "ESP-CDR:RunnerUp", "fallback": "ESP-1" } ],
+      "finalDraw": "Penalties", "weeks": [27, 28],
+      "prizes": { "stages": { "Semi-final": 1000000, "Final": 1000000 }, "winner": 1000000 }
+    },
+    {
+      "id": "BRA-SUP", "name": "Brazilian Super Cup", "kind": "SuperCup", "countryId": "BRA",
+      "entry": [ { "title": "BRA-1:Champion", "fallback": "BRA-1" }, { "title": "BRA-CUP:Winner", "fallback": "BRA-1" } ],
+      "finalDraw": "Penalties", "weeks": [8],
+      "prizes": { "stages": { "Final": 1000000 }, "winner": 1000000 }
+    },
+    {
+      "id": "ARG-SUP", "name": "Argentine Champions Trophy", "kind": "SuperCup", "countryId": "ARG",
+      "_note": "Apertura champion v Clausura champion (if the same club, the next club in the annual table).",
+      "entry": [ { "title": "ARG-1:Apertura", "fallback": "ARG-1" }, { "title": "ARG-1:Clausura", "fallback": "ARG-1" } ],
+      "finalDraw": "Penalties", "weeks": [8],
+      "prizes": { "stages": { "Final": 250000 }, "winner": 250000 }
+    },
+    {
+      "id": "ENG-FA", "name": "English Cup", "kind": "DomesticKnockout", "countryId": "ENG",
+      "_note": "Every league club. Open draw, first club drawn at home. Second-division clubs start, the top division joins in the round of 32. Draws: extra time, then penalties (no replays). Neutral semi-finals and final. Final after the league (week 51).",
+      "entry": [ { "country": "ENG" } ],
+      "home": "Draw", "singleDraw": "ExtraTime", "semisNeutral": true, "finalNeutral": true,
+      "weeks": [18, 24, 31, 37, 44, 51],
+      "prizes": { "stages": { "Round 1": 50000, "Round of 32": 100000, "Round of 16": 200000, "Quarter-final": 400000, "Semi-final": 1000000, "Final": 1000000 }, "winner": 1200000 }
+    },
+    {
+      "id": "ENG-LC", "name": "English League Cup", "kind": "DomesticKnockout", "countryId": "ENG",
+      "_note": "Every league club. Single matches, a draw goes straight to penalties. Clubs in European competitions join in the round of 32. Two-legged semi-finals (extra time and penalties if level).",
+      "entry": [ { "country": "ENG" } ],
+      "late": { "from": ["UEFA-CC", "UEFA-EC"], "joinAtSize": 32 },
+      "home": "Draw", "singleDraw": "Penalties", "twoLegSemis": true, "tieDraw": "ExtraTime", "finalNeutral": true, "finalDraw": "ExtraTime",
+      "weeks": [10, 13, 17, 22, 28, 31, 36],
+      "prizes": { "stages": { "Round 1": 20000, "Round of 32": 30000, "Round of 16": 50000, "Quarter-final": 100000, "Semi-final": 200000, "Final": 300000 }, "winner": 300000 }
+    },
+    {
+      "id": "ESP-CDR", "name": "Spanish Cup", "kind": "DomesticKnockout", "countryId": "ESP",
+      "_note": "Every league club. Single matches with the lower-division club at home. The 4 Super Cup clubs join in the round of 32. Two-legged semi-finals. Neutral final.",
+      "entry": [ { "country": "ESP" } ],
+      "late": { "from": ["ESP-SUP"], "joinAtSize": 32 },
+      "home": "LowerDivision", "singleDraw": "ExtraTime", "twoLegSemis": true, "tieDraw": "ExtraTime", "finalNeutral": true, "finalDraw": "ExtraTime",
+      "weeks": [15, 20, 29, 32, 36, 39, 43],
+      "prizes": { "stages": { "Round 1": 100000, "Round of 32": 150000, "Round of 16": 200000, "Quarter-final": 400000, "Semi-final": 600000, "Final": 700000 }, "winner": 850000 }
+    },
+    {
+      "id": "BRA-CUP", "name": "Brazilian Cup", "kind": "DomesticKnockout", "countryId": "BRA",
+      "_note": "Every league club. Single matches in the early rounds (lower division at home), two legs from the round of 16; level aggregate goes straight to penalties. South American Champions Cup clubs join in the round of 16. Two-legged final. The biggest domestic prize money.",
+      "entry": [ { "country": "BRA" } ],
+      "late": { "from": ["CONMEBOL-LIB"], "joinAtSize": 16 },
+      "home": "LowerDivision", "singleDraw": "Penalties", "twoLegsFromSize": 16, "twoLegFinal": true, "tieDraw": "Penalties",
+      "weeks": [12, 16, 22, 25, 30, 33, 38, 41, 46, 48],
+      "prizes": { "stages": { "Round 1": 200000, "Round 2": 400000, "Round of 16": 1500000, "Quarter-final": 2500000, "Semi-final": 3500000, "Final": 3000000 }, "winner": 4000000 }
+    },
+    {
+      "id": "ARG-CUP", "name": "Argentine Cup", "kind": "DomesticKnockout", "countryId": "ARG",
+      "_note": "Every league club. Single matches at neutral venues, a draw goes straight to penalties. A first round balances the bracket.",
+      "entry": [ { "country": "ARG" } ],
+      "home": "Neutral", "singleDraw": "Penalties", "finalNeutral": true, "finalDraw": "Penalties",
+      "weeks": [11, 16, 21, 26, 33, 40, 47],
+      "prizes": { "stages": { "Round 1": 20000, "Round of 64": 30000, "Round of 32": 50000, "Round of 16": 80000, "Quarter-final": 120000, "Semi-final": 200000, "Final": 200000 }, "winner": 300000 }
+    },
+    { "id": "POR-R", "name": "Portuguese ranking", "kind": "Ranking", "countryId": "POR", "_note": "Cup-only country: a simulated background league (home and away, not playable) whose table sets the continental places.", "spreadWeeks": [9, 50] },
+    { "id": "NED-R", "name": "Dutch ranking", "kind": "Ranking", "countryId": "NED", "spreadWeeks": [9, 50] },
+    { "id": "MEX-R", "name": "Mexican ranking", "kind": "Ranking", "countryId": "MEX", "spreadWeeks": [9, 50] },
+    { "id": "USA-R", "name": "American ranking", "kind": "Ranking", "countryId": "USA", "spreadWeeks": [9, 50] },
+    { "id": "URU-R", "name": "Uruguayan ranking", "kind": "Ranking", "countryId": "URU", "spreadWeeks": [9, 50] },
+    { "id": "COL-R", "name": "Colombian ranking", "kind": "Ranking", "countryId": "COL", "spreadWeeks": [9, 50] }
+  ]
+}

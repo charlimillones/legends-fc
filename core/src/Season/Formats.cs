@@ -13,6 +13,8 @@ namespace LegendsFC.Core.Season
     {
         public static IEnumerable<Round> Script(string competitionId, List<string> clubs, GameRandom rng, RoundResults ctx, GameData d)
         {
+            var cup = d.Cups.Cups.FirstOrDefault(c => c.Id == competitionId);
+            if (cup != null) return CupFormats.Script(cup, clubs, rng, ctx, d);
             var f = d.LeagueFormats;
             if (competitionId == f.ArgentinaFirst.CompetitionId) return ArgentinaFirst(competitionId, clubs, f.ArgentinaFirst, rng, ctx, d);
             if (competitionId == f.ArgentinaSecond.CompetitionId) return ArgentinaSecond(competitionId, clubs, f.ArgentinaSecond, rng, ctx, d);
