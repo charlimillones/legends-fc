@@ -1,0 +1,34 @@
+{
+  "_source": "Suspensions follow each competition's real rules (Carlos, Oct 9). Checked Oct 9: Premier League (5 yellows by match 19 = 1 match, 10 by match 32 = 2, 15 = 3; red-card bans cover all domestic competitions), English League Cup (2 yellows = 1 match, wiped at the quarter-finals), Spain (every 5 yellows), Brazil league (every 3), Brazilian Cup (every 3, wiped after the early rounds), Argentina (every 5 per tournament, wiped for the playoffs and each new tournament), UEFA 2026/27 (4 yellows, then 6, 8, 10; wiped after the quarter-finals; reds carry between European cups), CONMEBOL (every 3, wiped after the group stage). NOT YET CONFIRMED (PROPOSAL): English Cup, Spanish Cup, Argentine Cup, North American Champions Cup, English second division deadlines. Yellows are wiped at the end of each season; bans carry over. Scopes: competition = only that competition; domestic = every competition of that country; confederation = every continental cup of that confederation.",
+  "redCards": {
+    "_note": "Second yellow = 1 match. Straight reds: professional foul 1 match (55%), dissent 2 (10%), violent conduct / serious foul play 3 (35%).",
+    "secondYellowBan": 1,
+    "straight": [
+      { "name": "professional foul", "share": 0.55, "ban": 1 },
+      { "name": "dissent", "share": 0.10, "ban": 2 },
+      { "name": "violent conduct", "share": 0.35, "ban": 3 }
+    ]
+  },
+  "rules": [
+    { "competitions": ["ENG-1"], "thresholds": [ { "at": 5, "byRound": 19, "ban": 1 }, { "at": 10, "byRound": 32, "ban": 2 }, { "at": 15, "ban": 3 } ], "redScope": "domestic" },
+    { "competitions": ["ENG-2"], "thresholds": [ { "at": 5, "byRound": 23, "ban": 1 }, { "at": 10, "byRound": 38, "ban": 2 }, { "at": 15, "ban": 3 } ], "redScope": "domestic", "_note": "PROPOSAL deadlines for the 46-match season." },
+    { "competitions": ["ENG-LC"], "every": 2, "resetBeforeStages": ["Quarter-final"], "redScope": "domestic" },
+    { "competitions": ["ENG-FA"], "every": 2, "resetBeforeStages": ["Quarter-final"], "redScope": "domestic", "_note": "PROPOSAL (not confirmed)." },
+    { "competitions": ["ENG-SUP"], "redScope": "domestic" },
+    { "competitions": ["ESP-1", "ESP-2"], "every": 5, "redScope": "competition" },
+    { "competitions": ["ESP-CDR"], "every": 3, "redScope": "competition", "_note": "PROPOSAL (not confirmed)." },
+    { "competitions": ["ESP-SUP"], "redScope": "competition" },
+    { "competitions": ["BRA-1", "BRA-2"], "every": 3, "redScope": "competition" },
+    { "competitions": ["BRA-CUP"], "every": 3, "resetBeforeStages": ["Round of 16"], "redScope": "competition" },
+    { "competitions": ["BRA-SUP"], "redScope": "competition" },
+    { "competitions": ["ARG-1", "ARG-2"], "every": 5, "resetOnStageChange": true, "redScope": "competition" },
+    { "competitions": ["ARG-CUP"], "every": 3, "redScope": "competition", "_note": "PROPOSAL (not confirmed)." },
+    { "competitions": ["ARG-SUP"], "redScope": "competition" },
+    { "competitions": ["UEFA-CC", "UEFA-EC"], "thresholds": [ { "at": 4, "ban": 1 }, { "at": 6, "ban": 1 }, { "at": 8, "ban": 1 }, { "at": 10, "ban": 1 } ], "resetBeforeStages": ["Semi-final"], "redScope": "confederation" },
+    { "competitions": ["UEFA-SUP"], "redScope": "confederation" },
+    { "competitions": ["CONMEBOL-LIB", "CONMEBOL-SUD"], "every": 3, "resetBeforeStages": ["Quarter-final", "Knockout play-off"], "redScope": "confederation" },
+    { "competitions": ["CONMEBOL-REC"], "redScope": "confederation" },
+    { "competitions": ["CONCACAF-CC"], "every": 2, "resetBeforeStages": ["Semi-final"], "redScope": "competition", "_note": "PROPOSAL (not confirmed)." },
+    { "competitions": ["INT-CUP"], "redScope": "competition" }
+  ]
+}

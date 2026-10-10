@@ -18,6 +18,11 @@ namespace LegendsFC.Core.Season
         public string PenaltyWinner;
         /// <summary>The match went to extra time (goals include it).</summary>
         public bool AfterExtraTime;
+        /// <summary>Goals, cards, injuries and substitutions (sim mode, Oct 9).</summary>
+        public System.Collections.Generic.List<Squad.MatchEvent> Events;
+        public string PlayerOfTheMatch;
+        /// <summary>Each player's match (kept in his stats; not saved with the result).</summary>
+        [Newtonsoft.Json.JsonIgnore] public System.Collections.Generic.List<Squad.PlayerMatch> Players;
     }
 
     /// <summary>Sim-mode results (approved Oct 8). Same model for every club; the user's club gets no help.</summary>

@@ -31,6 +31,10 @@ namespace LegendsFC.Core.Season
         public int MatchesPlayed;
         public bool Trained, WindowOpen;
         public List<MatchResult> UserMatches = new List<MatchResult>();
+        /// <summary>The user's players back from injury this week, and those recovering ahead of schedule.</summary>
+        public List<string> Recovered = new List<string>(), AheadOfSchedule = new List<string>();
+        /// <summary>Average energy of club players after this week's matches, before the weekly rest (balancing).</summary>
+        public double EnergyBeforeRest;
     }
 
     /// <summary>
@@ -103,19 +107,20 @@ namespace LegendsFC.Core.Season
             report.WindowOpen = m.WindowOpen;
             for (int day = 0; day < 7; day++) Transfers.AiMarket.AdvanceDay(w, rng, _d);
 
-            // This week's rounds.
-            var sim = new SeasonSimulator(_d);
-            Dictionary<string, double> strength = null;
+            // This week's rounds: real teams (squad and tactics, Oct 9). AI clubs set training regimes first.
+            var swM = System.Diagnostics.Stopwatch.StartNew();
+            Squad.Fitness.AiRegimes(w, _d);
+            var ctx = new Squad.MatchEngine.Context { World = w, Data = _d, Ratings = new Squad.RatingTable(_d), Rng = rng };
             foreach (var run in cal.Runs)
             {
                 run.Info = cal.Seeds;
                 var weeks = cal.RoundWeeks[run.CompetitionId];
                 while (!run.Finished && run.PlayedRounds.Count < weeks.Count && weeks[run.PlayedRounds.Count] <= cal.Week)
                 {
-                    strength = strength ?? sim.Strengths(w);
                     var round = run.Next(_d);
                     if (round == null) break;
-                    var results = RoundPlayer.Sim(round, id => strength[id], _d, rng);
+                    Squad.Discipline.BeforeRound(w, run, round, _d);
+                    var results = RoundPlayer.Sim(round, run.CompetitionId, ctx);
                     run.Record(results, _d);
                     SendExports(cal, run);
                     report.MatchesPlayed += results.Count;
@@ -126,6 +131,13 @@ namespace LegendsFC.Core.Season
             // Facilities: weekly wear; AI clubs repair and upgrade (confirmed Oct 9).
             Facilities.FacilityRules.WeeklyWear(w, rng, _d.FacilityRules);
             Facilities.FacilityRules.AiWeekly(w, _d);
+
+            m.Stats.TryGetValue("ms:matches", out int msm); m.Stats["ms:matches"] = msm + (int)swM.ElapsedMilliseconds;
+            // Rest and recovery by regime; injuries heal (Oct 9).
+            double sumE = 0; int nE = 0;
+            foreach (var p in w.Players) if (p.ClubId != null && !p.Injured) { sumE += p.Energy; nE++; }
+            report.EnergyBeforeRest = nE == 0 ? 100 : sumE / nE;
+            Squad.Fitness.WeekEnd(w, _d, rng, report);
 
             // Weekly training (40 weeks from the first training week).
             if (cal.Week >= c.FirstTrainingWeek && cal.Week < c.FirstTrainingWeek + _d.Development.TrainingWeeksPerSeason)
@@ -141,8 +153,8 @@ namespace LegendsFC.Core.Season
                 foreach (var run in cal.Runs)
                     for (var round = run.Next(_d); round != null; round = run.Next(_d))
                     {
-                        strength = strength ?? sim.Strengths(w);
-                        run.Record(RoundPlayer.Sim(round, id => strength[id], _d, rng), _d);
+                        Squad.Discipline.BeforeRound(w, run, round, _d);
+                        run.Record(RoundPlayer.Sim(round, run.CompetitionId, ctx), _d);
                         SendExports(cal, run);
                     }
                 cal.SeasonOver = true;

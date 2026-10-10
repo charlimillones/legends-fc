@@ -19,5 +19,9 @@
   "weeksPerMonth": 4,
   "_youthNote": "Youngsters are academy players 21 or younger. Ready for the first team: rated at least as high as the squad's 18th best player (once per player).",
   "youngsterMaxAge": 21,
-  "youngsterReadyRank": 18
+  "youngsterReadyRank": 18,
+  "_medicalNote": "Medical (Oct 9): too many injuries = 4 or more of the user's players injured at once; injury risk = a player under 50 energy after the weekly rest; heavy regime too long = 6 weeks in a row on heavy.",
+  "tooManyInjuries": 4,
+  "injuryRiskBelowEnergy": 50,
+  "heavyTooLongWeeks": 6
 }

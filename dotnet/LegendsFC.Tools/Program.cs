@@ -93,6 +93,42 @@ if (args.Length > 0 && args[0] == "wage-room")
     }
     return;
 }
+if (args.Length > 0 && args[0] == "squad-report")
+{
+    // One season with real teams: results, cards, injuries, energy, ratings, scorers. Usage: squad-report [seed]
+    var qw = new WorldGenerator(data).Generate(seed);
+    var qc = new LegendsFC.Core.Season.SeasonCalendar(data); var qr = new LegendsFC.Core.Util.GameRandom(seed + 5);
+    var swq = System.Diagnostics.Stopwatch.StartNew();
+    qc.Start(qw, qr);
+    var energyByWeek = new System.Collections.Generic.List<string>();
+    while (!qw.Calendar.SeasonOver)
+    {
+        var rep = qc.PlayWeek(qw, qr);
+        if (rep.Week % 6 == 0)
+        {
+            var act = qw.Players.Where(p => p.ClubId != null).ToList();
+            energyByWeek.Add($"w{rep.Week}: energy before rest {rep.EnergyBeforeRest:F0}, after {act.Average(p => p.Energy):F0}, <60 {act.Count(p => p.Energy < 60) * 100.0 / act.Count:F0}%, injured {act.Count(p => p.Injured)}");
+        }
+    }
+    Console.WriteLine($"Season in {swq.Elapsed.TotalSeconds:F1} s; " + string.Join(", ", qw.Market.Stats.Where(k => k.Key.StartsWith("ms:")).Select(k => k.Key + " " + k.Value)));
+    var all = qw.Calendar.Runs.SelectMany(r => r.PlayedRounds.SelectMany(x => x).Select(m => (r.CompetitionId, m))).ToList();
+    var lg = all.Where(x => x.CompetitionId == "ENG-1").Select(x => x.m).ToList();
+    Console.WriteLine($"ENG-1: {lg.Count} matches, goals/match {lg.Average(m => m.HomeGoals + m.AwayGoals):F2}, draws {lg.Count(m => m.HomeGoals == m.AwayGoals) * 100.0 / lg.Count:F0}%");
+    var table = qw.Calendar.Runs.First(r => r.CompetitionId == "ENG-1").Outcome.Tables["League"];
+    Console.WriteLine($"ENG-1 champion {table[0].Points} pts, 4th {table[3].Points}, 18th {table[17].Points}, last {table[19].Points}");
+    var ev = all.Where(x => x.m.Events != null).SelectMany(x => x.m.Events).ToList();
+    int matches = all.Count;
+    Console.WriteLine($"All {matches} matches: yellows/team {ev.Count(e => e.Type == LegendsFC.Core.Squad.EventType.Yellow) / (2.0 * matches):F2}, reds/team {ev.Count(e => e.Type == LegendsFC.Core.Squad.EventType.Red || e.Type == LegendsFC.Core.Squad.EventType.SecondYellow) / (2.0 * matches):F3}, injuries/team/match {ev.Count(e => e.Type == LegendsFC.Core.Squad.EventType.Injury) / (2.0 * matches):F2}, subs/team {ev.Count(e => e.Type == LegendsFC.Core.Squad.EventType.Substitution) / (2.0 * matches):F1}");
+    foreach (var l in energyByWeek) Console.WriteLine("  " + l);
+    var lines = qw.Players.SelectMany(p => p.Stats.Select(s => (p, s))).ToList();
+    Console.WriteLine($"Avg match rating {lines.Sum(x => x.s.RatingSum) / Math.Max(1, lines.Sum(x => x.s.Rated)):F2}; players with form: {qw.Players.Count(p => p.RecentMatchRatings.Count > 0)}; form < 5.5: {qw.Players.Count(p => p.RecentMatchRatings.Count >= 5 && p.RecentMatchRatings.Average() < 5.5)}, > 7.5: {qw.Players.Count(p => p.RecentMatchRatings.Count >= 5 && p.RecentMatchRatings.Average() > 7.5)}");
+    foreach (var x in lines.Where(x => x.s.CompetitionId == "ENG-1").OrderByDescending(x => x.s.Goals).Take(5))
+        Console.WriteLine($"  {x.p.Name} ({x.p.MainPosition}) {x.s.Goals} goals, {x.s.Assists} assists, {x.s.Apps} apps, avg {x.s.AverageRating:F2}");
+    Console.WriteLine($"Banned now: {qw.Players.Count(p => p.Bans.Count > 0)}; injured now {qw.Players.Count(p => p.Injured)}; serious injuries in season: {ev.Count(e => e.Type == LegendsFC.Core.Squad.EventType.Injury)}");
+    var forms = qw.Clubs.Select(c => c.Tactics.Formation).GroupBy(f => f).OrderByDescending(g => g.Count());
+    Console.WriteLine("Formations: " + string.Join(", ", forms.Select(g => g.Key + " " + g.Count())));
+    return;
+}
 if (args.Length > 0 && args[0] == "save-size")
 {
     // Save size and speed after N seasons. Usage: save-size [seed] [seasons]

@@ -117,6 +117,82 @@ namespace LegendsFC.Core.Saves
             return ok;
         }
 
+        // ---- squad and tactics (agreed Oct 9)
+
+        private List<Model.Player> MySquad => Transfers.Market.Squad(World, World.UserClubId);
+        private Model.Player Mine(string playerId) => MySquad.FirstOrDefault(p => p.Id == playerId) ?? throw new ArgumentException("Not in your squad: " + playerId);
+
+        public void SetFormation(string formation)
+        {
+            if (!_d.Squad.Formations.ContainsKey(formation)) throw new ArgumentException("Unknown formation " + formation);
+            var t = UserClub.Tactics;
+            if (t.Formation != formation) { t.Formation = formation; t.Lineup.Clear(); }   // slots changed: pick again (auto-pick fills it)
+        }
+
+        /// <summary>-2 very defensive ... +2 very attacking.</summary>
+        public void SetMentality(int mentality) => UserClub.Tactics.Mentality = Math.Max(-2, Math.Min(2, mentality));
+
+        /// <summary>11 player ids in the formation's slot order, and up to 9 on the bench. Unavailable players are replaced at kick-off.</summary>
+        public void SetLineup(IList<string> starters, IList<string> bench)
+        {
+            int slots = _d.Squad.Formations[UserClub.Tactics.Formation].Count;
+            if (starters.Count != slots) throw new ArgumentException($"The formation has {slots} slots.");
+            if (bench.Count > _d.Squad.Bench) throw new ArgumentException($"At most {_d.Squad.Bench} on the bench.");
+            var all = starters.Concat(bench).ToList();
+            if (all.Distinct().Count() != all.Count) throw new ArgumentException("A player can only be picked once.");
+            foreach (var id in all) Mine(id);
+            UserClub.Tactics.Lineup = starters.ToList();
+            UserClub.Tactics.Bench = bench.ToList();
+        }
+
+        /// <summary>The auto-pick button: the AI's choice for the user's formation (or the best formation if keepFormation is false).</summary>
+        public LegendsFC.Core.Squad.TeamSheet AutoPick(string competitionId, bool keepFormation = true)
+        {
+            var club = UserClub; var t = club.Tactics;
+            var r = new LegendsFC.Core.Squad.RatingTable(_d);
+            if (!keepFormation)
+                t.Formation = LegendsFC.Core.Squad.Lineups.BestFormation(MySquad.Where(p => LegendsFC.Core.Squad.Lineups.Available(World, p, competitionId, _d)).ToList(), r, _d);
+            t.Lineup.Clear(); t.Bench.Clear();
+            var sheet = LegendsFC.Core.Squad.Lineups.Pick(World, club, competitionId, r, _d);
+            t.Lineup = sheet.Starters.Select(p => p?.Id).ToList();
+            t.Bench = sheet.Bench.Select(p => p.Id).ToList();
+            return sheet;
+        }
+
+        public void SetCaptainAndTakers(string captain, string penalties, string freeKicks, string corners)
+        {
+            foreach (var id in new[] { captain, penalties, freeKicks, corners }.Where(x => x != null)) Mine(id);
+            var t = UserClub.Tactics;
+            t.Captain = captain; t.PenaltyTaker = penalties; t.FreeKickTaker = freeKicks; t.CornerTaker = corners;
+        }
+
+        /// <summary>Saves the current formation, mentality and team under a name (up to 5; the same name replaces).</summary>
+        public bool SaveLineup(string name)
+        {
+            var t = UserClub.Tactics;
+            t.Saved.RemoveAll(x => x.Name == name);
+            if (t.Saved.Count >= _d.Squad.SavedLineups) return false;
+            t.Saved.Add(new Model.SavedLineup { Name = name, Formation = t.Formation, Mentality = t.Mentality, Lineup = t.Lineup.ToList(), Bench = t.Bench.ToList() });
+            return true;
+        }
+
+        public bool LoadLineup(string name)
+        {
+            var t = UserClub.Tactics; var s = t.Saved.FirstOrDefault(x => x.Name == name);
+            if (s == null) return false;
+            t.Formation = s.Formation; t.Mentality = s.Mentality; t.Lineup = s.Lineup.ToList(); t.Bench = s.Bench.ToList();
+            return true;
+        }
+
+        public void DeleteLineup(string name) => UserClub.Tactics.Saved.RemoveAll(x => x.Name == name);
+
+        /// <summary>Training regime per player (light rests fully; heavier grows faster but tires).</summary>
+        public void SetRegime(string playerId, string regime)
+        {
+            if (!_d.Development.Regimes.ContainsKey(regime)) throw new ArgumentException("Unknown regime " + regime);
+            Mine(playerId).Regime = regime;
+        }
+
         public void Save(string nowUtc) => _store?.Save(SlotId, World, Rng, Name, nowUtc);
     }
 }

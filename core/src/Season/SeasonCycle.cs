@@ -61,9 +61,11 @@ namespace LegendsFC.Core.Season
                 foreach (var t in o.Titles.Where(t => t.Key != CupFormats.RunnerUp))
                     w.Honours.Add(new TitleRecord { CompetitionId = o.CompetitionId, Title = t.Key, ClubId = t.Value, SeasonStartYear = w.SeasonStartYear });
             w.LastOutcomes = outcomes.Where(o => o != null).ToList();
+            Squad.Discipline.SeasonEnd(w);   // yellows are wiped; bans carry over
 
             report.FacilityLevelDrops = Facilities.FacilityRules.LevelDrops(w, rng, _d.FacilityRules).Count;
             w.SeasonStartYear++;
+            Squad.Stats.Compact(w, w.SeasonStartYear);
             report.ManagerHandovers = Facilities.FacilityRules.ManagerHandovers(w, rng, _d).Count;
             report.LoansReturned = Transfers.Market.ReturnLoans(w);   // loans last until the end of the season
             foreach (var p in w.Players.Where(p => !p.Retired && w.SeasonStartYear - p.BirthYear >= p.RetireAge))
@@ -307,9 +309,12 @@ namespace LegendsFC.Core.Season
                 var fac = club.Facilities[Facility.TrainingGround];
                 int effective = (int)System.Math.Round(fac.Level * (0.6 + 0.4 * fac.Condition / 100));
                 var groups = squad.GroupBy(p => CoachGroup(p.MainPosition)).ToDictionary(g => g.Key, g => g.Count());
-                foreach (var p in squad)
-                    Development.TrainWeek(p, w.SeasonStartYear - p.BirthYear, arch[p.ArchetypeId], c.DefaultCoachQuality, c.DefaultRegime,
-                        groups[CoachGroup(p.MainPosition)], effective, c.FormNeutral, d);
+                // Every player develops naturally (no coaches yet = the default coach quality), at his own regime and
+                // with his real form from match ratings (Carlos, Oct 9). Injured players don't train.
+                foreach (var p in squad.Where(p => !p.Injured))
+                    Development.TrainWeek(p, w.SeasonStartYear - p.BirthYear, arch[p.ArchetypeId], c.DefaultCoachQuality,
+                        d.Development.Regimes.ContainsKey(p.Regime ?? "") ? p.Regime : c.DefaultRegime,
+                        groups[CoachGroup(p.MainPosition)], effective, Squad.Stats.Form(p, d), d);
             }
         }
 

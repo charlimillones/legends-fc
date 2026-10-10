@@ -130,26 +130,14 @@ namespace LegendsFC.Core.Season
     /// </summary>
     public static class RoundPlayer
     {
-        public static List<MatchResult> Sim(Round round, Func<string, double> strength, GameData d, GameRandom rng)
+        /// <summary>Plays a round with real teams (squad and tactics, Oct 9). Knockout rounds decide every tie.</summary>
+        public static List<MatchResult> Sim(Round round, string competitionId, Squad.MatchEngine.Context ctx)
         {
             var list = new List<MatchResult>();
             for (int i = 0; i < round.Fixtures.Count; i++)
             {
-                var f = round.Fixtures[i];
-                double sh = strength(f.Home), sa = strength(f.Away);
-                var r = MatchSim.Play(f.Home, f.Away, sh, sa, d.MatchSim, rng);
-                if (round.PenaltiesOnDraw)
-                {
-                    var first = round.FirstLegs != null ? round.FirstLegs[i] : (MatchResult?)null;
-                    if (Level(r, first) && round.ExtraTime)
-                    {
-                        var et = MatchSim.ExtraTime(f.Home, f.Away, sh, sa, d.MatchSim, rng);
-                        r.HomeGoals += et.HomeGoals; r.AwayGoals += et.AwayGoals; r.AfterExtraTime = true;
-                    }
-                    if (Level(r, first))
-                        r.PenaltyWinner = rng.Chance(d.LeagueFormats.ArgentinaFirst.PenaltyHomeWinChance) ? f.Home : f.Away;
-                }
-                list.Add(r);
+                var first = round.FirstLegs != null ? round.FirstLegs[i] : (MatchResult?)null;
+                list.Add(Squad.MatchEngine.Play(competitionId, round.Fixtures[i], round.PenaltiesOnDraw, round.ExtraTime, first, ctx));
             }
             return list;
         }

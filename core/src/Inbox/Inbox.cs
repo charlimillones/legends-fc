@@ -36,6 +36,8 @@ namespace LegendsFC.Core.Inbox
         public int GoodWeekPlayers = 5, BigWinMargin = 3, BadRunMatches = 5;
         public int YoungsterMaxAge = 21, YoungsterReadyRank = 18, StarSigningTopRank = 3;
         public int ShirtsPerReputationMin = 20, ShirtsPerReputationMax = 60, WeeksPerMonth = 4;
+        public int TooManyInjuries = 4, HeavyTooLongWeeks = 6;
+        public double InjuryRiskBelowEnergy = 50;
     }
 
     public enum MessageKind { Manager }
@@ -76,6 +78,9 @@ namespace LegendsFC.Core.Inbox
         public double LastMonthStore;
         public Dictionary<string, int> WeeksWithoutRise = new Dictionary<string, int>();
         public List<string> ReadyFlagged = new List<string>();
+        public Dictionary<string, int> HeavyWeeks = new Dictionary<string, int>();
+        public List<string> RiskFlagged = new List<string>();
+        public bool TooManyFlagged;
         public int UnreadCount => Messages.Count(m => !m.Read);
     }
 
@@ -171,6 +176,51 @@ namespace LegendsFC.Core.Inbox
                 if (run.Finished && !before.Finished.Contains(run.CompetitionId) && run.Outcome != null)
                     foreach (var t in run.Outcome.Titles.Where(t => t.Value == club.Id && t.Key != CupFormats.RunnerUp))
                         Add("MSG-TROPHY", Facility.ClubStore, ("trophy", TitleName(run.CompetitionId, t.Key, d, w)));
+            }
+
+            // ---- medical: injuries in this week's matches, recoveries, too many injured, players at risk (Oct 9)
+            if (report != null)
+            {
+                foreach (var m in report.UserMatches)
+                    foreach (var e in (m.Events ?? new List<Squad.MatchEvent>()).Where(e => e.Type == Squad.EventType.Injury && e.ClubId == club.Id))
+                    {
+                        var p = w.Players.FirstOrDefault(x => x.Id == e.PlayerId);
+                        if (p?.Injury == null) continue;
+                        if (p.Injury.Serious) Add("MSG-SERIOUS-INJURY", Facility.MedicalCentre, ("player", p.Name), ("injury", p.Injury.Name), ("n", Math.Max(1, (int)Math.Round(p.Injury.TotalWeeks / 4.3)).ToString()));
+                        else Add("MSG-INJURED", Facility.MedicalCentre, ("player", p.Name), ("injury", p.Injury.Name), ("n", p.Injury.TotalWeeks.ToString()));
+                    }
+                foreach (var id in report.AheadOfSchedule) { var p = w.Players.FirstOrDefault(x => x.Id == id); if (p != null) Add("MSG-RECOVERY-AHEAD", Facility.MedicalCentre, ("player", p.Name), ("n", "1")); }
+                foreach (var id in report.Recovered) { var p = w.Players.FirstOrDefault(x => x.Id == id); if (p != null && p.ClubId == club.Id) Add("MSG-BACK-IN-TRAINING", Facility.MedicalCentre, ("player", p.Name)); }
+                // Debuts: an academy graduate whose only matches for the club are this week's.
+                var playedThisWeek = report.UserMatches.Where(um => um.Players != null)
+                    .SelectMany(um => um.Players.Where(x => x.ClubId == club.Id && x.Minutes > 0)).GroupBy(x => x.PlayerId);
+                foreach (var g in playedThisWeek)
+                {
+                    var p = w.Players.FirstOrDefault(x => x.Id == g.Key);
+                    if (p == null || p.AcademyClubId != club.Id) continue;
+                    if (p.Stats.Where(st => st.ClubId == club.Id).Sum(st => st.Apps) == g.Count())
+                        Add("MSG-DEBUT", Facility.Academy, ("player", p.Name), ("club", club.Name));
+                }
+            }
+            {
+                var squadNow = w.Players.Where(p => p.ClubId == club.Id).ToList();
+                int injured = squadNow.Count(p => p.Injured);
+                if (injured >= c.TooManyInjuries && !box.TooManyFlagged) { box.TooManyFlagged = true; Add("MSG-TOO-MANY-INJURIES", Facility.MedicalCentre, ("n", injured.ToString())); }
+                if (injured < c.TooManyInjuries - 1) box.TooManyFlagged = false;
+                foreach (var p in squadNow.Where(p => !p.Injured))
+                {
+                    if (p.Energy < c.InjuryRiskBelowEnergy && !box.RiskFlagged.Contains(p.Id)) { box.RiskFlagged.Add(p.Id); Add("MSG-INJURY-RISK", Facility.MedicalCentre, ("player", p.Name)); }
+                    else if (p.Energy >= 70) box.RiskFlagged.Remove(p.Id);
+                }
+                // Heavy training too long: 6 weeks in a row (rebuilt in squad order, so a reloaded inbox stays identical).
+                var heavy = new Dictionary<string, int>();
+                foreach (var p in squadNow.Where(p => p.Regime == "heavy" && !p.Injured))
+                {
+                    box.HeavyWeeks.TryGetValue(p.Id, out int n);
+                    heavy[p.Id] = ++n;
+                    if (n == c.HeavyTooLongWeeks) Add("MSG-HEAVY-TOO-LONG", Facility.TrainingGround, ("player", p.Name));
+                }
+                box.HeavyWeeks = heavy;
             }
 
             // ---- next week's big home match (cup semi-finals and finals, continental knockouts)
