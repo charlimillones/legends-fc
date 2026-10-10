@@ -17,3 +17,5 @@ unity/**/*.sln
 # OS
 .DS_Store
 Thumbs.db
+unity/**/Assets/StreamingAssets/data/
+unity/**/Assets/StreamingAssets/data.meta

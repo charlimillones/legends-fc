@@ -22,6 +22,8 @@ namespace LegendsFC.Core.Saves
 
         public GameWorld World { get; private set; }
         public GameRandom Rng { get; private set; }
+        /// <summary>The rules and data this world runs on (for the UI).</summary>
+        public GameData Data => _d;
         public string SlotId { get; private set; }
         public string Name { get; private set; }
         /// <summary>The report of the season that just ended (null until one ends in this session).</summary>
