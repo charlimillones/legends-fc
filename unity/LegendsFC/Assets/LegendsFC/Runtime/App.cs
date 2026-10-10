@@ -42,6 +42,7 @@ namespace LegendsFC.App
         {
             I = this;
             Application.targetFrameRate = 60;
+            Application.runInBackground = true;   // the week keeps playing if the app loses focus (and the editor keeps rendering)
             BuildFrame();
             Busy("Loading the game data...");
             try
@@ -73,7 +74,7 @@ namespace LegendsFC.App
 
         private void BuildFrame()
         {
-            if (FindFirstObjectByType<EventSystem>() == null)
+            if (FindAnyObjectByType<EventSystem>() == null)
             {
                 var es = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
                 DontDestroyOnLoad(es);

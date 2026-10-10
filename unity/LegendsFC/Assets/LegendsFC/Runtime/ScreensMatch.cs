@@ -24,7 +24,7 @@ namespace LegendsFC.App
         public MatchScreen(List<MatchResult> matches, int? endedSeason) { _matches = matches; _endedSeason = endedSeason; }
 
         private Text _score, _clock, _ht;
-        private RectTransform _events, _others, _after;
+        private RectTransform _events, _others, _controls;
 
         public override void Build(RectTransform body)
         {
@@ -36,7 +36,7 @@ namespace LegendsFC.App
             var compLabel = UIKit.Label(top, comp == null ? "" : Fmt.Competition(comp), 24, UIKit.Muted, TextAnchor.MiddleCenter); UIKit.Size(compLabel, -1, 34);
             _score = UIKit.Label(top, "", 54, UIKit.Ink, TextAnchor.MiddleCenter, FontStyle.Bold); UIKit.Size(_score, -1, 90);
             _clock = UIKit.Label(top, "0'", 34, UIKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold); UIKit.Size(_clock, -1, 50);
-            var controls = UIKit.Row(top, 50, 10);
+            var controls = _controls = UIKit.Row(top, 50, 10);
             controls.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter;
             UIKit.Button(controls, "Faster", () => _speed = Mathf.Min(_speed * 2, 8), UIKit.Panel2, 22, 180, 50);
             UIKit.Button(controls, "Skip to full time", () => _skip = true, UIKit.Panel2, 22, 260, 50);
@@ -90,9 +90,9 @@ namespace LegendsFC.App
             _clock.text = "Full time" + (m.AfterExtraTime ? " (after extra time)" : "") + (m.PenaltyWinner != null ? $" - {Fmt.Club(m.PenaltyWinner)} win on penalties" : "");
             ShowOthers(m, round, 999);
             if (m.PlayerOfTheMatch != null) AddLine($"Player of the match: {Fmt.Player(m.PlayerOfTheMatch)}", UIKit.Accent);
-            var row = UIKit.Row(_events, 64, 10);
-            if (_index + 1 < _matches.Count) UIKit.Button(row, "Next match", () => { _index++; _skip = false; A.Refresh(); }, UIKit.Accent, 26, 300, 60);
-            else UIKit.Button(row, "Done", Done, UIKit.Accent, 26, 300, 60);
+            UIKit.Clear(_controls);
+            if (_index + 1 < _matches.Count) UIKit.Button(_controls, "Next match", () => { _index++; _skip = false; A.Refresh(); }, UIKit.Accent, 24, 300, 50);
+            else UIKit.Button(_controls, "Done", Done, UIKit.Accent, 24, 300, 50);
         }
 
         private void Done()
@@ -125,6 +125,7 @@ namespace LegendsFC.App
         {
             var row = UIKit.Row(_events, 46, 10, UIKit.Panel, 16);
             UIKit.Cell(row, text, 0, 22, c);
+            row.SetAsFirstSibling();   // newest first
         }
 
         private void ShowOthers(MatchResult mine, List<MatchResult> round, int upTo)
