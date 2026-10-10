@@ -60,6 +60,8 @@ namespace LegendsFC.Core.World
             var managers = new GameRandom(seed ^ 0xFAC1_17E5_0000_0001UL);
             foreach (var club in _w.Clubs)
                 foreach (var s in club.Facilities.Values) s.Manager = Facilities.FacilityRules.NewManager(_w, club, managers, _d);
+            // Coaches (Oct 9): their own random stream too.
+            Squad.Coaching.GenerateWorld(_w, new GameRandom(seed ^ 0xC0AC_4E50_0000_0002UL), _d);
             return _w;
         }
 

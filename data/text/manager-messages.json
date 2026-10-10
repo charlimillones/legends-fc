@@ -1,5 +1,5 @@
 {
-  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45).",
+  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45). Coaches (Oct 9 night): 3 more live (38 of 45).",
   "roles": {
     "Stadium": "groundskeeper",
     "TrainingGround": "head of training",
@@ -236,7 +236,6 @@
       "name": "New coach signed",
       "sender": "TrainingGround",
       "priority": 4,
-      "waitsFor": "coaches",
       "wordings": [
         "[coach] has joined the staff. The [position] group is excited.",
         "Welcome, [coach]! He'll work with the [position] group.",
@@ -250,7 +249,6 @@
       "name": "Coach contract ending",
       "sender": "TrainingGround",
       "priority": 3,
-      "waitsFor": "coaches",
       "wordings": [
         "[coach]'s contract ends this season. Want to renew?",
         "Just a reminder: [coach] is out of contract in the summer.",
@@ -264,7 +262,6 @@
       "name": "Coach group too big",
       "sender": "TrainingGround",
       "priority": 4,
-      "waitsFor": "coaches",
       "wordings": [
         "[coach] is training a lot of players. Growth will be slower.",
         "[coach] has [n] players to look after. That's too many.",

@@ -68,9 +68,11 @@ namespace LegendsFC.Core.Season
             Squad.Stats.Compact(w, w.SeasonStartYear);
             report.ManagerHandovers = Facilities.FacilityRules.ManagerHandovers(w, rng, _d).Count;
             report.LoansReturned = Transfers.Market.ReturnLoans(w);   // loans last until the end of the season
+            var retiredNow = new List<(Player, string)>();
             foreach (var p in w.Players.Where(p => !p.Retired && w.SeasonStartYear - p.BirthYear >= p.RetireAge))
             {
-                p.Retired = true; p.ClubId = null; report.Retired++; w.Market.SquadsChanged();
+                retiredNow.Add((p, p.ClubId));
+                p.Retired = true; p.ClubId = null; p.CoachId = null; report.Retired++; w.Market.SquadsChanged();
             }
 
             var swR = System.Diagnostics.Stopwatch.StartNew();
@@ -101,6 +103,10 @@ namespace LegendsFC.Core.Season
             }
             AiFreeAgentWindow(w, rng, report);
             report.FreeAgentsRetired = RetireLongUnsigned(w, _d);
+
+            // Coaches (Oct 9): retirements, contracts, ex-players, surprise staff, AI hiring.
+            foreach (var coach in Squad.Coaching.SeasonEnd(w, retiredNow, rng, _d))
+                Inbox.InboxEngine.Queue(w, "MSG-COACH-SIGNED", Facility.TrainingGround, _d, ("coach", coach.Name), ("position", Squad.Coaching.GroupName(coach.Group)));
 
             // Ready for the next season: a fresh calendar; old finished talks are cleared.
             w.Market.Talks.RemoveAll(t => t.Status != Transfers.TalkStatus.Open && t.Status != Transfers.TalkStatus.Pending);
@@ -303,18 +309,23 @@ namespace LegendsFC.Core.Season
         {
             var c = d.Development;
             var arch = d.Archetypes.ToDictionary(a => a.Id);
+            var coaches = w.Coaches.Where(x => x.ClubId != null).ToDictionary(x => x.Id);
             foreach (var club in w.Clubs)
             {
+                if (club.Id != w.UserClubId) Squad.Coaching.AutoAssign(w, club);   // AI: every week, so new signings get a coach
                 var squad = Transfers.Market.Squad(w, club.Id);
                 var fac = club.Facilities[Facility.TrainingGround];
                 int effective = (int)System.Math.Round(fac.Level * (0.6 + 0.4 * fac.Condition / 100));
-                var groups = squad.GroupBy(p => CoachGroup(p.MainPosition)).ToDictionary(g => g.Key, g => g.Count());
-                // Every player develops naturally (no coaches yet = the default coach quality), at his own regime and
-                // with his real form from match ratings (Carlos, Oct 9). Injured players don't train.
+                var load = squad.Where(p => p.CoachId != null).GroupBy(p => p.CoachId).ToDictionary(g => g.Key, g => g.Count());
+                // Every player develops naturally; a coach speeds it up (fewer players per coach = faster), at the player's
+                // regime and with his real form (Carlos, Oct 9). Injured players don't train.
                 foreach (var p in squad.Where(p => !p.Injured))
-                    Development.TrainWeek(p, w.SeasonStartYear - p.BirthYear, arch[p.ArchetypeId], c.DefaultCoachQuality,
+                {
+                    var (quality, onCoach) = Squad.Coaching.TrainingFor(w, p, load, coaches, d);
+                    Development.TrainWeek(p, w.SeasonStartYear - p.BirthYear, arch[p.ArchetypeId], quality,
                         d.Development.Regimes.ContainsKey(p.Regime ?? "") ? p.Regime : c.DefaultRegime,
-                        groups[CoachGroup(p.MainPosition)], effective, Squad.Stats.Form(p, d), d);
+                        onCoach, effective, Squad.Stats.Form(p, d), d);
+                }
             }
         }
 

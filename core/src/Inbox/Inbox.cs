@@ -36,7 +36,7 @@ namespace LegendsFC.Core.Inbox
         public int GoodWeekPlayers = 5, BigWinMargin = 3, BadRunMatches = 5;
         public int YoungsterMaxAge = 21, YoungsterReadyRank = 18, StarSigningTopRank = 3;
         public int ShirtsPerReputationMin = 20, ShirtsPerReputationMax = 60, WeeksPerMonth = 4;
-        public int TooManyInjuries = 4, HeavyTooLongWeeks = 6;
+        public int TooManyInjuries = 4, HeavyTooLongWeeks = 6, CoachContractReminderWeek = 40;
         public double InjuryRiskBelowEnergy = 50;
     }
 
@@ -81,6 +81,7 @@ namespace LegendsFC.Core.Inbox
         public Dictionary<string, int> HeavyWeeks = new Dictionary<string, int>();
         public List<string> RiskFlagged = new List<string>();
         public bool TooManyFlagged;
+        public List<string> BigGroupFlagged = new List<string>();
         public int UnreadCount => Messages.Count(m => !m.Read);
     }
 
@@ -221,6 +222,24 @@ namespace LegendsFC.Core.Inbox
                     if (n == c.HeavyTooLongWeeks) Add("MSG-HEAVY-TOO-LONG", Facility.TrainingGround, ("player", p.Name));
                 }
                 box.HeavyWeeks = heavy;
+            }
+
+            // ---- coaches: contracts ending this season (week 40), groups that are too big
+            if (w.Calendar.Week == c.CoachContractReminderWeek)
+                foreach (var coach in w.Coaches.Where(x => x.ClubId == club.Id && x.ContractEndYear == w.SeasonStartYear + 1).OrderBy(x => x.Id, StringComparer.Ordinal))
+                    Add("MSG-COACH-CONTRACT", Facility.TrainingGround, ("coach", coach.Name));
+            {
+                var load = w.Players.Where(p => p.ClubId == club.Id && p.CoachId != null).GroupBy(p => p.CoachId).ToDictionary(g => g.Key, g => g.Count());
+                var flagged = new List<string>();
+                foreach (var coach in w.Coaches.Where(x => x.ClubId == club.Id).OrderBy(x => x.Id, StringComparer.Ordinal))
+                {
+                    int n = load.TryGetValue(coach.Id, out var v) ? v : 0;
+                    if (n < d.Coaches.GroupTooBig) continue;
+                    flagged.Add(coach.Id);
+                    if (!box.BigGroupFlagged.Contains(coach.Id))
+                        Add("MSG-COACH-GROUP-BIG", Facility.TrainingGround, ("coach", coach.Name), ("n", n.ToString()), ("position", Squad.Coaching.GroupName(coach.Group)));
+                }
+                box.BigGroupFlagged = flagged;
             }
 
             // ---- next week's big home match (cup semi-finals and finals, continental knockouts)

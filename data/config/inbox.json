@@ -23,5 +23,7 @@
   "_medicalNote": "Medical (Oct 9): too many injuries = 4 or more of the user's players injured at once; injury risk = a player under 50 energy after the weekly rest; heavy regime too long = 6 weeks in a row on heavy.",
   "tooManyInjuries": 4,
   "injuryRiskBelowEnergy": 50,
-  "heavyTooLongWeeks": 6
+  "heavyTooLongWeeks": 6,
+  "_coachNote": "Coaches (Oct 9 night): contract reminder in week 40 for coaches whose contract ends this season; group too big = a coach training 7+ players (coaches.json groupTooBig).",
+  "coachContractReminderWeek": 40
 }

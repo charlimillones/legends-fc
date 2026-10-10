@@ -55,14 +55,14 @@ public class InboxTests : IDisposable
     }
 
     [Fact]
-    public void Data_45Triggers_5WordingsEach_35Live()
+    public void Data_45Triggers_5WordingsEach_38Live()
     {
         var bank = D.Messages;
         Assert.Equal(45, bank.Triggers.Count);
         Assert.Equal(45, bank.Triggers.Select(t => t.Id).Distinct().Count());
         Assert.All(bank.Triggers, t => Assert.Equal(5, t.Wordings.Count));
         Assert.All(bank.Triggers, t => Assert.InRange(t.Priority, 1, 4));
-        Assert.Equal(35, bank.Triggers.Count(t => t.Live));   // 27 + 8 with squad and tactics (Oct 9)
+        Assert.Equal(38, bank.Triggers.Count(t => t.Live));   // 27 + 8 with squad and tactics + 3 with coaches (Oct 9)
         Assert.All(bank.Triggers.Where(t => t.Name.Contains("injur") || t.Name.Contains("Illness")), t => Assert.Equal(1, t.Priority));
         var senders = new HashSet<string>(Enum.GetNames(typeof(Facility))) { "any" };
         Assert.All(bank.Triggers, t => Assert.Contains(t.Sender, senders));

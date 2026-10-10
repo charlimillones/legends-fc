@@ -71,6 +71,8 @@ namespace LegendsFC.Core.Model
         /// <summary>Running total spent on facility upgrades and repairs (EUR), for reports.</summary>
         public long SpentOnFacilities;
         public Tactics Tactics = new Tactics();
+        /// <summary>Running total spent on coach contracts (EUR), for reports.</summary>
+        public long SpentOnCoaches;
     }
 
     /// <summary>A player. Hidden fields are never shown directly (architecture rule 7).</summary>
@@ -123,7 +125,22 @@ namespace LegendsFC.Core.Model
         /// <summary>Yellow cards this season per competition (wiped by each competition's rules).</summary>
         public Dictionary<string, int> Yellows = new Dictionary<string, int>();
         public List<StatLine> Stats = new List<StatLine>();
+        /// <summary>The coach who trains him (null = he develops naturally, without a coach).</summary>
+        public string CoachId;
         public bool Injured => Injury != null;
+    }
+
+    /// <summary>A coach (decided Oct 7): one of 4 groups, a rating, a contract in seasons, a one-time price. No wages.</summary>
+    public sealed class Coach
+    {
+        public string Id, Name, NationalityId, Group;   // Group: GK, DEF, MID, FWD
+        public int BirthYear, RetireAge, Rating;
+        /// <summary>Null = in the free pool.</summary>
+        public string ClubId;
+        public int ContractEndYear;
+        /// <summary>Set when he was a player: his clubs (cheaper to hire there).</summary>
+        public string FormerPlayerId;
+        public List<string> FormerClubIds = new List<string>();
     }
 
     public sealed class Injury

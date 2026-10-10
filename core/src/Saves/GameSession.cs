@@ -193,6 +193,37 @@ namespace LegendsFC.Core.Saves
             Mine(playerId).Regime = regime;
         }
 
+        // ---- coaches (Oct 9 night; rules decided Oct 7)
+
+        public List<Model.Coach> MyCoaches => LegendsFC.Core.Squad.Coaching.OfClub(World, World.UserClubId);
+        public List<Model.Coach> FreeCoaches => World.Coaches.Where(c => c.ClubId == null).OrderByDescending(c => c.Rating).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        public int CoachLimit => LegendsFC.Core.Squad.Coaching.Limit(UserClub, _d);
+        public long CoachPrice(string coachId, int seasons) => LegendsFC.Core.Squad.Coaching.Price(Coach(coachId), UserClub, seasons, _d);
+        private Model.Coach Coach(string id) => World.Coaches.FirstOrDefault(c => c.Id == id) ?? throw new ArgumentException("Unknown coach " + id);
+
+        public LegendsFC.Core.Squad.HireResult HireCoach(string coachId, int seasons)
+        {
+            var coach = Coach(coachId);
+            var r = LegendsFC.Core.Squad.Coaching.Hire(World, UserClub, coach, seasons, _d);
+            if (r == LegendsFC.Core.Squad.HireResult.Done)
+                Inbox.InboxEngine.Queue(World, "MSG-COACH-SIGNED", Model.Facility.TrainingGround, _d, ("coach", coach.Name), ("position", LegendsFC.Core.Squad.Coaching.GroupName(coach.Group)));
+            return r;
+        }
+
+        public bool RenewCoach(string coachId, int seasons) => LegendsFC.Core.Squad.Coaching.Renew(World, UserClub, Coach(coachId), seasons, _d);
+
+        public void ReleaseCoach(string coachId)
+        {
+            var coach = Coach(coachId);
+            if (coach.ClubId != World.UserClubId) throw new ArgumentException("Not your coach.");
+            LegendsFC.Core.Squad.Coaching.Release(World, coach);
+        }
+
+        /// <summary>Who trains a player (null coach = he develops naturally). A coach trains only his group.</summary>
+        public bool AssignCoach(string playerId, string coachId) => LegendsFC.Core.Squad.Coaching.Assign(World, Mine(playerId), coachId == null ? null : Coach(coachId));
+
+        public void AutoAssignCoaches() => LegendsFC.Core.Squad.Coaching.AutoAssign(World, UserClub);
+
         public void Save(string nowUtc) => _store?.Save(SlotId, World, Rng, Name, nowUtc);
     }
 }

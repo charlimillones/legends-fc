@@ -159,6 +159,15 @@
   - **Inbox:** 8 more triggers live (injuries, serious injuries, recovery ahead, back in training, too many injured, injury risk, heavy regime too long, academy debut): 35 of 45.
   - **Speed:** a full season with every cup in about 5-6 s on the cloud machine (was about 3 s); 10 seasons in about 60 s.
 
+- **Coaches** (branch `feature/coaches`, NOT merged: waiting for Carlos; `config/coaches.json`, PROPOSAL numbers):
+  - 4 types (goalkeeper, defence, midfield, forward), a rating, a contract of 1-4 seasons and a one-time price (no wages): EUR 25K x 1.1^(rating - 40) per season (rating 60 = 168K, 80 = 1.1M); ex-players 30% cheaper at their old clubs.
+  - Limit = 3 x Training Grounds working level (level 1 = 3, level 10 = 30).
+  - Growth: with a coach (0.5 + rating/100) x crowd; without one 0.6 (natural development). A 50-rated coach with 7 players = the balance before coaches.
+  - World: every club starts with a coach per group (better clubs, better coaches), a free pool of 150; each season coaches retire, contracts end, 15% of retiring players become coaches, rarely a former player joins his old club free.
+  - AI: a coach per group, more for big clubs (6 at reputation 60+, 8 at 80+), at most 3% of their money per coach.
+  - User: hire, renew, release, assign players (a coach trains only his group), auto-assign. Inbox: coach signed, contract ending (week 40), group too big (7+): 38 of 45 triggers live.
+  - League quality over 10 seasons: English top-flight average XI 77.1 -> 76.0.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
