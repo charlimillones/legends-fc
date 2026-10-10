@@ -1,5 +1,5 @@
 {
-  "_source": "Cups and competitions v1 (proposed Oct 9, accepted by Carlos Oct 9 12:40: competitions-draft.md). Real-football formats scaled to the test world. Names are fictional placeholders like the league names. Cups are resolved in this order each season (continental first, so cup winners already qualified pass their spot down). Prize money in EUR (PROPOSAL, tune with the sim). Weeks: week 1 = start of July; league matches in weeks 9-50.",
+  "_source": "Cups and competitions v1 (proposed Oct 9, accepted by Carlos Oct 9 12:40: competitions-draft.md). Real-football formats scaled to the test world. Names are fictional placeholders like the league names. Cups are resolved in this order each season (continental first, so cup winners already qualified pass their spot down). Prize money in EUR (PROPOSAL, tune with the sim). South American prizes halved (Carlos, Oct 9): they were 2-3x the income of Uruguayan and Colombian clubs. Weeks: week 1 = start of July; league matches in weeks 9-50.",
   "coefficient": {
     "_note": "Club coefficient (PROPOSAL): continental points over the last 5 seasons. Used for pots and seeding; reputation breaks ties (and seeds the first season).",
     "seasons": 5,
@@ -36,7 +36,7 @@
       "qualifying": [ { "league": "BRA-1", "count": 2 }, { "league": "ARG-1", "count": 2 }, { "league": "URU-R", "count": 2 }, { "league": "COL-R", "count": 2 } ],
       "groupThirdsDropDown": true, "tieDraw": "Penalties", "finalDraw": "ExtraTime",
       "weeks": [6, 7, 11, 14, 17, 20, 23, 26, 31, 32, 38, 39, 52],
-      "prizes": { "stages": { "Qualifying": 500000, "Group stage": 3000000, "Quarter-final": 3000000, "Semi-final": 4000000, "Final": 5000000 }, "winDrawStages": ["Group stage"], "win": 300000, "draw": 100000, "winner": 6000000 }
+      "prizes": { "stages": { "Qualifying": 250000, "Group stage": 1500000, "Quarter-final": 1500000, "Semi-final": 2000000, "Final": 2500000 }, "winDrawStages": ["Group stage"], "win": 150000, "draw": 50000, "winner": 3000000 }
     },
     {
       "id": "CONMEBOL-SUD", "name": "South American Cup", "kind": "Groups", "confederation": "CONMEBOL", "scope": "CONMEBOL",
@@ -45,7 +45,7 @@
       "imports": { "CONMEBOL-LIB:GroupThirds": 4 },
       "tieDraw": "Penalties", "finalDraw": "ExtraTime",
       "weeks": [12, 15, 18, 21, 24, 27, 29, 30, 34, 35, 41, 42, 51],
-      "prizes": { "stages": { "Group stage": 800000, "Knockout play-off": 300000, "Quarter-final": 800000, "Semi-final": 1200000, "Final": 1500000 }, "winDrawStages": ["Group stage"], "win": 100000, "draw": 50000, "winner": 2000000 }
+      "prizes": { "stages": { "Group stage": 400000, "Knockout play-off": 150000, "Quarter-final": 400000, "Semi-final": 600000, "Final": 750000 }, "winDrawStages": ["Group stage"], "win": 50000, "draw": 25000, "winner": 1000000 }
     },
     {
       "id": "CONCACAF-CC", "name": "North American Champions Cup", "kind": "Knockout", "confederation": "CONCACAF", "scope": "CONCACAF",
@@ -65,7 +65,7 @@
       "id": "CONMEBOL-REC", "name": "South American Super Cup", "kind": "TwoLegSuperCup", "confederation": "CONMEBOL",
       "entry": [ { "title": "CONMEBOL-SUD:Winner", "fallback": "confed:CONMEBOL" }, { "title": "CONMEBOL-LIB:Winner", "fallback": "confed:CONMEBOL" } ],
       "tieDraw": "Penalties", "weeks": [9, 10],
-      "prizes": { "stages": { "Final": 800000 }, "winner": 800000 }
+      "prizes": { "stages": { "Final": 400000 }, "winner": 400000 }
     },
     {
       "id": "INT-CUP", "name": "Intercontinental Cup",  "kind": "Intercontinental",

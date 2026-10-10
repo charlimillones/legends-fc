@@ -333,7 +333,7 @@ public class CupTests
         Assert.InRange(ccOnly[ccWinner], 45e6, 70e6);                          // 15M league phase + stages + wins + 6M winner (about 60M)
         Assert.Equal(money.Values.Max(), money.Values.OrderByDescending(x => x).First());
         var libWinner = Run(w, "CONMEBOL-LIB").Outcome.Titles["Winner"];
-        Assert.InRange(CupRewards.PrizeMoney(new[] { Run(w, "CONMEBOL-LIB") }, D)[libWinner], 18e6, 27e6);
+        Assert.InRange(CupRewards.PrizeMoney(new[] { Run(w, "CONMEBOL-LIB") }, D)[libWinner], 9e6, 13.5e6);   // halved (Carlos, Oct 9): about 11M
         _out.WriteLine($"Cup money paid this season: {money.Values.Sum() / 1e6:F0}M to {money.Count} clubs");
 
         var copy = JsonConvert.DeserializeObject<GameWorld>(JsonConvert.SerializeObject(w));
