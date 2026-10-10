@@ -242,6 +242,47 @@ namespace LegendsFC.Core.Inbox
                 box.BigGroupFlagged = flagged;
             }
 
+            // ---- scouting: reports, wonderkids, contracts ending, next opponent
+            if (report != null && report.ScoutReports.Count > 0)
+            {
+                foreach (var g in report.ScoutReports.GroupBy(r => r.ScoutId).OrderBy(g => g.Key, StringComparer.Ordinal))
+                {
+                    var scout = w.Scouts.FirstOrDefault(x => x.Id == g.Key);
+                    if (scout == null) continue;
+                    string region = scout.Task.CountryId != null ? (w.Countries.FirstOrDefault(x => x.Id == scout.Task.CountryId)?.Name ?? scout.Task.CountryId)
+                                  : scout.Task.Confederation ?? "abroad";
+                    string pos = scout.Task.Position == null ? "general" : PositionName(scout.Task.Position.Value);
+                    Add("MSG-SCOUT-REPORT", Facility.ScoutingCentre, ("scout", scout.Name), ("region", region), ("position", pos),
+                        ("region/position", scout.Task.Position != null ? pos : region), ("n", g.Count().ToString()));
+                }
+                foreach (var r in report.ScoutReports.Where(r => r.Wonderkid))
+                {
+                    var p = w.Players.FirstOrDefault(x => x.Id == r.PlayerId);
+                    var scout = w.Scouts.FirstOrDefault(x => x.Id == r.ScoutId);
+                    if (p == null) continue;
+                    var club2 = p.ClubId == null ? null : w.Clubs.FirstOrDefault(x => x.Id == p.ClubId);
+                    string country = w.Countries.FirstOrDefault(x => x.Id == (club2?.CountryId ?? p.NationalityId))?.Name ?? p.NationalityId;
+                    Add("MSG-WONDERKID", Facility.ScoutingCentre, ("player", p.Name), ("age", (w.SeasonStartYear - p.BirthYear).ToString()), ("country", country), ("scout", scout?.Name ?? "Our scout"));
+                }
+            }
+            if (w.Calendar.Week == c.CoachContractReminderWeek)
+                foreach (var scout in w.Scouts.Where(x => x.ClubId == club.Id && x.ContractEndYear == w.SeasonStartYear + 1).OrderBy(x => x.Id, StringComparer.Ordinal))
+                    Add("MSG-SCOUT-CONTRACT", Facility.ScoutingCentre, ("scout", scout.Name));
+            if (!w.Calendar.SeasonOver && w.Calendar.Week > 0)
+            {
+                var nextOpponent = NextOpponent(w, club, d);
+                if (nextOpponent != null)
+                {
+                    var info = Scouting.Scouts.Opponent(w, club, nextOpponent, d);
+                    if (info != null)
+                    {
+                        int wins = LastResults(w, nextOpponent.Id, 5);
+                        Add("MSG-OPPONENT-REPORT", Facility.ScoutingCentre, ("opponent", nextOpponent.Name), ("day", "the weekend"), ("player", info.Value.best.Name),
+                            ("formation", info.Value.formation), ("n", wins.ToString()));
+                    }
+                }
+            }
+
             // ---- next week's big home match (cup semi-finals and finals, continental knockouts)
             if (!w.Calendar.SeasonOver && w.Calendar.Week > 0)
                 foreach (var run in w.Calendar.Runs.Where(r => !r.Finished))
@@ -334,6 +375,37 @@ namespace LegendsFC.Core.Inbox
             return Deliver(w, found, before, rng, d);
         }
 
+        /// <summary>The user's first opponent next week (peeks at the next round of each competition due then).</summary>
+        private static Club NextOpponent(GameWorld w, Club club, GameData d)
+        {
+            foreach (var run in w.Calendar.Runs.Where(r => !r.Finished))
+            {
+                var weeks = w.Calendar.RoundWeeks[run.CompetitionId];
+                if (run.PlayedRounds.Count >= weeks.Count || weeks[run.PlayedRounds.Count] != w.Calendar.Week + 1) continue;
+                Round next;
+                try { run.Info = w.Calendar.Seeds; next = run.Next(d); } catch { continue; }
+                if (next == null) continue;
+                foreach (var f in next.Fixtures)
+                    if (f.Home == club.Id || f.Away == club.Id) return w.Clubs.FirstOrDefault(x => x.Id == (f.Home == club.Id ? f.Away : f.Home));
+            }
+            return null;
+        }
+
+        /// <summary>Wins in a club's last N matches this season.</summary>
+        private static int LastResults(GameWorld w, string clubId, int n)
+        {
+            var list = new List<(int week, bool won)>();
+            foreach (var run in w.Calendar.Runs)
+                for (int i = 0; i < run.PlayedRounds.Count; i++)
+                    foreach (var m in run.PlayedRounds[i].Where(m => m.Home == clubId || m.Away == clubId))
+                    {
+                        bool home = m.Home == clubId;
+                        bool won = home ? m.HomeGoals > m.AwayGoals || m.PenaltyWinner == clubId : m.AwayGoals > m.HomeGoals || m.PenaltyWinner == clubId;
+                        list.Add((w.Calendar.RoundWeeks[run.CompetitionId][i], won));
+                    }
+            return list.OrderByDescending(x => x.week).Take(n).Count(x => x.won);
+        }
+
         /// <summary>Messages for an upgrade the user just paid for (delivered with the next week's messages).</summary>
         public static void QueueUpgrade(GameWorld w, Club club, Facility f, GameData d)
         {
@@ -413,6 +485,25 @@ namespace LegendsFC.Core.Inbox
         }
 
         private static string Fill(string wording, Dictionary<string, string> values) => Slot.Replace(wording, x => values[x.Groups[1].Value]);
+
+        public static string PositionName(Position p)
+        {
+            switch (p)
+            {
+                case Position.GK: return "goalkeeper";
+                case Position.CB: return "centre-back";
+                case Position.LB: return "left-back";
+                case Position.RB: return "right-back";
+                case Position.DM: return "defensive midfielder";
+                case Position.CM: return "midfielder";
+                case Position.AM: return "attacking midfielder";
+                case Position.LM: return "left midfielder";
+                case Position.RM: return "right midfielder";
+                case Position.LW: return "left winger";
+                case Position.RW: return "right winger";
+                default: return "striker";
+            }
+        }
 
         public static string AttributeName(Attr a)
         {

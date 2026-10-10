@@ -168,6 +168,13 @@
   - User: hire, renew, release, assign players (a coach trains only his group), auto-assign. Inbox: coach signed, contract ending (week 40), group too big (7+): 38 of 45 triggers live.
   - League quality over 10 seasons: English top-flight average XI 77.1 -> 76.0.
 
+- **Scouting** (branch `feature/scouting`, stacked on `feature/coaches`, NOT merged; `config/scouting.json`, PROPOSAL numbers; 198 tests):
+  - **Market coverage by Scouting Centre level:** 1 your league, 2 your country, 4 your confederation, 6 every league, 8 everyone. Scout reports open any player for 2 seasons.
+  - **What you see** (`PlayerView`, never the archetype, hidden age values or exact potential): own players exact; others as ranges (+/-6 at level 1 down to exact attributes from level 8); potential as a range from level 7 (+/-10 down to +/-4 at level 10, never exact); personality from level 9 (own players: level 5 or after a season at the club).
+  - **Scouts:** up to 5, rating 20-95, same price formula as coaches; a task (country or confederation, position, age); 0-2 reports a week; better scouts are more accurate (range +/- (100 - rating)/8) and spot more talent; 70+ reveal personality; a report on a 19-or-under with 80+ estimated potential is a wonderkid. AI clubs don't scout (the AI market reads the world).
+  - **Next-opponent report** from level 3 (formation and best player). Inbox: 4 more triggers live (42 of 45: only kits, illness and random-event damage wait).
+  - Scouting uses its own random stream: it never changes the game (tested).
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 

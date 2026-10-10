@@ -15,6 +15,10 @@ namespace LegendsFC.Core.World
         /// <summary>Every coach: at clubs and in the free pool (Oct 9).</summary>
         public List<Coach> Coaches = new List<Coach>();
         public int CoachSeq;
+        /// <summary>Scouts (at the user's club and in the free pool) and the user's reports (Oct 9 night).</summary>
+        public List<Scout> Scouts = new List<Scout>();
+        public List<ScoutReport> ScoutReports = new List<ScoutReport>();
+        public int ScoutSeq, ReportSeq;
         /// <summary>Club id → competition id of its league (null for cup-only clubs).</summary>
         public Dictionary<string, string> ClubLeague = new Dictionary<string, string>();
         /// <summary>The user's club (null until one is picked). Rules never treat it differently, except that the AI's squad management doesn't touch it.</summary>

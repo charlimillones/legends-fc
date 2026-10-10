@@ -130,6 +130,33 @@ namespace LegendsFC.Core.Model
         public bool Injured => Injury != null;
     }
 
+    /// <summary>A scout (decided Oct 7): a rating, a contract price only, and a task. Reports depend only on his rating.</summary>
+    public sealed class Scout
+    {
+        public string Id, Name, NationalityId;
+        public int BirthYear, RetireAge, Rating;
+        public string ClubId;
+        public int ContractEndYear;
+        public ScoutTask Task = new ScoutTask();
+    }
+
+    /// <summary>Where and what a scout looks for: a country or confederation (null = anywhere), a position (null = any), an age limit.</summary>
+    public sealed class ScoutTask
+    {
+        public string CountryId, Confederation;
+        public Position? Position;
+        public int? MaxAge;
+    }
+
+    /// <summary>A scout's report on a player: estimated ranges (never exact potential), personality if he saw it.</summary>
+    public sealed class ScoutReport
+    {
+        public int Id, Season, Week;
+        public string ScoutId, PlayerId, PersonalityId;
+        public int RatingLow, RatingHigh, PotentialLow, PotentialHigh;
+        public bool Wonderkid;
+    }
+
     /// <summary>A coach (decided Oct 7): one of 4 groups, a rating, a contract in seasons, a one-time price. No wages.</summary>
     public sealed class Coach
     {

@@ -55,19 +55,19 @@ public class InboxTests : IDisposable
     }
 
     [Fact]
-    public void Data_45Triggers_5WordingsEach_38Live()
+    public void Data_45Triggers_5WordingsEach_42Live()
     {
         var bank = D.Messages;
         Assert.Equal(45, bank.Triggers.Count);
         Assert.Equal(45, bank.Triggers.Select(t => t.Id).Distinct().Count());
         Assert.All(bank.Triggers, t => Assert.Equal(5, t.Wordings.Count));
         Assert.All(bank.Triggers, t => Assert.InRange(t.Priority, 1, 4));
-        Assert.Equal(38, bank.Triggers.Count(t => t.Live));   // 27 + 8 with squad and tactics + 3 with coaches (Oct 9)
+        Assert.Equal(42, bank.Triggers.Count(t => t.Live));   // 27 + 8 squad and tactics + 3 coaches + 4 scouting (Oct 9)
         Assert.All(bank.Triggers.Where(t => t.Name.Contains("injur") || t.Name.Contains("Illness")), t => Assert.Equal(1, t.Priority));
         var senders = new HashSet<string>(Enum.GetNames(typeof(Facility))) { "any" };
         Assert.All(bank.Triggers, t => Assert.Contains(t.Sender, senders));
         Assert.Equal(6, bank.Roles.Count);
-        var known = new HashSet<string> { "facility", "level", "n", "name", "role", "club", "event", "opponent", "day", "competition", "player", "attribute", "coach", "position",
+        var known = new HashSet<string> { "general", "facility", "level", "n", "name", "role", "club", "event", "opponent", "day", "competition", "player", "attribute", "coach", "position",
                                           "injury", "score", "trophy", "amount", "up/down", "scout", "region/position", "region", "country", "age", "formation" };
         foreach (var t in bank.Triggers) foreach (var wd in t.Wordings)
             foreach (Match m in Regex.Matches(wd, @"\[([a-z/]+)\]")) Assert.Contains(m.Groups[1].Value, known);

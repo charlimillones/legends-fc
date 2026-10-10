@@ -62,6 +62,7 @@ namespace LegendsFC.Core.World
                 foreach (var s in club.Facilities.Values) s.Manager = Facilities.FacilityRules.NewManager(_w, club, managers, _d);
             // Coaches (Oct 9): their own random stream too.
             Squad.Coaching.GenerateWorld(_w, new GameRandom(seed ^ 0xC0AC_4E50_0000_0002UL), _d);
+            Scouting.Scouts.RefillPool(_w, new GameRandom(seed ^ 0x5C07_0000_0000_0003UL), _d);   // scouts: own stream too
             return _w;
         }
 

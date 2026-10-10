@@ -224,6 +224,40 @@ namespace LegendsFC.Core.Saves
 
         public void AutoAssignCoaches() => LegendsFC.Core.Squad.Coaching.AutoAssign(World, UserClub);
 
+        // ---- scouting (Oct 9 night; rules decided Oct 7)
+
+        public List<Model.Scout> MyScouts => LegendsFC.Core.Scouting.Scouts.OfClub(World, World.UserClubId);
+        public List<Model.Scout> FreeScouts => World.Scouts.Where(s => s.ClubId == null).OrderByDescending(s => s.Rating).ThenBy(s => s.Id, StringComparer.Ordinal).ToList();
+        private Model.Scout ScoutById(string id) => World.Scouts.FirstOrDefault(s => s.Id == id) ?? throw new ArgumentException("Unknown scout " + id);
+        public long ScoutPrice(string scoutId, int seasons) => LegendsFC.Core.Scouting.Scouts.Price(ScoutById(scoutId), seasons, _d);
+        public LegendsFC.Core.Squad.HireResult HireScout(string scoutId, int seasons) => LegendsFC.Core.Scouting.Scouts.Hire(World, UserClub, ScoutById(scoutId), seasons, _d);
+        public bool RenewScout(string scoutId, int seasons) => LegendsFC.Core.Scouting.Scouts.Renew(World, UserClub, ScoutById(scoutId), seasons, _d);
+
+        public void ReleaseScout(string scoutId)
+        {
+            var s = ScoutById(scoutId);
+            if (s.ClubId != World.UserClubId) throw new ArgumentException("Not your scout.");
+            s.ClubId = null;
+        }
+
+        /// <summary>A scout's task: a country or a confederation (or anywhere), a position, an age limit.</summary>
+        public void SetScoutTask(string scoutId, string countryId, string confederation, Model.Position? position, int? maxAge)
+        {
+            var s = ScoutById(scoutId);
+            if (s.ClubId != World.UserClubId) throw new ArgumentException("Not your scout.");
+            s.Task = new Model.ScoutTask { CountryId = countryId, Confederation = countryId == null ? confederation : null, Position = position, MaxAge = maxAge };
+        }
+
+        public List<Model.ScoutReport> Reports => World.ScoutReports.OrderByDescending(r => r.Id).ToList();
+
+        /// <summary>The transfer market as the user sees it (only what his scouting covers; hidden values never shown).</summary>
+        public List<LegendsFC.Core.Scouting.PlayerView> SearchPlayers(Model.Position? position = null, int? maxAge = null, int? minRating = null, bool freeAgentsOnly = false)
+            => LegendsFC.Core.Scouting.Scouts.Search(World, UserClub, _d, position, maxAge, minRating, freeAgentsOnly);
+
+        /// <summary>Any player as the user sees him (own players exact; others by scouting).</summary>
+        public LegendsFC.Core.Scouting.PlayerView ViewPlayer(string playerId)
+            => LegendsFC.Core.Scouting.Scouts.View(World, UserClub, World.Players.First(p => p.Id == playerId), _d);
+
         public void Save(string nowUtc) => _store?.Save(SlotId, World, Rng, Name, nowUtc);
     }
 }

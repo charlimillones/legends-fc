@@ -104,6 +104,9 @@ namespace LegendsFC.Core.Season
             AiFreeAgentWindow(w, rng, report);
             report.FreeAgentsRetired = RetireLongUnsigned(w, _d);
 
+            // Scouts (Oct 9 night): retirements, contracts, old reports, pool (own random stream).
+            Scouting.Scouts.SeasonEnd(w, new GameRandom(w.Seed ^ ((ulong)w.SeasonStartYear * 0x9E3779B97F4A7C15UL)), _d);
+
             // Coaches (Oct 9): retirements, contracts, ex-players, surprise staff, AI hiring.
             foreach (var coach in Squad.Coaching.SeasonEnd(w, retiredNow, rng, _d))
                 Inbox.InboxEngine.Queue(w, "MSG-COACH-SIGNED", Facility.TrainingGround, _d, ("coach", coach.Name), ("position", Squad.Coaching.GroupName(coach.Group)));

@@ -1,5 +1,5 @@
 {
-  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45). Coaches (Oct 9 night): 3 more live (38 of 45).",
+  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings. Oct 9 (squad and tactics): injuries, debuts and per-player regimes now exist, so 8 more triggers are live (35 of 45). Coaches (Oct 9 night): 3 more live (38 of 45). Scouting (Oct 9 night): 4 more live (42 of 45).",
   "roles": {
     "Stadium": "groundskeeper",
     "TrainingGround": "head of training",
@@ -525,7 +525,6 @@
       "name": "Scout report ready",
       "sender": "ScoutingCentre",
       "priority": 4,
-      "waitsFor": "scouts",
       "wordings": [
         "[scout] has finished his report on [region/position].",
         "New report on your desk: [region/position].",
@@ -539,7 +538,6 @@
       "name": "Wonderkid found",
       "sender": "ScoutingCentre",
       "priority": 4,
-      "waitsFor": "scouts",
       "wordings": [
         "We've found a special talent in [country]: [player], [age].",
         "[scout] can't stop talking about [player] ([age], [country]).",
@@ -553,7 +551,6 @@
       "name": "Next opponent report",
       "sender": "ScoutingCentre",
       "priority": 4,
-      "waitsFor": "scouts",
       "wordings": [
         "Here's what we know about [opponent] before [day].",
         "The [opponent] report is ready. Watch out for [player].",
@@ -593,7 +590,6 @@
       "name": "Scout contract ending",
       "sender": "ScoutingCentre",
       "priority": 3,
-      "waitsFor": "scouts",
       "wordings": [
         "[scout]'s contract ends soon.",
         "[scout] is out of contract this summer.",

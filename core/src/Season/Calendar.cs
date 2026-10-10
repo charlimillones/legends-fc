@@ -35,6 +35,8 @@ namespace LegendsFC.Core.Season
         public List<string> Recovered = new List<string>(), AheadOfSchedule = new List<string>();
         /// <summary>Average energy of club players after this week's matches, before the weekly rest (balancing).</summary>
         public double EnergyBeforeRest;
+        /// <summary>The user's scout reports filed this week.</summary>
+        public List<Model.ScoutReport> ScoutReports = new List<Model.ScoutReport>();
     }
 
     /// <summary>
@@ -138,6 +140,7 @@ namespace LegendsFC.Core.Season
             foreach (var p in w.Players) if (p.ClubId != null && !p.Injured) { sumE += p.Energy; nE++; }
             report.EnergyBeforeRest = nE == 0 ? 100 : sumE / nE;
             Squad.Fitness.WeekEnd(w, _d, rng, report);
+            report.ScoutReports = Scouting.Scouts.Week(w, _d);   // own random stream
 
             // Weekly training (40 weeks from the first training week).
             if (cal.Week >= c.FirstTrainingWeek && cal.Week < c.FirstTrainingWeek + _d.Development.TrainingWeeksPerSeason)

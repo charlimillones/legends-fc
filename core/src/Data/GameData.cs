@@ -48,6 +48,7 @@ namespace LegendsFC.Core.Data
         public List<Squad.InjuryType> Injuries = new List<Squad.InjuryType>();
         public Squad.DisciplineData Discipline = new Squad.DisciplineData();
         public Squad.CoachConfig Coaches = new Squad.CoachConfig();
+        public Scouting.ScoutingConfig Scouting = new Scouting.ScoutingConfig();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
@@ -61,7 +62,7 @@ namespace LegendsFC.Core.Data
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
             "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
-            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json", "world/cups.json", "config/saves.json", "text/manager-messages.json", "config/inbox.json", "config/squad.json", "config/match-events.json", "rules/injuries.json", "rules/discipline.json", "config/coaches.json",
+            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json", "world/cups.json", "config/saves.json", "text/manager-messages.json", "config/inbox.json", "config/squad.json", "config/match-events.json", "rules/injuries.json", "rules/discipline.json", "config/coaches.json", "config/scouting.json",
         };
 
         /// <param name="read">Returns the JSON text for a relative path from <see cref="Files"/>.</param>
@@ -100,6 +101,7 @@ namespace LegendsFC.Core.Data
             d.Injuries = Section<List<Squad.InjuryType>>(read("rules/injuries.json"), "injuries");
             d.Discipline = Parse<Squad.DisciplineData>(read("rules/discipline.json"));
             d.Coaches = Parse<Squad.CoachConfig>(read("config/coaches.json"));
+            d.Scouting = Parse<Scouting.ScoutingConfig>(read("config/scouting.json"));
             return d;
         }
 
