@@ -148,6 +148,17 @@
   - **Game actions** in `GameSession`: upgrade a facility, repair one, repair all (each sends its manager message).
   - **Safe:** wording choice uses its own random stream, so the inbox never changes the game (tested); never reveals archetypes, hidden personalities or potential (tested); saved with the world.
 
+- **Squad and tactics** (branch `feature/squad-tactics`, 187 tests; agreed with Carlos Oct 9, data in `config/squad.json`, `config/match-events.json`, `rules/injuries.json`, `rules/discipline.json`):
+  - **Teams:** 11 + 9 subs, 5 substitutions, 8 formations (wing-backs use full-back ratings), mentality (5 steps), captain and set-piece takers, 5 saved lineups, auto-pick. AI clubs pick the formation that fits their squad and the best 11, counting energy; mentality by relative strength.
+  - **Sim results from real lineups:** attack (midfield + attack slots, forwards double) v defence (keeper double, defence, midfield); out-of-position players and tired players hurt. Strength factor retuned 0.05 -> 0.056 (English champions about 80 points).
+  - **Match events:** scorers (position x shooting), assists (passing and crossing), yellows about 1.8 and reds about 0.09 per team per match, injuries about 0.36 per team per match, 3-5 substitutions, 1-10 ratings (average 6.5), player of the match.
+  - **Energy (Carlos):** distance covered, passes and shots (not goals or assists), less with stamina; weekly rest by regime (light = full, moderate +40, heavy +25); Workhorse x1.25, Socialite x0.85.
+  - **Injuries:** 10 types (knock to cruciate ligament), more likely when tired, Healthy x0.5, Thoroughbred x1.5, Lucky Charm; the Medical Building shortens them (level 1 about 4.3 weeks average, level 10 about 2.6).
+  - **Suspensions by each competition's rules** (England 5/10/15 with deadlines, Spain every 5, Brazil every 3, Argentina every 5 per tournament, UEFA 4-6-8-10, CONMEBOL every 3; English reds cover all English competitions, European reds carry between European cups). Unconfirmed cups marked PROPOSAL.
+  - **Stats and form:** appearances, starts, minutes, goals, assists, clean sheets, cards, ratings, player of the match, per competition and season (older seasons merged per club); form = last 10 ratings drives development and prices. Rating vs team average softened to 0.02 per point so young players aren't held back (league quality stays stable over 10 seasons).
+  - **Inbox:** 8 more triggers live (injuries, serious injuries, recovery ahead, back in training, too many injured, injury risk, heavy regime too long, academy debut): 35 of 45.
+  - **Speed:** a full season with every cup in about 5-6 s on the cloud machine (was about 3 s); 10 seasons in about 60 s.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 

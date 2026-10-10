@@ -55,7 +55,7 @@ public class InboxTests : IDisposable
     }
 
     [Fact]
-    public void Data_45Triggers_5WordingsEach_27Live()
+    public void Data_45Triggers_5WordingsEach_35Live()
     {
         var bank = D.Messages;
         Assert.Equal(45, bank.Triggers.Count);
