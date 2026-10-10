@@ -189,6 +189,9 @@
   - **Board (confirmed Oct 10):** a missed objective costs 8 confidence a place (10 for ambitious), up to the old full penalty. On AI clubs, safe is met 87%, standard 57%, ambitious 24%; with the flat penalty an average manager lost ~2 confidence a season.
   - Stable over 20 seasons: injuries 50-75 at a time, ~880 coaches at clubs, ~530 events a season, league quality (ENG-1 XI 77 → 80, ARG-1 69 → 71).
 
+- **Unity first playable** (branch `feature/unity-first-playable`, Oct 10): every management screen as a placeholder on the GameSession API, the sim-mode match replay, saves on the device, a Windows build (see docs/unity-setup.md). Played in the editor from a new world through a full season (relegation, season summary, awards, job offers) and into the next.
+  - Found while playing: some clubs start with 32 players, so the free first protégé is refused until someone leaves; a relegated club keeps top-flight wages (wage room -44M); the summary doesn't say "relegated" or "promoted" yet.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
