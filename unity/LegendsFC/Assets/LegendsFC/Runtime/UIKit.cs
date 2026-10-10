@@ -61,7 +61,7 @@ namespace LegendsFC.App
             var t = Label(img.transform, text, size, null, TextAnchor.MiddleCenter);
             Fill(t.rectTransform, 12, 4, 12, 4);
             if (onClick != null) b.onClick.AddListener(() => onClick());
-            Size(img, width, height);
+            if (width >= 0) Size(img, width, height); else Size(img, -1, height, 1);   // no width: share the row
             return b;
         }
 
@@ -142,7 +142,12 @@ namespace LegendsFC.App
 
         public static void Clear(Transform t)
         {
-            for (int i = t.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(t.GetChild(i).gameObject);
+            for (int i = t.childCount - 1; i >= 0; i--)
+            {
+                var child = t.GetChild(i);
+                child.SetParent(null, false);   // gone from layouts right away (Destroy happens at the end of the frame)
+                UnityEngine.Object.Destroy(child.gameObject);
+            }
         }
 
         public static Text Title(Transform parent, string text) { var t = Label(parent, text, 34, Ink, TextAnchor.MiddleLeft, FontStyle.Bold); Size(t, -1, 56); return t; }

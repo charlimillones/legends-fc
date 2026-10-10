@@ -181,13 +181,13 @@ namespace LegendsFC.App
                 _headerInfo.text = club == null
                     ? $"Season {Fmt.Season(w.SeasonStartYear)} | week {cal.Week} | out of work"
                     : $"Season {Fmt.Season(w.SeasonStartYear)} | week {cal.Week} of 52 | {Fmt.Money(club.Balance)} | board {Session.Career.Confidence:0}/100{window}";
+                int unread = w.Inbox.Messages.Count(m => !m.Read);
                 foreach (var (label, make) in Menu())
                 {
                     bool on = Current != null && Current.GetType() == make().GetType();
-                    UIKit.Button(_menu, label, () => Show(make()), on ? UIKit.AccentDark : UIKit.Panel2, 26, -1, 66);
+                    string text = label == "Inbox" && unread > 0 ? $"Inbox ({unread})" : label;
+                    UIKit.Button(_menu, text, () => Show(make()), on ? UIKit.AccentDark : UIKit.Panel2, 26, -1, 66);
                 }
-                int unread = w.Inbox.Messages.Count(m => !m.Read);
-                if (unread > 0) foreach (Transform b in _menu) { var t = b.GetComponentInChildren<Text>(); if (t.text == "Inbox") t.text = $"Inbox ({unread})"; }
                 UIKit.Gap(_menu, 20);
                 UIKit.Button(_menu, "Save and exit", () => { Session.Save(NowUtc()); Session = null; Show(new TitleScreen()); }, UIKit.Panel2, 22, -1, 56);
             }
