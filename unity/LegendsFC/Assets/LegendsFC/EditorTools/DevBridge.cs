@@ -4,6 +4,7 @@
 //   Logs/lfc-play.flag     -> enter Play mode          Logs/lfc-stop.flag -> leave Play mode
 //   Logs/lfc-shot.flag     -> capture the Game view to Logs/lfc-shot.png (Play mode)
 //   Logs/lfc-tap.flag      -> press the button whose label is the file's text (Play mode)
+//   Logs/lfc-type.flag     -> put the file's text into the first input field on screen (Play mode)
 // Compile results go to Logs/lfc-compile.txt; errors, exceptions and "[LFC]" logs to Logs/lfc-console.txt.
 // This assembly doesn't depend on the game scripts, so it keeps working when they fail to compile.
 using System;
@@ -73,6 +74,12 @@ public static class LegendsDevBridge
             if (File.Exists(shot)) File.Delete(shot);
             ScreenCapture.CaptureScreenshot(shot);
             Append("lfc-console.txt", $"{Now()} Log: [LFC] screenshot requested\n");
+        }
+        if (Take("lfc-type.flag", out var typed))
+        {
+            var field = UnityEngine.Object.FindObjectsByType<InputField>(FindObjectsSortMode.None).FirstOrDefault(f => f.interactable);
+            if (field != null) field.text = typed;
+            Append("lfc-console.txt", $"{Now()} Log: [LFC] type '{typed}': {(field != null ? "done" : "no input field")}\n");
         }
         if (Take("lfc-tap.flag", out var label))
         {
