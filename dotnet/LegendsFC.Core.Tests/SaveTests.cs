@@ -78,7 +78,13 @@ public class SaveTests : IDisposable
         var straight = Play(false); var reloaded = Play(true);
         Assert.Equal(2027, straight.World.SeasonStartYear);
         Assert.Equal(12, straight.World.Calendar.Week);
-        Assert.Equal(Snapshot(straight), Snapshot(reloaded));
+        string a = Snapshot(straight), b = Snapshot(reloaded);
+        if (a != b)
+        {
+            int i = 0; while (i < a.Length && i < b.Length && a[i] == b[i]) i++;
+            _out.WriteLine("first difference at " + i + ":\n" + a.Substring(Math.Max(0, i - 300), Math.Min(500, a.Length - Math.Max(0, i - 300))) + "\n----\n" + b.Substring(Math.Max(0, i - 300), Math.Min(500, b.Length - Math.Max(0, i - 300))));
+        }
+        Assert.Equal(a, b);
     }
 
     [Fact]

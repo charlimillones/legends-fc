@@ -142,6 +142,12 @@
   - **Confirmed by Carlos (Oct 9):** 5 worlds, autosave every week, 2 backups.
 - **Retirement (Carlos, Oct 9):** retirement age on a normal curve from 32 to 44 centred on 38 (32 as rare as 44, about 0.3% each; 11% play past 40). A free agent who goes 2 full seasons without a club retires: free agents now level off at about 1,550 instead of growing past 4,000.
 
+- **Step 9b: inbox and manager messages** (branch `feature/inbox`, 173 tests; wordings in `data/text/manager-messages.json`, thresholds in `data/config/inbox.json`, PROPOSAL):
+  - **Rules:** at most 2 manager messages a week, by priority (health, then damage and maintenance, then contracts and rival interest, then the rest); lower ones wait up to 2 weeks, then are dropped; no wording twice in a season; a manager never sends the same trigger twice in a row (the monthly report is exempt: it comes 13 times a season).
+  - **27 live triggers:** facility upgrades, condition below 60% / 30%, repairs, level drops, manager retiring, new manager; sell-outs, low and record attendance (new: attendance per home league match), big home cup matches; attribute rises, great training weeks, stalled players; intake day, top prospect, youngster ready, youngster released, protégé; big wins, star signings, bad runs, trophies, monthly store income; scouting upgrade, rival interest. The other 18 switch on with injuries, coaches, scouts, kits, events, lineups and per-player regimes.
+  - **Game actions** in `GameSession`: upgrade a facility, repair one, repair all (each sends its manager message).
+  - **Safe:** wording choice uses its own random stream, so the inbox never changes the game (tested); never reveals archetypes, hidden personalities or potential (tested); saved with the world.
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 
