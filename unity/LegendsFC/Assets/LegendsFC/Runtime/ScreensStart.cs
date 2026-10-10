@@ -151,7 +151,7 @@ namespace LegendsFC.App
         {
             string now = App.NowUtc();
             var s = S;
-            A.Run("Meeting the board...", () => { s.PickClub(clubId, now); return true; }, _ => A.Show(new HomeScreen()));
+            A.Run("Meeting the board...", () => { s.PickClub(clubId, now); return true; }, _ => A.Show(s.Career.FirstProtegeDone ? (UIScreen)new HomeScreen() : new ProtegeScreen()));
         }
     }
 
@@ -221,6 +221,63 @@ namespace LegendsFC.App
                 UIKit.Note(list, $"{(a.Scope == "WORLD" ? "World" : Fmt.Competition(a.Scope))} - {a.Award}: {Fmt.Player(a.PlayerId)} ({Fmt.Club(a.ClubId)}, {a.Value:0.##})", UIKit.Ink);
             UIKit.Gap(list);
             UIKit.Button(list, "Back to the club", () => A.Show(new HomeScreen()), UIKit.Accent, 28, -1, 72);
+        }
+    }
+}
+
+namespace LegendsFC.App
+{
+    /// <summary>The first protégé (confirmed Oct 7): free and fully custom, once per career. Abilities follow the Youth Academy, a little higher.</summary>
+    public sealed class ProtegeScreen : UIScreen
+    {
+        private string _name = "", _nation, _personality;
+        private LegendsFC.Core.Model.Position _pos = LegendsFC.Core.Model.Position.ST;
+        private LegendsFC.Core.Model.Foot _foot = LegendsFC.Core.Model.Foot.Right;
+
+        public override void Build(RectTransform body)
+        {
+            _nation ??= S.UserClub.CountryId;
+            var list = UIKit.Scroll(body, 10);
+            UIKit.Title(list, "Your first protégé");
+            UIKit.Note(list, "A youngster you create from scratch. He joins your academy for free; how good he becomes depends on how you develop him.");
+            var input = UIKit.Input(list, _name, "His name");
+            input.onValueChanged.AddListener(v => _name = v);
+            Grid(list, "Nationality", D.Countries.Select(c => (c.Id, c.Name)).ToList(), _nation, v => _nation = v, 6);
+            Grid(list, "Position", System.Enum.GetValues(typeof(LegendsFC.Core.Model.Position)).Cast<LegendsFC.Core.Model.Position>().Select(p => (p.ToString(), p.ToString())).ToList(), _pos.ToString(), v => _pos = (LegendsFC.Core.Model.Position)System.Enum.Parse(typeof(LegendsFC.Core.Model.Position), v), 12);
+            Grid(list, "Foot", new List<(string, string)> { ("Left", "Left"), ("Right", "Right") }, _foot.ToString(), v => _foot = (LegendsFC.Core.Model.Foot)System.Enum.Parse(typeof(LegendsFC.Core.Model.Foot), v), 6);
+            var pers = new List<(string, string)> { (null, "None") };
+            pers.AddRange(D.Personalities.Where(p => !p.ArchetypeOnly).Select(p => (p.Id, p.Name)));
+            Grid(list, "Personality", pers, _personality, v => _personality = v, 5);
+            if (_personality != null) UIKit.Note(list, D.Personality(_personality).Effect, UIKit.Muted);
+            var row = UIKit.Row(list, 72, 10);
+            UIKit.Button(row, "Create him", Create, UIKit.Accent, 28, 320, 72);
+            UIKit.Button(row, "Later", () => A.Show(new HomeScreen()), UIKit.Panel2, 24, 200, 72);
+        }
+
+        private void Grid(RectTransform list, string title, List<(string id, string label)> items, string selected, System.Action<string> pick, int perRow)
+        {
+            UIKit.Note(list, title, UIKit.Ink, 26);
+            var grid = UIKit.Node(title, list);
+            var g = grid.gameObject.AddComponent<GridLayoutGroup>();
+            g.cellSize = new Vector2(1500f / perRow - 8, 56); g.spacing = new Vector2(8, 8);
+            UIKit.Size(grid, -1, ((items.Count + perRow - 1) / perRow) * 64);
+            foreach (var (id, label) in items)
+            {
+                string v = id;
+                UIKit.Button(grid, label, () => { pick(v); A.Refresh(); }, v == selected ? UIKit.AccentDark : UIKit.Panel2, 20);
+            }
+        }
+
+        private void Create()
+        {
+            if (string.IsNullOrWhiteSpace(_name)) { A.Toast("Give him a name first."); return; }
+            try
+            {
+                var p = S.CreateFirstProtege(_name.Trim(), _nation, _pos, _foot, _personality);
+                A.Toast($"{p.Name} has joined your academy.");
+                A.Show(new PlayerScreen(p.Id));
+            }
+            catch (System.Exception e) { A.Toast(e.Message); }
         }
     }
 }

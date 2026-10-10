@@ -92,6 +92,8 @@ namespace LegendsFC.App
             }
 
             UIKit.Gap(list, 6);
+            if (k.Offers.Count > 0) UIKit.Button(list, $"{k.Offers.Count} job offer{(k.Offers.Count > 1 ? "s" : "")} - have a look", () => A.Show(new JobsScreen()), UIKit.Info, 24, -1, 60);
+            if (!k.FirstProtegeDone) UIKit.Button(list, "Create your first protégé", () => A.Show(new ProtegeScreen()), UIKit.Panel2, 24, -1, 60);
             int unread = w.Inbox.Messages.Count(m => !m.Read);
             if (unread > 0) UIKit.Button(list, $"{unread} unread message{(unread > 1 ? "s" : "")} - open the inbox", () => A.Show(new InboxScreen()), UIKit.Panel2, 24, -1, 60);
             if (k.Seasons.Count > 0) UIKit.Button(list, "Last season's summary", () => A.Show(new SeasonSummaryScreen()), UIKit.Panel2, 24, -1, 60);
@@ -160,12 +162,13 @@ namespace LegendsFC.App
             bool mine = p.ClubId == w.UserClubId;
             UIKit.Title(list, $"{v.Name}  ({v.MainPosition}{(v.OtherPositions.Count > 0 ? ", " + string.Join(", ", v.OtherPositions) : "")})");
             string rating = v.RatingLow == v.RatingHigh ? v.RatingLow.ToString() : $"{v.RatingLow}-{v.RatingHigh}";
-            string potential = v.PotentialLow.HasValue ? $"{v.PotentialLow}-{v.PotentialHigh}" : "?";
+            // A range never shows potential below what he already is.
+            string potential = v.PotentialLow.HasValue ? $"{Math.Max(v.PotentialLow.Value, v.RatingLow)}-{Math.Max(v.PotentialHigh.Value, v.RatingHigh)}" : "?";
             string personality = !v.PersonalityKnown ? "?" : v.PersonalityId == null ? "None" : D.Personality(v.PersonalityId).Name;
             UIKit.Note(list, $"{Fmt.Club(v.ClubId)}   |   Age {v.Age}   |   {v.NationalityId}   |   {v.Foot} foot", UIKit.Ink, 26);
             UIKit.Note(list, $"Rating {rating}   |   Potential {potential}   |   Personality {personality}   |   Form {(v.Form > 0 ? v.Form.ToString("0.0") : "-")}", UIKit.Ink, 26);
             double value = FreeAgents.MarketValueEur(p, w.SeasonStartYear, Math.Max(0, p.ContractEndYear - w.SeasonStartYear), D);
-            UIKit.Note(list, $"Value about {Fmt.Money(value)}   |   Wage {Fmt.Money(v.Wage)} a season   |   Contract to {v.ContractEndYear}   |   Energy {v.Energy:0}{(v.Injured ? "   |   Injured" : "")}{(v.Suspended ? "   |   Suspended" : "")}", UIKit.Muted, 24);
+            UIKit.Note(list, $"Value about {Fmt.Money(value)}   |   Wage {Fmt.Money(v.Wage)} a season   |   Contract to {v.ContractEndYear}{(mine ? $"   |   Energy {v.Energy:0}" : "")}{(v.Injured ? "   |   Injured" : "")}{(v.Suspended ? "   |   Suspended" : "")}", UIKit.Muted, 24);
             if (!v.Exact) UIKit.Note(list, "Ranges: your Scouting Centre level decides how exactly you see other clubs' players.", UIKit.Muted, 22);
 
             UIKit.Gap(list, 6);
@@ -368,6 +371,29 @@ namespace LegendsFC.App
                 UIKit.Cell(row, $"Rating {c.Rating}", 150, 22);
                 string id = c.Id;
                 UIKit.Button(row, $"Hire {Fmt.Money(S.CoachPrice(id, 2))}", () => { A.Toast(S.HireCoach(id, 2).ToString()); A.Refresh(); }, UIKit.Panel2, 20, 240, 46);
+            }
+
+            UIKit.Gap(list);
+            UIKit.Title(list, "Youth Academy");
+            UIKit.Note(list, "One protégé a season: choose his position (everything else is random). His price is a share of his value set by the academy level.");
+            if (S.Career.LastProtegeSeason == w.SeasonStartYear) UIKit.Note(list, "This season's protégé has already joined.", UIKit.Muted);
+            else
+            {
+                var pr = UIKit.Row(list, 60, 8);
+                foreach (var pos in new[] { Position.GK, Position.CB, Position.LB, Position.CM, Position.AM, Position.LW, Position.ST })
+                {
+                    var pp = pos;
+                    UIKit.Button(pr, pos.ToString(), () =>
+                    {
+                        try
+                        {
+                            var (pl, price) = S.BuyProtege(pp, null);
+                            if (pl == null) A.Toast($"Not enough money: he costs {Fmt.Money(price)}."); else { A.Toast($"{pl.Name} joined for {Fmt.Money(price)}."); A.Show(new PlayerScreen(pl.Id)); return; }
+                        }
+                        catch (Exception e) { A.Toast(e.Message); }
+                        A.Refresh();
+                    }, UIKit.Panel2, 22, 150, 56);
+                }
             }
 
             UIKit.Gap(list);
