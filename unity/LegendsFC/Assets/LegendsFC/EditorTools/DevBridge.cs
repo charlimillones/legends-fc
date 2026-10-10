@@ -5,6 +5,7 @@
 //   Logs/lfc-shot.flag     -> capture the Game view to Logs/lfc-shot.png (Play mode)
 //   Logs/lfc-tap.flag      -> press the button whose label is the file's text (Play mode)
 //   Logs/lfc-type.flag     -> put the file's text into the first input field on screen (Play mode)
+//   Logs/lfc-build.flag    -> build the Windows version to Builds/Windows/LegendsFC.exe (not in Play mode)
 // Compile results go to Logs/lfc-compile.txt; errors, exceptions and "[LFC]" logs to Logs/lfc-console.txt.
 // This assembly doesn't depend on the game scripts, so it keeps working when they fail to compile.
 using System;
@@ -60,6 +61,21 @@ public static class LegendsDevBridge
         try { text = File.ReadAllText(path).Trim(); File.Delete(path); return true; } catch { return false; }
     }
 
+    [MenuItem("Legends FC/Build Windows version")]
+    public static void BuildWindows()
+    {
+        var options = new BuildPlayerOptions
+        {
+            scenes = EditorBuildSettings.scenes.Where(x => x.enabled).Select(x => x.path).ToArray(),
+            locationPathName = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Builds", "Windows", "LegendsFC.exe")),
+            target = BuildTarget.StandaloneWindows64,
+            options = BuildOptions.None,
+        };
+        Append("lfc-compile.txt", $"{Now()} build started\n");
+        var report = UnityEditor.BuildPipeline.BuildPlayer(options);
+        Append("lfc-compile.txt", $"{Now()} build {report.summary.result}: {report.summary.totalErrors} errors, {report.summary.totalSize / 1e6:F0} MB, {report.summary.totalTime.TotalSeconds:F0} s -> {options.locationPathName}\n");
+    }
+
     private static void Poll()
     {
         if (EditorApplication.timeSinceStartup < _next) return;
@@ -67,6 +83,7 @@ public static class LegendsDevBridge
         if (Take("lfc-refresh.flag", out _)) { Append("lfc-compile.txt", $"{Now()} refresh requested\n"); AssetDatabase.Refresh(); }
         if (Take("lfc-play.flag", out _)) EditorApplication.isPlaying = true;
         if (Take("lfc-stop.flag", out _)) EditorApplication.isPlaying = false;
+        if (!EditorApplication.isPlaying && Take("lfc-build.flag", out _)) BuildWindows();
         if (!EditorApplication.isPlaying) return;
         if (Take("lfc-shot.flag", out _))
         {
