@@ -125,22 +125,25 @@ namespace LegendsFC.App
             UIKit.Fill(_overlayText.rectTransform, 200, 200, 200, 200);
             _overlay.gameObject.SetActive(false);
 
-            _toast = UIKit.Label(root, "", 28, UIKit.Ink, TextAnchor.MiddleCenter);
-            var tb = UIKit.Box(_toast.transform, UIKit.Panel2, "ToastBg"); tb.transform.SetAsFirstSibling(); UIKit.Fill(tb.rectTransform, -24, -10, -24, -10);
-            var trt = _toast.rectTransform; trt.anchorMin = new Vector2(0.5f, 0); trt.anchorMax = new Vector2(0.5f, 0); trt.pivot = new Vector2(0.5f, 0);
-            trt.sizeDelta = new Vector2(1100, 70); trt.anchoredPosition = new Vector2(120, 40);
-            _toast.gameObject.SetActive(false);
+            var toastBox = UIKit.Box(root, UIKit.Panel2, "Toast");
+            var trt = toastBox.rectTransform; trt.anchorMin = new Vector2(0.5f, 0); trt.anchorMax = new Vector2(0.5f, 0); trt.pivot = new Vector2(0.5f, 0);
+            trt.sizeDelta = new Vector2(1150, 76); trt.anchoredPosition = new Vector2(120, 36);
+            toastBox.raycastTarget = false;
+            _toast = UIKit.Label(toastBox.transform, "", 28, UIKit.Ink, TextAnchor.MiddleCenter);
+            UIKit.Fill(_toast.rectTransform, 20, 4, 20, 4);
+            toastBox.gameObject.SetActive(false);
         }
 
         private void Update()
         {
-            if (_toast.gameObject.activeSelf && Time.unscaledTime > _toastUntil) _toast.gameObject.SetActive(false);
+            var box = _toast.transform.parent.gameObject;
+            if (box.activeSelf && Time.unscaledTime > _toastUntil) box.SetActive(false);
         }
 
         /// <summary>A short message at the bottom of the screen.</summary>
         public void Toast(string text, float seconds = 3f)
         {
-            _toast.text = text; _toast.gameObject.SetActive(true); _toastUntil = Time.unscaledTime + seconds;
+            _toast.text = text; _toast.transform.parent.gameObject.SetActive(true); _toast.transform.parent.SetAsLastSibling(); _toastUntil = Time.unscaledTime + seconds;
             Debug.Log("[LFC] " + text);
         }
 
