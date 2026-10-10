@@ -25,9 +25,9 @@ namespace LegendsFC.Core.Money
         public double SponsorShareOfTv = 0.4, StoreShareOfTv = 0.15, CommercialRepGrowth = 1.06;
         public Dictionary<string, double> ObjectiveMultipliers = new Dictionary<string, double>();
         public double WageBarRepGrowth = 1.025, UpkeepShareOfIncome = 0.03, StartingBalanceSeasons = 0.5;
-        /// <summary>Money above this many seasons of income counts as spare (PROPOSAL, Oct 10 night).</summary>
+        /// <summary>Money above this many seasons of income counts as spare (approved Oct 10).</summary>
         public double ReserveSeasons = 1.0;
-        /// <summary>Share of the spare money added to the wage bar each season (PROPOSAL, Oct 10 night; 0 = off).</summary>
+        /// <summary>Share of the spare money added to the wage bar each season (approved Oct 10; 0 = off).</summary>
         public double SpareMoneyToWageBar = 0.25;
         public WageCurveConfig WageCurve = new WageCurveConfig();
         public RenewalConfig Renewal = new RenewalConfig();
@@ -72,7 +72,7 @@ namespace LegendsFC.Core.Money
         }
 
         /// <summary>
-        /// Wage bar (approved): league base × 1.025^(reputation − 50) × objective, plus (PROPOSAL, Oct 10 night) a share of
+        /// Wage bar (approved): league base × 1.025^(reputation − 50) × objective, plus (approved Oct 10) a share of
         /// the spare money: what the club holds above one season of income. Rich clubs spend their savings instead of
         /// piling them up. Same rule for AI clubs and the user.
         /// </summary>

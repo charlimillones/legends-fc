@@ -30,7 +30,7 @@ namespace LegendsFC.Core.Career
     public sealed class ObjectiveStakes
     {
         public double BonusShareOfIncome, ConfidenceMet, ConfidenceMissed, ReputationMet, ReputationMissed;
-        /// <summary>Confidence lost per place missed, up to ConfidenceMissed (0 = always the full amount). PROPOSAL, Oct 10 night.</summary>
+        /// <summary>Confidence lost per place missed, up to ConfidenceMissed (0 = always the full amount). Confirmed Oct 10.</summary>
         public double ConfidencePerPlaceMissed;
     }
 
@@ -290,7 +290,7 @@ namespace LegendsFC.Core.Career
             }
             else
             {
-                // Missing by one place costs less than missing by ten (PROPOSAL, Oct 10 night).
+                // Missing by one place costs less than missing by ten (confirmed Oct 10).
                 k.Confidence += MissedConfidence(stakes, summary.Position - k.ObjectiveTarget);
                 k.Reputation += stakes.ReputationMissed;
             }

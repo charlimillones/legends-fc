@@ -107,7 +107,6 @@ namespace LegendsFC.Core.Season
             // Transfer windows, day by day (the market also counts the days when no window is open).
             if (cal.Week == c.SummerWindowStartWeek) Transfers.AiMarket.OpenWindow(w, "summer", rng, _d);
             if (cal.Week == c.WinterWindowStartWeek) Transfers.AiMarket.OpenWindow(w, "winter", rng, _d);
-            if (cal.Week == c.SummerWindowStartWeek || cal.Week == c.WinterWindowStartWeek) Inbox.InboxEngine.ResetForWindow(w, _d);
             report.WindowOpen = m.WindowOpen;
             for (int day = 0; day < 7; day++) Transfers.AiMarket.AdvanceDay(w, rng, _d);
 

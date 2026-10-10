@@ -26,6 +26,6 @@
   "heavyTooLongWeeks": 6,
   "_coachNote": "Coaches (Oct 9 night): contract reminder in week 40 for coaches whose contract ends this season; group too big = a coach training 7+ players (coaches.json groupTooBig).",
   "coachContractReminderWeek": 40,
-  "_windowResetNote": "Carlos, Oct 10: the inbox is cleared when each transfer window opens (summer week 1, winter week 27) so it never piles up and is fresh for the window. Open decisions stay, and so do messages from the last week (the season-end news arrives the week before the summer window).",
-  "windowResetKeepWeeks": 1
+  "_capNote": "Carlos, Oct 10: the inbox keeps the newest 100 messages; older ones are deleted after each week. Open decisions are never deleted. (Replaces the reset at each transfer window, which could erase unread messages.)",
+  "maxMessages": 100
 }

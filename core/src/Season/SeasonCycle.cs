@@ -137,7 +137,7 @@ namespace LegendsFC.Core.Season
 
         /// <summary>
         /// Keeps long careers light (saves.json): transfer records of the last seasons and the AI clubs' event logs only as far
-        /// back as the no-repeat rule looks. (The inbox is cleared at each transfer window: InboxEngine.ResetForWindow.)
+        /// back as the no-repeat rule looks. (The inbox keeps its newest 100 messages: InboxEngine.Trim.)
         /// </summary>
         public void TrimHistory(GameWorld w)
         {

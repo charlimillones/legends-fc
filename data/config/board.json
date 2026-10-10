@@ -6,7 +6,7 @@
     "standard":  { "bonusShareOfIncome": 0.03, "confidenceMet": 15, "confidenceMissed": -25, "confidencePerPlaceMissed": 8,  "reputationMet": 5, "reputationMissed": -4 },
     "ambitious": { "bonusShareOfIncome": 0.10, "confidenceMet": 25, "confidenceMissed": -35, "confidencePerPlaceMissed": 10, "reputationMet": 8, "reputationMissed": -6 }
   },
-  "_missedNote": "PROPOSAL (Oct 10 night): a missed objective costs confidence per place missed (8 a place; 10 for ambitious), up to the full amount above. Measured on AI clubs over 3 seasons: safe is met 87% of the time, standard 57%, ambitious 24%; when standard is missed, it is by 1-2 places in half the cases. With a flat -25, a manager who does exactly as expected loses about 2 confidence a season; with this rule he holds steady.",
+  "_missedNote": "Confirmed by Carlos (Oct 10): a missed objective costs confidence per place missed (8 a place; 10 for ambitious), up to the full amount above. Measured on AI clubs over 3 seasons: safe is met 87% of the time, standard 57%, ambitious 24%; when standard is missed, it is by 1-2 places in half the cases. With a flat -25, a manager who does exactly as expected loses about 2 confidence a season; with this rule he holds steady.",
   "chooseObjectiveBeforeWeek": 9,
   "_confidenceNote": "Board confidence 0-100, starts at 60. League results: +0.6 a win, -0.6 a loss. Every 4 weeks: on or above the target +1, below it -0.5 per place (at most -3). Fan mood pushes it a little: (mood - 50) / 50 x 0.3 a week. A club at zero money: -1 a week.",
   "startConfidence": 60,
