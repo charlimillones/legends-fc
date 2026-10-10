@@ -38,6 +38,8 @@ namespace LegendsFC.Core.Inbox
         public int ShirtsPerReputationMin = 20, ShirtsPerReputationMax = 60, WeeksPerMonth = 4;
         public int TooManyInjuries = 4, HeavyTooLongWeeks = 6, CoachContractReminderWeek = 40;
         public double InjuryRiskBelowEnergy = 50;
+        /// <summary>When a transfer window opens the inbox is cleared, keeping open decisions and messages this many weeks old or newer (Carlos, Oct 10).</summary>
+        public int WindowResetKeepWeeks = 1;
     }
 
     public enum MessageKind { Manager, Club, Decision }
@@ -541,6 +543,22 @@ namespace LegendsFC.Core.Inbox
         }
 
         // ---- inbox actions for the UI
+
+        /// <summary>
+        /// Carlos, Oct 10: the inbox starts fresh at each transfer window (summer and winter). Open decisions stay, and so do
+        /// messages from the last week (the season-end news arrives the week before the summer window opens).
+        /// </summary>
+        public static void ResetForWindow(GameWorld w, GameData d)
+        {
+            int keep = d.InboxRules.WindowResetKeepWeeks, weeks = d.Calendar.WeeksPerSeason;
+            var open = new HashSet<int>(w.Career.Decisions.Select(x => x.Id));
+            w.Inbox.Messages.RemoveAll(m =>
+            {
+                if (m.DecisionId != 0 && open.Contains(m.DecisionId)) return false;
+                int age = (w.SeasonStartYear - m.SeasonStartYear) * weeks + (w.Calendar.Week - m.Week);
+                return age > keep;
+            });
+        }
 
         public static void MarkRead(GameWorld w, int id) { var m = w.Inbox.Messages.FirstOrDefault(x => x.Id == id); if (m != null) m.Read = true; }
         public static void MarkAllRead(GameWorld w) { foreach (var m in w.Inbox.Messages) m.Read = true; }

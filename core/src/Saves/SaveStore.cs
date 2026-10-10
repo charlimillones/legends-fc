@@ -19,8 +19,6 @@ namespace LegendsFC.Core.Saves
         public bool AutosaveEveryWeek = true;
         /// <summary>Transfer records kept (seasons back, 0 = all).</summary>
         public int KeepTransferSeasons = 5;
-        /// <summary>Inbox messages kept (newest first; open decisions always stay; 0 = all).</summary>
-        public int KeepInboxMessages = 300;
     }
 
     /// <summary>What the world list shows without opening the save.</summary>

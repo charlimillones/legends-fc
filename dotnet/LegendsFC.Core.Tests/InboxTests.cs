@@ -78,7 +78,7 @@ public class InboxTests : IDisposable
     {
         var (s, weeks) = Career();
         Assert.All(weeks, w => Assert.InRange(w.msgs.Count, 0, 2));
-        var all = s.World.Inbox.Messages.Where(m => m.Kind == MessageKind.Manager).ToList();
+        var all = weeks.SelectMany(x => x.msgs).Where(m => m.Kind == MessageKind.Manager).ToList();   // as delivered (the inbox is cleared at each window)
         Assert.True(all.Count >= 40, all.Count + " messages in 2 seasons");
         foreach (var g in all.GroupBy(m => m.Sender))
         {
@@ -101,8 +101,8 @@ public class InboxTests : IDisposable
     [Fact]
     public void WordingsNeverRepeatWithinASeason()
     {
-        var (s, _) = Career();
-        foreach (var g in s.World.Inbox.Messages.Where(m => m.Kind == MessageKind.Manager).GroupBy(m => (m.SeasonStartYear, m.TriggerId)))
+        var (_, weeks) = Career();
+        foreach (var g in weeks.SelectMany(x => x.msgs).Where(m => m.Kind == MessageKind.Manager).GroupBy(m => (m.SeasonStartYear, m.TriggerId)))
         {
             var t = D.Messages.Get(g.Key.TriggerId);
             if (t.Repeatable) continue;
@@ -116,9 +116,9 @@ public class InboxTests : IDisposable
     [Fact]
     public void MessagesNeverRevealHiddenInformation()
     {
-        var (s, _) = Career();
+        var (_, weeks) = Career();
         var hidden = D.Archetypes.Select(a => a.Name).Concat(D.Personalities.Select(p => p.Name)).Where(x => !string.IsNullOrWhiteSpace(x) && x.Length > 3).ToList();
-        foreach (var m in s.World.Inbox.Messages.Where(m => m.Kind == MessageKind.Manager))
+        foreach (var m in weeks.SelectMany(x => x.msgs).Where(m => m.Kind == MessageKind.Manager))
         {
             Assert.DoesNotContain("potential", m.Text, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("archetype", m.Text, StringComparison.OrdinalIgnoreCase);

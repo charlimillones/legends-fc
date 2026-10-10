@@ -136,23 +136,14 @@ namespace LegendsFC.Core.Season
         }
 
         /// <summary>
-        /// Keeps long careers light (saves.json): transfer records of the last seasons, the newest inbox messages
-        /// (open decisions are never dropped), and the AI clubs' event logs only as far back as the no-repeat rule looks.
+        /// Keeps long careers light (saves.json): transfer records of the last seasons and the AI clubs' event logs only as far
+        /// back as the no-repeat rule looks. (The inbox is cleared at each transfer window: InboxEngine.ResetForWindow.)
         /// </summary>
         public void TrimHistory(GameWorld w)
         {
             var c = _d.Saves;
             int year = w.SeasonStartYear;
             if (c.KeepTransferSeasons > 0) w.Market.History.RemoveAll(h => year - h.Season >= c.KeepTransferSeasons);
-            var box = w.Inbox.Messages;
-            if (c.KeepInboxMessages > 0 && box.Count > c.KeepInboxMessages)
-            {
-                var open = new HashSet<int>(w.Career.Decisions.Select(x => x.Id));
-                int drop = box.Count - c.KeepInboxMessages;
-                var old = box.OrderBy(m => m.Id).Where(m => m.DecisionId == 0 || !open.Contains(m.DecisionId)).Take(drop).ToList();
-                var gone = new HashSet<Inbox.InboxMessage>(old);
-                box.RemoveAll(gone.Contains);
-            }
             int keepEvents = Math.Max(2, _d.Events.NoRepeatSeasons);
             foreach (var kv in w.ClubEvents)
                 if (kv.Key != w.UserClubId) kv.Value.RemoveAll(e => year - e.Season > keepEvents);

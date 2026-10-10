@@ -33,22 +33,42 @@ public class LongCareerTests
     }
 
     [Fact]
-    public void SeasonEnd_TrimsOldTransfersAndInbox_ButNeverAnOpenDecision()
+    public void SeasonEnd_KeepsFiveSeasonsOfTransfers()
+    {
+        var w = new WorldGenerator(D).Generate(5);
+        int year = w.SeasonStartYear;
+        for (int s = 0; s < 8; s++) w.Market.History.Add(new TransferRecord { Season = year - s, PlayerId = "P" + s });
+        new SeasonCycle(D).TrimHistory(w);
+        Assert.Equal(D.Saves.KeepTransferSeasons, w.Market.History.Count);
+        Assert.All(w.Market.History, h => Assert.True(year - h.Season < D.Saves.KeepTransferSeasons));
+    }
+
+    [Fact]
+    public void TheInbox_StartsFreshAtEachWindow_KeepingOpenDecisionsAndLastWeeksNews()
     {
         var w = new WorldGenerator(D).Generate(5);
         w.UserClubId = w.Clubs[0].Id;
         int year = w.SeasonStartYear;
-        for (int s = 0; s < 8; s++) w.Market.History.Add(new TransferRecord { Season = year - s, PlayerId = "P" + s });
-        w.Career.Decisions.Add(new Decision { Id = 1 });
-        w.Inbox.Messages.Add(new InboxMessage { Id = 1, Kind = MessageKind.Decision, DecisionId = 1 });   // the oldest message, still open
-        for (int i = 2; i <= 400; i++) w.Inbox.Messages.Add(new InboxMessage { Id = i });
-        new SeasonCycle(D).TrimHistory(w);
-        Assert.Equal(D.Saves.KeepTransferSeasons, w.Market.History.Count);
-        Assert.All(w.Market.History, h => Assert.True(year - h.Season < D.Saves.KeepTransferSeasons));
-        Assert.Equal(D.Saves.KeepInboxMessages, w.Inbox.Messages.Count);
-        Assert.Contains(w.Inbox.Messages, m => m.Id == 1);
-        Assert.Contains(w.Inbox.Messages, m => m.Id == 400);
-        Assert.DoesNotContain(w.Inbox.Messages, m => m.Id == 2);
+        w.Career.Decisions.Add(new Decision { Id = 7 });
+        w.Inbox.Messages.Add(new InboxMessage { Id = 1, SeasonStartYear = year - 1, Week = 30 });                       // old: goes
+        w.Inbox.Messages.Add(new InboxMessage { Id = 2, SeasonStartYear = year - 1, Week = 51 });                       // two weeks old: goes
+        w.Inbox.Messages.Add(new InboxMessage { Id = 3, SeasonStartYear = year - 1, Week = 52, Text = "Season over" }); // last week: stays
+        w.Inbox.Messages.Add(new InboxMessage { Id = 4, SeasonStartYear = year - 1, Week = 20, Kind = MessageKind.Decision, DecisionId = 7 }); // open: stays
+        w.Inbox.Messages.Add(new InboxMessage { Id = 5, SeasonStartYear = year - 1, Week = 20, Kind = MessageKind.Decision, DecisionId = 6 }); // answered: goes
+        w.Calendar.Week = D.Calendar.SummerWindowStartWeek;
+        InboxEngine.ResetForWindow(w, D);
+        Assert.Equal(new[] { 3, 4 }, w.Inbox.Messages.Select(m => m.Id).OrderBy(x => x));
+
+        // A whole season played through the calendar: the inbox never holds more than about half a season of messages.
+        var cal = new SeasonCalendar(D); var rng = new LegendsFC.Core.Util.GameRandom(3);
+        w.Inbox.Messages.Clear(); w.Calendar = new LegendsFC.Core.Season.CalendarState();
+        cal.Start(w, rng);
+        while (!w.Calendar.SeasonOver)
+        {
+            cal.PlayWeek(w, rng);
+            if (w.Calendar.Week == D.Calendar.WinterWindowStartWeek)
+                Assert.All(w.Inbox.Messages, m => Assert.True(m.Week >= D.Calendar.WinterWindowStartWeek - D.InboxRules.WindowResetKeepWeeks || w.Career.Decisions.Any(x => x.Id == m.DecisionId)));
+        }
     }
 
     [Fact]
