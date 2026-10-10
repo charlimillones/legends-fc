@@ -25,6 +25,10 @@ namespace LegendsFC.Core.Money
         public double SponsorShareOfTv = 0.4, StoreShareOfTv = 0.15, CommercialRepGrowth = 1.06;
         public Dictionary<string, double> ObjectiveMultipliers = new Dictionary<string, double>();
         public double WageBarRepGrowth = 1.025, UpkeepShareOfIncome = 0.03, StartingBalanceSeasons = 0.5;
+        /// <summary>Money above this many seasons of income counts as spare (PROPOSAL, Oct 10 night).</summary>
+        public double ReserveSeasons = 1.0;
+        /// <summary>Share of the spare money added to the wage bar each season (PROPOSAL, Oct 10 night; 0 = off).</summary>
+        public double SpareMoneyToWageBar = 0.25;
         public WageCurveConfig WageCurve = new WageCurveConfig();
         public RenewalConfig Renewal = new RenewalConfig();
         public FanMoodConfig FanMood = new FanMoodConfig();
@@ -67,9 +71,18 @@ namespace LegendsFC.Core.Money
             return inc;
         }
 
-        /// <summary>Wage bar (approved): league base × 1.025^(reputation − 50) × objective.</summary>
+        /// <summary>
+        /// Wage bar (approved): league base × 1.025^(reputation − 50) × objective, plus (PROPOSAL, Oct 10 night) a share of
+        /// the spare money: what the club holds above one season of income. Rich clubs spend their savings instead of
+        /// piling them up. Same rule for AI clubs and the user.
+        /// </summary>
         public static double WageBar(Club club, string leagueOrCountry, string objective, FinanceConfig c)
-            => c.For(leagueOrCountry).WageBarBaseEur * Math.Pow(c.WageBarRepGrowth, club.Reputation - 50) * c.ObjectiveMultipliers[objective];
+            => c.For(leagueOrCountry).WageBarBaseEur * Math.Pow(c.WageBarRepGrowth, club.Reputation - 50) * c.ObjectiveMultipliers[objective]
+               + SpareMoney(club, c) * c.SpareMoneyToWageBar;
+
+        /// <summary>Money above the reserve (one season of income). 0 before the first season is settled.</summary>
+        public static double SpareMoney(Club club, FinanceConfig c)
+            => club.LastSeasonIncome <= 0 ? 0 : Math.Max(0, club.Balance - c.ReserveSeasons * club.LastSeasonIncome);
 
         /// <summary>
         /// What a player expects per season (agreed Oct 9): stars ask a smaller share of their value, cheap players a bigger one,

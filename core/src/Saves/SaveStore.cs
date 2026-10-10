@@ -17,6 +17,10 @@ namespace LegendsFC.Core.Saves
         public int MaxWorlds = 5;
         public int Backups = 2;
         public bool AutosaveEveryWeek = true;
+        /// <summary>Transfer records kept (seasons back, 0 = all).</summary>
+        public int KeepTransferSeasons = 5;
+        /// <summary>Inbox messages kept (newest first; open decisions always stay; 0 = all).</summary>
+        public int KeepInboxMessages = 300;
     }
 
     /// <summary>What the world list shows without opening the save.</summary>
@@ -189,16 +193,44 @@ namespace LegendsFC.Core.Saves
             for (int i = 1; i <= Math.Max(_c.Backups, 2); i++) yield return Backup(slot, i);
         }
 
-        public static SaveFile ReadFile(string path)
+        /// <summary>The save format version, read from the start of the file (null when the file doesn't start with it).</summary>
+        private static int? VersionOf(string path)
         {
-            JObject root;
             using (var fs = File.OpenRead(path))
             using (var gz = new GZipStream(fs, CompressionMode.Decompress))
             using (var sr = new StreamReader(gz, Encoding.UTF8))
             using (var jr = new JsonTextReader(sr))
-                root = JObject.Load(jr);
-            Migrations.Upgrade(root);
-            var file = root.ToObject<SaveFile>(JsonSerializer.Create(Json));
+            {
+                if (!jr.Read() || jr.TokenType != JsonToken.StartObject) return null;
+                if (!jr.Read() || jr.TokenType != JsonToken.PropertyName || (string)jr.Value != nameof(SaveFile.SchemaVersion)) return null;
+                return jr.ReadAsInt32();
+            }
+        }
+
+        public static SaveFile ReadFile(string path)
+        {
+            // A save in the current format is read straight into the world (fast); only older formats go through the
+            // JSON tree so the upgrade steps can rewrite them.
+            SaveFile file;
+            if (VersionOf(path) == GameInfo.SaveSchemaVersion)
+            {
+                using (var fs = File.OpenRead(path))
+                using (var gz = new GZipStream(fs, CompressionMode.Decompress))
+                using (var sr = new StreamReader(gz, Encoding.UTF8))
+                using (var jr = new JsonTextReader(sr))
+                    file = JsonSerializer.Create(Json).Deserialize<SaveFile>(jr);
+            }
+            else
+            {
+                JObject root;
+                using (var fs = File.OpenRead(path))
+                using (var gz = new GZipStream(fs, CompressionMode.Decompress))
+                using (var sr = new StreamReader(gz, Encoding.UTF8))
+                using (var jr = new JsonTextReader(sr))
+                    root = JObject.Load(jr);
+                Migrations.Upgrade(root);
+                file = root.ToObject<SaveFile>(JsonSerializer.Create(Json));
+            }
             if (file?.World == null || file.Rng == null || file.Rng.Length != 4) throw new InvalidDataException("The save is incomplete.");
             return file;
         }

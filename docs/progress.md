@@ -182,6 +182,13 @@
   - **Random events:** 19 events (8 bad, 7 good, 4 choices) plus a rare disaster; about 2.5 per club per season, balanced over time, no repeats within 3 seasons, softened by the Medical Building and the Stadium; AI clubs get the same events; the user answers choices in the inbox (unanswered = decline after a week). Morale events wait for the morale system. Inbox: illness and event damage live (44 of 45).
   - **Protégé:** the first one free and fully custom (name, nationality, position, foot, personality; potential = academy average + 5); then one a season (position or personality) at a share of his value.
 
+- **20-season test run and speed pass** (branch `feature/speed`, stacked on `feature/club-story`, NOT merged; 210 tests; tool: `dotnet run --project LegendsFC.Tools -- soak 1 20`):
+  - **Speed:** about 5.5 s per simulated season on the dev machine (20 seasons in 118 s).
+  - **Saves:** 7.4 MB → 4.4 MB after 20 seasons; load 5.2 s → 0.8 s; save 0.4 s. How: player stats saved as short arrays; players retired for more than a season move to a light archive (name, clubs, season-by-season numbers; those who never played are dropped); transfer records kept 5 seasons, inbox the newest 300 (open decisions always stay); AI clubs' event logs only as far as the no-repeat rule looks; current-format saves load without the JSON tree.
+  - **Economy (PROPOSAL):** rich clubs piled up cash (ENG-1 average 189M → 1.4B in 20 seasons) because the wage bar stopped them spending. The wage bar now adds 25% of the money held above one season of income (same rule for the user): ENG-1 average 586M after 20 seasons and levelling off; ENG-1 wages ~73% of income.
+  - **Board (PROPOSAL):** a missed objective costs 8 confidence a place (10 for ambitious), up to the old full penalty. On AI clubs, safe is met 87%, standard 57%, ambitious 24%; with the flat penalty an average manager lost ~2 confidence a season.
+  - Stable over 20 seasons: injuries 50-75 at a time, ~880 coaches at clubs, ~530 events a season, league quality (ENG-1 XI 77 → 80, ARG-1 69 → 71).
+
 ## In progress
 - Step 3b: all national teams (needs the full FIFA country list).
 

@@ -138,6 +138,24 @@ namespace LegendsFC.Core.Squad
             }
         }
 
+        /// <summary>One line per season and club (for the archive of retired players).</summary>
+        public static List<StatLine> Merged(List<StatLine> lines)
+        {
+            var list = new List<StatLine>();
+            foreach (var g in lines.GroupBy(s => (s.Season, s.ClubId)))
+            {
+                var m = new StatLine { Season = g.Key.Season, ClubId = g.Key.ClubId };
+                foreach (var s in g)
+                {
+                    m.Apps += s.Apps; m.Starts += s.Starts; m.SubApps += s.SubApps; m.Minutes += s.Minutes; m.Goals += s.Goals;
+                    m.Assists += s.Assists; m.CleanSheets += s.CleanSheets; m.Yellows += s.Yellows; m.Reds += s.Reds;
+                    m.Rated += s.Rated; m.RatingSum += s.RatingSum; m.PlayerOfTheMatch += s.PlayerOfTheMatch;
+                }
+                list.Add(m);
+            }
+            return list;
+        }
+
         private static StatLine AddMerged(Player p, int season, string club)
         {
             var s = new StatLine { Season = season, ClubId = club };

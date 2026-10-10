@@ -107,6 +107,7 @@ namespace LegendsFC.Core.World
                     int home = Season.SeasonSimulator.HomeLeagueMatches(group.Key, ranked.Count, _d);
                     var income = Money.Finance.SeasonIncome(club, group.Key, i + 1, ranked.Count, home, f, _d.FacilityRules);
                     club.Balance = (long)Math.Round(income.Total * f.StartingBalanceSeasons);
+                    club.LastSeasonIncome = (long)Math.Round(income.Total);
                 }
             }
         }

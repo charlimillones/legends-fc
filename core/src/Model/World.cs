@@ -73,6 +73,8 @@ namespace LegendsFC.Core.Model
         public Tactics Tactics = new Tactics();
         /// <summary>Running total spent on coach contracts (EUR), for reports.</summary>
         public long SpentOnCoaches;
+        /// <summary>Income of the last settled season (EUR). Sets the reserve for the wage bar's spare-money part.</summary>
+        public long LastSeasonIncome;
         /// <summary>Running total of money from random events and board bonuses (EUR; negative = fines), for reports.</summary>
         public long OtherMoney;
     }
@@ -129,7 +131,22 @@ namespace LegendsFC.Core.Model
         public List<StatLine> Stats = new List<StatLine>();
         /// <summary>The coach who trains him (null = he develops naturally, without a coach).</summary>
         public string CoachId;
+        /// <summary>The season he retired (0 = still playing).</summary>
+        public int RetiredYear;
         public bool Injured => Injury != null;
+    }
+
+    /// <summary>
+    /// A player retired for more than a season, kept small for history (awards, records, transfer history): who he was and
+    /// his season-by-season numbers. Keeps saves small over long careers (Oct 9 night).
+    /// </summary>
+    public sealed class ArchivedPlayer
+    {
+        public string Id, Name, NationalityId, AcademyClubId;
+        public int BirthYear, RetiredYear;
+        public Position MainPosition;
+        public List<string> FormerClubIds = new List<string>();
+        public List<StatLine> Stats = new List<StatLine>();
     }
 
     /// <summary>A scout (decided Oct 7): a rating, a contract price only, and a task. Reports depend only on his rating.</summary>
@@ -188,7 +205,9 @@ namespace LegendsFC.Core.Model
         public string Reason;
     }
 
-    /// <summary>A player's numbers for one competition in one season at one club (older seasons are merged per club).</summary>
+    /// <summary>A player's numbers for one competition in one season at one club (older seasons are merged per club).
+    /// Saved as a short array (the biggest part of a long career's save).</summary>
+    [Newtonsoft.Json.JsonConverter(typeof(StatLineConverter))]
     public sealed class StatLine
     {
         public int Season;
@@ -216,5 +235,46 @@ namespace LegendsFC.Core.Model
         public string Name, Formation;
         public int Mentality;
         public List<string> Lineup = new List<string>(), Bench = new List<string>();
+    }
+
+    /// <summary>
+    /// StatLine as [season, competition, club, apps, starts, subApps, minutes, goals, assists, cleanSheets, yellows, reds,
+    /// rated, playerOfTheMatch, ratingSum]. Reads the older object form too.
+    /// </summary>
+    public sealed class StatLineConverter : Newtonsoft.Json.JsonConverter<StatLine>
+    {
+        public override void WriteJson(Newtonsoft.Json.JsonWriter w, StatLine s, Newtonsoft.Json.JsonSerializer serializer)
+        {
+            w.WriteStartArray();
+            w.WriteValue(s.Season); w.WriteValue(s.CompetitionId); w.WriteValue(s.ClubId);
+            w.WriteValue(s.Apps); w.WriteValue(s.Starts); w.WriteValue(s.SubApps); w.WriteValue(s.Minutes); w.WriteValue(s.Goals);
+            w.WriteValue(s.Assists); w.WriteValue(s.CleanSheets); w.WriteValue(s.Yellows); w.WriteValue(s.Reds); w.WriteValue(s.Rated);
+            w.WriteValue(s.PlayerOfTheMatch); w.WriteValue(s.RatingSum);
+            w.WriteEndArray();
+        }
+
+        public override StatLine ReadJson(Newtonsoft.Json.JsonReader r, System.Type t, StatLine existing, bool hasExisting, Newtonsoft.Json.JsonSerializer serializer)
+        {
+            if (r.TokenType == Newtonsoft.Json.JsonToken.Null) return null;
+            if (r.TokenType == Newtonsoft.Json.JsonToken.StartObject)
+            {
+                var o = Newtonsoft.Json.Linq.JObject.Load(r);
+                return new StatLine
+                {
+                    Season = (int?)o["Season"] ?? 0, CompetitionId = (string)o["CompetitionId"], ClubId = (string)o["ClubId"],
+                    Apps = (int?)o["Apps"] ?? 0, Starts = (int?)o["Starts"] ?? 0, SubApps = (int?)o["SubApps"] ?? 0, Minutes = (int?)o["Minutes"] ?? 0,
+                    Goals = (int?)o["Goals"] ?? 0, Assists = (int?)o["Assists"] ?? 0, CleanSheets = (int?)o["CleanSheets"] ?? 0,
+                    Yellows = (int?)o["Yellows"] ?? 0, Reds = (int?)o["Reds"] ?? 0, Rated = (int?)o["Rated"] ?? 0,
+                    PlayerOfTheMatch = (int?)o["PlayerOfTheMatch"] ?? 0, RatingSum = (double?)o["RatingSum"] ?? 0,
+                };
+            }
+            var s = new StatLine();
+            s.Season = r.ReadAsInt32() ?? 0; s.CompetitionId = r.ReadAsString(); s.ClubId = r.ReadAsString();
+            s.Apps = r.ReadAsInt32() ?? 0; s.Starts = r.ReadAsInt32() ?? 0; s.SubApps = r.ReadAsInt32() ?? 0; s.Minutes = r.ReadAsInt32() ?? 0;
+            s.Goals = r.ReadAsInt32() ?? 0; s.Assists = r.ReadAsInt32() ?? 0; s.CleanSheets = r.ReadAsInt32() ?? 0; s.Yellows = r.ReadAsInt32() ?? 0;
+            s.Reds = r.ReadAsInt32() ?? 0; s.Rated = r.ReadAsInt32() ?? 0; s.PlayerOfTheMatch = r.ReadAsInt32() ?? 0; s.RatingSum = r.ReadAsDouble() ?? 0;
+            r.Read();   // EndArray
+            return s;
+        }
     }
 }

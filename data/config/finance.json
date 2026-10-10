@@ -128,5 +128,8 @@
     "normalBase": 30,
     "normalPerReputation": 0.5
   },
-  "_upkeepNote": "Oct 9: the flat 3% upkeep is replaced by real repairs (facilities.json: each 1% of condition costs 0.2% of the level's price), paid when a club repairs."
+  "_upkeepNote": "Oct 9: the flat 3% upkeep is replaced by real repairs (facilities.json: each 1% of condition costs 0.2% of the level's price), paid when a club repairs.",
+  "_spareMoneyNote": "PROPOSAL (Oct 10 night): rich clubs piled up cash (ENG-1 average 189M to 1.3B over 20 seasons) because the wage bar stopped them spending. The wage bar now adds 25% of the spare money: what a club holds above one season of income. Same rule for the user. 0 turns it off.",
+  "reserveSeasons": 1.0,
+  "spareMoneyToWageBar": 0.25
 }

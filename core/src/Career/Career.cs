@@ -30,6 +30,8 @@ namespace LegendsFC.Core.Career
     public sealed class ObjectiveStakes
     {
         public double BonusShareOfIncome, ConfidenceMet, ConfidenceMissed, ReputationMet, ReputationMissed;
+        /// <summary>Confidence lost per place missed, up to ConfidenceMissed (0 = always the full amount). PROPOSAL, Oct 10 night.</summary>
+        public double ConfidencePerPlaceMissed;
     }
 
     public sealed class JobOffer { public string ClubId; public int Season; public bool AfterSacking; }
@@ -260,6 +262,10 @@ namespace LegendsFC.Core.Career
             SetObjective(w, d, "standard", chosen: false);
         }
 
+        /// <summary>Confidence change for a missed objective: per place missed, up to the full penalty.</summary>
+        public static double MissedConfidence(ObjectiveStakes s, int placesMissed)
+            => s.ConfidencePerPlaceMissed > 0 ? Math.Max(s.ConfidenceMissed, -s.ConfidencePerPlaceMissed * Math.Max(1, placesMissed)) : s.ConfidenceMissed;
+
         /// <summary>
         /// End of the season (before the new year starts): the objective's result (bonus, confidence, reputation), titles,
         /// the season summary, awards for every league, sacking or job offers.
@@ -282,7 +288,12 @@ namespace LegendsFC.Core.Career
                 club.Balance += bonus; club.OtherMoney += bonus;
                 k.Confidence += stakes.ConfidenceMet; k.Reputation += stakes.ReputationMet;
             }
-            else { k.Confidence += stakes.ConfidenceMissed; k.Reputation += stakes.ReputationMissed; }
+            else
+            {
+                // Missing by one place costs less than missing by ten (PROPOSAL, Oct 10 night).
+                k.Confidence += MissedConfidence(stakes, summary.Position - k.ObjectiveTarget);
+                k.Reputation += stakes.ReputationMissed;
+            }
             foreach (var o in outcomes.Where(o => o != null))
                 foreach (var t in o.Titles.Where(t => t.Value == club.Id && t.Key != CupFormats.RunnerUp))
                 {
@@ -314,17 +325,17 @@ namespace LegendsFC.Core.Career
         public static SeasonSummary Summary(GameWorld w, Club club, List<CompetitionOutcome> outcomes, GameData d)
         {
             var s = new SeasonSummary { Season = w.SeasonStartYear, ClubId = club.Id };
-            if (w.ClubLeague.TryGetValue(club.Id, out var league) && league != null)
+            // The league he played in this season (promotion and relegation may already have moved the club).
+            foreach (var o in outcomes.Where(x => x != null && w.Competitions.Any(c => c.Id == x.CompetitionId && c.Type == CompetitionType.League)))
             {
-                var o = outcomes.FirstOrDefault(x => x != null && x.CompetitionId == league);
-                var table = o == null ? null : o.Tables.TryGetValue("League", out var t) ? t : o.Tables.TryGetValue("Annual", out var a) ? a : null;
-                if (table != null)
-                {
-                    int i = table.FindIndex(r => r.ClubId == club.Id);
-                    var row = table[i];
-                    s.LeagueId = league; s.Position = i + 1; s.Teams = table.Count;
-                    s.Won = row.Won; s.Drawn = row.Drawn; s.Lost = row.Lost; s.GoalsFor = row.GoalsFor; s.GoalsAgainst = row.GoalsAgainst;
-                }
+                var table = o.Tables.TryGetValue("League", out var t) ? t : o.Tables.TryGetValue("Annual", out var a) ? a
+                          : o.Tables.Values.FirstOrDefault(x => x.Any(r => r.ClubId == club.Id));
+                int i = table?.FindIndex(r => r.ClubId == club.Id) ?? -1;
+                if (i < 0) continue;
+                var row = table[i];
+                s.LeagueId = o.CompetitionId; s.Position = i + 1; s.Teams = table.Count;
+                s.Won = row.Won; s.Drawn = row.Drawn; s.Lost = row.Lost; s.GoalsFor = row.GoalsFor; s.GoalsAgainst = row.GoalsAgainst;
+                break;
             }
             foreach (var run in w.Calendar.Runs)
             {

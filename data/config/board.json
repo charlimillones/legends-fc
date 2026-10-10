@@ -2,10 +2,11 @@
   "_source": "Board, jobs, reputation, season summary and awards (decided Oct 7-8: negotiable objectives with rewards scaled by stakes - high risk, high reward; a board-confidence meter; sacking leads to offers from lower clubs, never game over; job offers scale with reputation, up to 3 a season; you can apply to clubs, acceptance not guaranteed; the new club keeps its squad; the wage bar is set by the board from reputation and league level, the ambitious objective raises it, and you can ask for more mid-season with a probability; WSC-style awards; season summary screen). All numbers are PROPOSALS (Oct 9 night).",
   "_objectiveNote": "Each season the board offers 3 objectives for the league: safe (finish no lower than the expected place + a margin), standard (the expected place) and ambitious (expected - margin). Expected place = the club's rank in its league by squad strength. Margin = max(2, teams/6). The objective sets the wage bar (finance.json objectiveMultipliers) and the stakes. Chosen before the league starts (week 9); standard if you don't choose.",
   "objectives": {
-    "safe":      { "bonusShareOfIncome": 0.0,  "confidenceMet": 10, "confidenceMissed": -20, "reputationMet": 3, "reputationMissed": -3 },
-    "standard":  { "bonusShareOfIncome": 0.03, "confidenceMet": 15, "confidenceMissed": -25, "reputationMet": 5, "reputationMissed": -4 },
-    "ambitious": { "bonusShareOfIncome": 0.10, "confidenceMet": 25, "confidenceMissed": -35, "reputationMet": 8, "reputationMissed": -6 }
+    "safe":      { "bonusShareOfIncome": 0.0,  "confidenceMet": 10, "confidenceMissed": -20, "confidencePerPlaceMissed": 8,  "reputationMet": 3, "reputationMissed": -3 },
+    "standard":  { "bonusShareOfIncome": 0.03, "confidenceMet": 15, "confidenceMissed": -25, "confidencePerPlaceMissed": 8,  "reputationMet": 5, "reputationMissed": -4 },
+    "ambitious": { "bonusShareOfIncome": 0.10, "confidenceMet": 25, "confidenceMissed": -35, "confidencePerPlaceMissed": 10, "reputationMet": 8, "reputationMissed": -6 }
   },
+  "_missedNote": "PROPOSAL (Oct 10 night): a missed objective costs confidence per place missed (8 a place; 10 for ambitious), up to the full amount above. Measured on AI clubs over 3 seasons: safe is met 87% of the time, standard 57%, ambitious 24%; when standard is missed, it is by 1-2 places in half the cases. With a flat -25, a manager who does exactly as expected loses about 2 confidence a season; with this rule he holds steady.",
   "chooseObjectiveBeforeWeek": 9,
   "_confidenceNote": "Board confidence 0-100, starts at 60. League results: +0.6 a win, -0.6 a loss. Every 4 weeks: on or above the target +1, below it -0.5 per place (at most -3). Fan mood pushes it a little: (mood - 50) / 50 x 0.3 a week. A club at zero money: -1 a week.",
   "startConfidence": 60,

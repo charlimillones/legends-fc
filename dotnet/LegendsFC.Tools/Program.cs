@@ -93,6 +93,66 @@ if (args.Length > 0 && args[0] == "wage-room")
     }
     return;
 }
+if (args.Length > 0 && args[0] == "load-profile")
+{
+    // Where load time goes for a save file. Usage: load-profile [seed] path
+    string path = args[2];
+    for (int rep = 0; rep < 3; rep++)
+    {
+        var t = System.Diagnostics.Stopwatch.StartNew();
+        string json;
+        using (var fs = File.OpenRead(path)) using (var gz = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Decompress)) using (var sr = new StreamReader(gz)) json = sr.ReadToEnd();
+        double unzip = t.Elapsed.TotalMilliseconds; t.Restart();
+        var jo = Newtonsoft.Json.Linq.JObject.Parse(json);
+        double parse = t.Elapsed.TotalMilliseconds; t.Restart();
+        var f = jo.ToObject<LegendsFC.Core.Saves.SaveFile>(Newtonsoft.Json.JsonSerializer.Create(LegendsFC.Core.Saves.SaveStore.Json));
+        double toObj = t.Elapsed.TotalMilliseconds; t.Restart();
+        var f2 = Newtonsoft.Json.JsonConvert.DeserializeObject<LegendsFC.Core.Saves.SaveFile>(json, LegendsFC.Core.Saves.SaveStore.Json);
+        double direct = t.Elapsed.TotalMilliseconds;
+        Console.WriteLine($"json {json.Length / 1e6:F1} MB; unzip {unzip:F0} ms, JObject {parse:F0} ms, ToObject {toObj:F0} ms, direct {direct:F0} ms");
+        if (rep == 0)
+            foreach (var p in jo["World"].Children<Newtonsoft.Json.Linq.JProperty>().Select(p => (p.Name, p.Value.ToString(Newtonsoft.Json.Formatting.None).Length)).OrderByDescending(x => x.Length).Take(12))
+                Console.WriteLine($"  {p.Name}: {p.Length / 1e6:F2} MB");
+    }
+    return;
+}
+if (args.Length > 0 && args[0] == "soak")
+{
+    // A long career with a user club: speed, save size, economy, squads, injuries. Usage: soak [seed] [seasons]
+    int seasons = args.Length > 2 ? int.Parse(args[2]) : 20;
+    var root = Path.Combine(Path.GetTempPath(), "lfc-soak-" + seed);
+    if (Directory.Exists(root)) Directory.Delete(root, true);
+    var store = new LegendsFC.Core.Saves.SaveStore(root, data.Saves);
+    var s = LegendsFC.Core.Saves.GameSession.NewWorld(data, store, "Soak", seed, "EUR", "t");
+    s.Autosave = false;
+    s.PickClub(s.World.Clubs.Where(c => s.World.ClubLeague[c.Id] == "ENG-1").OrderByDescending(c => c.Reputation).ElementAt(6).Id, "t");
+    double Rt(Player p) => PositionRating.Base(p.Attributes, p.MainPosition, data.PositionRatings);
+    double XI(string league) => s.World.Clubs.Where(c => s.World.ClubLeague[c.Id] == league).Average(c => s.World.Players.Where(p => p.ClubId == c.Id).Select(Rt).OrderByDescending(x => x).Take(11).DefaultIfEmpty(30).Average());
+    string M(double v) => (v / 1e6).ToString("0") + "M";
+    Console.WriteLine("Season | sec | players(active/free/retired) | save MB | ENG-1 XI | ARG-1 XI | ENG-1 cash | BRA-1 cash | ARG-2 cash | injured | coaches | events | user: club, pos, conf, rep");
+    var total = System.Diagnostics.Stopwatch.StartNew();
+    for (int i = 0; i < seasons; i++)
+    {
+        var swk = System.Diagnostics.Stopwatch.StartNew();
+        int year = s.World.SeasonStartYear;
+        for (int k = 0; k < 52; k++) s.AdvanceWeek("t");
+        if (s.Career.Unemployed && s.Career.Offers.Count > 0) s.AcceptJob(s.Career.Offers[0].ClubId);
+        double sec = swk.Elapsed.TotalSeconds;
+        var sw2 = System.Diagnostics.Stopwatch.StartNew();
+        s.Save("t");
+        double saveMs = sw2.Elapsed.TotalMilliseconds;
+        double mb = new FileInfo(store.PathOf(s.SlotId)).Length / 1e6;
+        var sw0r = s.World;
+        double Cash(string l) => sw0r.Clubs.Where(c => sw0r.ClubLeague[c.Id] == l).Average(c => (double)c.Balance);
+        var sum = s.Career.Seasons.LastOrDefault();
+        string user = s.World.UserClubId == null ? "unemployed" : $"{s.UserClub.Name.Split(' ')[0]}, {(sum == null ? "-" : sum.Position.ToString())}, {s.Career.Confidence:F0}, {s.Career.Reputation:F0}";
+        Console.WriteLine($"{year} | {sec:F1} | {sw0r.Players.Count(p => p.ClubId != null)}/{sw0r.Players.Count(p => !p.Retired && p.ClubId == null)}/{sw0r.Players.Count(p => p.Retired)} | {mb:F2} ({saveMs:F0} ms) | {XI("ENG-1"):F1} | {XI("ARG-1"):F1} | {M(Cash("ENG-1"))} | {M(Cash("BRA-1"))} | {M(Cash("ARG-2"))} | {sw0r.Players.Count(p => p.Injured)} | {sw0r.Coaches.Count(c => c.ClubId != null)} | {sw0r.ClubEvents.Values.Sum(l => l.Count(e => e.Season == year))} | {user}");
+    }
+    var sw3 = System.Diagnostics.Stopwatch.StartNew();
+    var back = LegendsFC.Core.Saves.GameSession.Load(data, store, s.SlotId);
+    Console.WriteLine($"{seasons} seasons in {total.Elapsed.TotalSeconds:F0} s; load {sw3.Elapsed.TotalMilliseconds:F0} ms; stats lines {s.World.Players.Sum(p => p.Stats.Count)}; awards {s.World.Awards.Count}; inbox {s.World.Inbox.Messages.Count}");
+    return;
+}
 if (args.Length > 0 && args[0] == "squad-report")
 {
     // One season with real teams: results, cards, injuries, energy, ratings, scorers. Usage: squad-report [seed]
@@ -219,6 +279,64 @@ if (args.Length > 0 && args[0] == "market-report")
     Console.WriteLine(string.Join(", ", mw.Market.Stats.OrderByDescending(k => k.Value).Select(k => k.Key + " " + k.Value)));
     var top = mw.Market.History.Where(h => !h.Loan && !h.FreeAgent).OrderByDescending(h => h.Fee).Take(5);
     Console.WriteLine("Biggest fees: " + string.Join(", ", top.Select(h => Mm(h.Fee))));
+    return;
+}
+if (args.Length > 0 && args[0] == "objectives")
+{
+    // How often clubs meet each board objective (set in week 9 from squad strength). Usage: objectives [seed] [seasons]
+    int n = args.Length > 2 ? int.Parse(args[2]) : 3;
+    var ow = new WorldGenerator(data).Generate(seed);
+    var cal = new LegendsFC.Core.Season.SeasonCalendar(data); var cyc = new LegendsFC.Core.Season.SeasonCycle(data); var orng = new LegendsFC.Core.Util.GameRandom(seed + 7);
+    var met = new System.Collections.Generic.Dictionary<string, (int met, int all)> { ["safe"] = (0, 0), ["standard"] = (0, 0), ["ambitious"] = (0, 0) };
+    var missBy = new System.Collections.Generic.Dictionary<int, int>();
+    for (int s = 0; s < n; s++)
+    {
+        cal.Start(ow, orng);
+        System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, int>> targets = null;
+        while (!ow.Calendar.SeasonOver)
+        {
+            if (ow.Calendar.Week == data.Board.ChooseObjectiveBeforeWeek - 1)
+                targets = ow.Clubs.Where(c => ow.ClubLeague[c.Id] != null).ToDictionary(c => c.Id, c => LegendsFC.Core.Career.Board.Options(ow, c, data));
+            cal.PlayWeek(ow, orng);
+        }
+        var outcomes = cal.Outcomes(ow);
+        foreach (var kv in targets)
+        {
+            var o = outcomes.FirstOrDefault(x => x != null && x.Tables.Values.Any(t => t.Any(r => r.ClubId == kv.Key)) && ow.Competitions.Any(cp => cp.Id == x.CompetitionId && cp.Type == LegendsFC.Core.Model.CompetitionType.League));
+            if (o == null) continue;
+            var table = o.Tables.TryGetValue("League", out var t) ? t : o.Tables.TryGetValue("Annual", out var a) ? a : null;
+            if (table == null) continue;
+            int pos = table.FindIndex(r => r.ClubId == kv.Key) + 1;
+            foreach (var k in met.Keys.ToList()) { var m = met[k]; met[k] = (m.met + (pos <= kv.Value[k] ? 1 : 0), m.all + 1); }
+            int miss = Math.Max(0, pos - kv.Value["standard"]); missBy[miss] = missBy.TryGetValue(miss, out var c0) ? c0 + 1 : 1;
+        }
+        cyc.EndSeason(ow, orng, outcomes);
+    }
+    foreach (var kv in met) Console.WriteLine($"{kv.Key}: met {kv.Value.met * 100.0 / kv.Value.all:F0}% of {kv.Value.all}");
+    Console.WriteLine("Standard objective, places missed by: " + string.Join(", ", missBy.OrderBy(k => k.Key).Select(k => $"{k.Key}: {k.Value * 100.0 / missBy.Values.Sum():F0}%")));
+    return;
+}
+if (args.Length > 0 && args[0] == "economy")
+{
+    // Where the money goes in one league over N seasons. Usage: economy [seed] [seasons] [league]
+    int n = args.Length > 2 ? int.Parse(args[2]) : 10; string lg = args.Length > 3 ? args[3] : "ENG-1";
+    var ew = new WorldGenerator(data).Generate(seed);
+    var ec = new LegendsFC.Core.Season.SeasonCycle(data); var er = new LegendsFC.Core.Util.GameRandom(seed + 1);
+    string M(double v) => (v / 1e6).ToString("0") + "M";
+    Console.WriteLine("Season | income | wages | bar | wages/bar | other | coaches | balance | net transfers | facility avg");
+    for (int i = 0; i < n; i++)
+    {
+        var ids = ew.Clubs.Where(c => ew.ClubLeague[c.Id] == lg).Select(c => c.Id).ToList();
+        var before = ids.ToDictionary(id => id, id => (double)ew.Clubs.First(c => c.Id == id).Balance);
+        int hist = ew.Market.History.Count;
+        var rep = ec.Advance(ew, er);
+        var cl = ids.Select(id => ew.Clubs.First(c => c.Id == id)).ToList();
+        var deals = ew.Market.History.Skip(hist).ToList();
+        double net = ids.Average(id => deals.Where(h => h.FromClubId == id).Sum(h => (double)h.Fee) - deals.Where(h => h.ToClubId == id).Sum(h => (double)h.Fee));
+        double bar = cl.Average(c => LegendsFC.Core.Money.Finance.WageBar(c, lg, "standard", data.Finance));
+        double wages = ids.Average(id => rep.WageBill[id]);
+        Console.WriteLine($"{rep.SeasonStartYear} | {M(ids.Average(id => rep.Income[id].Total))} | {M(wages)} | {M(bar)} | {wages / bar:P0} | {M(cl.Average(c => (double)c.OtherMoney))} | {M(cl.Average(c => (double)c.SpentOnCoaches))} | {M(cl.Average(c => (double)c.Balance))} | {M(net)} | {cl.Average(c => c.Facilities.Values.Average(f => f.Level)):F1}");
+    }
     return;
 }
 if (args.Length > 0 && args[0] == "finance-dump")

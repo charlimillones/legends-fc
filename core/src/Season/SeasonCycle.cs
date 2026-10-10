@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LegendsFC.Core.Data;
@@ -34,11 +35,11 @@ namespace LegendsFC.Core.Season
         {
             var calendar = new SeasonCalendar(_d);
             var m = w.Market;
-            int historyBefore = m.History.Count;
+            var historyBefore = new HashSet<Transfers.TransferRecord>(m.History);   // the season end trims old records
             if (w.Calendar.Week == 0 || w.Calendar.Runs.Count == 0) calendar.Start(w, rng);
             while (!w.Calendar.SeasonOver) calendar.PlayWeek(w, rng);
             var report = EndSeason(w, rng, calendar.Outcomes(w));
-            var deals = m.History.Skip(historyBefore).ToList();
+            var deals = m.History.Where(h => !historyBefore.Contains(h)).ToList();
             report.Transfers = deals.Count(x => !x.Loan && !x.FreeAgent);
             report.Loans = deals.Count(x => x.Loan);
             report.TransferFees = deals.Sum(x => (double)x.Fee);
@@ -74,7 +75,8 @@ namespace LegendsFC.Core.Season
             foreach (var p in w.Players.Where(p => !p.Retired && w.SeasonStartYear - p.BirthYear >= p.RetireAge))
             {
                 retiredNow.Add((p, p.ClubId));
-                p.Retired = true; p.ClubId = null; p.CoachId = null; report.Retired++; w.Market.SquadsChanged();
+                if (p.ClubId != null && !p.FormerClubIds.Contains(p.ClubId)) p.FormerClubIds.Add(p.ClubId);
+                p.Retired = true; p.RetiredYear = w.SeasonStartYear; p.ClubId = null; p.CoachId = null; report.Retired++; w.Market.SquadsChanged();
             }
 
             var swR = System.Diagnostics.Stopwatch.StartNew();
@@ -113,10 +115,47 @@ namespace LegendsFC.Core.Season
             foreach (var coach in Squad.Coaching.SeasonEnd(w, retiredNow, rng, _d))
                 Inbox.InboxEngine.Queue(w, "MSG-COACH-SIGNED", Facility.TrainingGround, _d, ("coach", coach.Name), ("position", Squad.Coaching.GroupName(coach.Group)));
 
+            // Players retired for more than a season move to the light archive (history only; keeps saves small).
+            // Players who never joined a club or played a match leave no history and are dropped.
+            foreach (var p in w.Players.Where(p => p.Retired && p.RetiredYear < w.SeasonStartYear).ToList())
+            {
+                if (p.Stats.Count == 0 && p.FormerClubIds.Count == 0) continue;
+                w.RetiredPlayers.Add(new ArchivedPlayer
+                {
+                    Id = p.Id, Name = p.Name, NationalityId = p.NationalityId, AcademyClubId = p.AcademyClubId, BirthYear = p.BirthYear,
+                    RetiredYear = p.RetiredYear, MainPosition = p.MainPosition, FormerClubIds = p.FormerClubIds, Stats = Squad.Stats.Merged(p.Stats),
+                });
+            }
+            w.Players.RemoveAll(p => p.Retired && p.RetiredYear < w.SeasonStartYear);
+            TrimHistory(w);
+
             // Ready for the next season: a fresh calendar; old finished talks are cleared.
             w.Market.Talks.RemoveAll(t => t.Status != Transfers.TalkStatus.Open && t.Status != Transfers.TalkStatus.Pending);
             w.Calendar = new CalendarState();
             return report;
+        }
+
+        /// <summary>
+        /// Keeps long careers light (saves.json): transfer records of the last seasons, the newest inbox messages
+        /// (open decisions are never dropped), and the AI clubs' event logs only as far back as the no-repeat rule looks.
+        /// </summary>
+        public void TrimHistory(GameWorld w)
+        {
+            var c = _d.Saves;
+            int year = w.SeasonStartYear;
+            if (c.KeepTransferSeasons > 0) w.Market.History.RemoveAll(h => year - h.Season >= c.KeepTransferSeasons);
+            var box = w.Inbox.Messages;
+            if (c.KeepInboxMessages > 0 && box.Count > c.KeepInboxMessages)
+            {
+                var open = new HashSet<int>(w.Career.Decisions.Select(x => x.Id));
+                int drop = box.Count - c.KeepInboxMessages;
+                var old = box.OrderBy(m => m.Id).Where(m => m.DecisionId == 0 || !open.Contains(m.DecisionId)).Take(drop).ToList();
+                var gone = new HashSet<Inbox.InboxMessage>(old);
+                box.RemoveAll(gone.Contains);
+            }
+            int keepEvents = Math.Max(2, _d.Events.NoRepeatSeasons);
+            foreach (var kv in w.ClubEvents)
+                if (kv.Key != w.UserClubId) kv.Value.RemoveAll(e => year - e.Season > keepEvents);
         }
 
         /// <summary>
@@ -131,7 +170,7 @@ namespace LegendsFC.Core.Season
                 if (p.Retired) continue;
                 if (p.ClubId != null) { p.UnsignedSeasons = 0; continue; }
                 p.UnsignedSeasons++;
-                if (p.UnsignedSeasons > limit) { p.Retired = true; retired++; }
+                if (p.UnsignedSeasons > limit) { p.Retired = true; p.RetiredYear = w.SeasonStartYear; retired++; }
             }
             return retired;
         }
@@ -253,6 +292,7 @@ namespace LegendsFC.Core.Season
                 double upkeep = income.Total * f.UpkeepShareOfIncome;
                 club.Balance = System.Math.Max(0, club.Balance + (long)System.Math.Round(income.Total - wages - upkeep)); // never below zero (Oct 9)
                 if (club.Balance == 0) report.ClubsAtZero++;
+                club.LastSeasonIncome = (long)System.Math.Round(income.Total);
                 report.Income[club.Id] = income; report.WageBill[club.Id] = wages;
             }
         }

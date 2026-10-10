@@ -2,5 +2,8 @@
   "_source": "Saves (Oct 9, PROPOSAL from the decisions doc: local save worlds in v1.0, cloud saves in v1.x, 'multiple save slots (worlds)'). Up to 5 worlds on a device; each save keeps its last 2 versions as backups; the game autosaves after every week.",
   "maxWorlds": 5,
   "backups": 2,
-  "autosaveEveryWeek": true
+  "autosaveEveryWeek": true,
+  "_historyNote": "History kept in a save (PROPOSAL, Oct 10 night): transfer records of the last 5 seasons, the newest 300 inbox messages (open decisions always stay). Retired players keep name, clubs and season-by-season numbers; players who never played are dropped.",
+  "keepTransferSeasons": 5,
+  "keepInboxMessages": 300
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using LegendsFC.Core.Model;
 
@@ -12,6 +13,11 @@ namespace LegendsFC.Core.World
         public List<Competition> Competitions = new List<Competition>();
         public List<Club> Clubs = new List<Club>();
         public List<Player> Players = new List<Player>();
+        /// <summary>Players retired for more than a season (history only).</summary>
+        public List<ArchivedPlayer> RetiredPlayers = new List<ArchivedPlayer>();
+
+        /// <summary>A player's name, playing or archived (for awards and history screens).</summary>
+        public string PlayerName(string id) => Players.FirstOrDefault(p => p.Id == id)?.Name ?? RetiredPlayers.FirstOrDefault(p => p.Id == id)?.Name;
         /// <summary>Every coach: at clubs and in the free pool (Oct 9).</summary>
         public List<Coach> Coaches = new List<Coach>();
         public int CoachSeq;
