@@ -52,6 +52,8 @@ namespace LegendsFC.Core.Career
         public int ObjectiveTarget;
         public bool ObjectiveMet;
         public List<string> Titles = new List<string>();
+        /// <summary>Moved up or down a division at the end of this season.</summary>
+        public bool Promoted, Relegated;
     }
 
     public sealed class AwardRecord
@@ -335,6 +337,7 @@ namespace LegendsFC.Core.Career
                 var row = table[i];
                 s.LeagueId = o.CompetitionId; s.Position = i + 1; s.Teams = table.Count;
                 s.Won = row.Won; s.Drawn = row.Drawn; s.Lost = row.Lost; s.GoalsFor = row.GoalsFor; s.GoalsAgainst = row.GoalsAgainst;
+                s.Promoted = o.Promoted.Contains(club.Id); s.Relegated = o.Relegated.Contains(club.Id);
                 break;
             }
             foreach (var run in w.Calendar.Runs)

@@ -66,6 +66,21 @@ public class CareerTests : IDisposable
     }
 
     [Fact]
+    public void TheSummary_SaysWhenTheClubGoesUpOrDown()
+    {
+        var w = new WorldGenerator(D).Generate(47);
+        var cal = new SeasonCalendar(D); var rng = new GameRandom(48);
+        cal.Start(w, rng);
+        while (!w.Calendar.SeasonOver) cal.PlayWeek(w, rng);
+        var outcomes = cal.Outcomes(w);
+        string down = outcomes.First(o => o?.CompetitionId == "ENG-1").Relegated[0], up = outcomes.First(o => o?.CompetitionId == "ENG-2").Promoted[0];
+        var a = Board.Summary(w, w.Clubs.First(c => c.Id == down), outcomes, D);
+        var b = Board.Summary(w, w.Clubs.First(c => c.Id == up), outcomes, D);
+        Assert.True(a.Relegated); Assert.False(a.Promoted); Assert.Equal("ENG-1", a.LeagueId);
+        Assert.True(b.Promoted); Assert.False(b.Relegated); Assert.Equal("ENG-2", b.LeagueId);
+    }
+
+    [Fact]
     public void SackedAfterABadRun_OffersFromLowerClubs_NeverGameOver()
     {
         var s = New(45, "BRA-1");

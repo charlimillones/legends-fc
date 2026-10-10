@@ -207,6 +207,8 @@ namespace LegendsFC.App
             UIKit.Title(list, $"Season {Fmt.Season(sum.Season)} summary");
             if (sum.LeagueId != null)
                 UIKit.Note(list, $"{Fmt.Competition(sum.LeagueId)}: {Fmt.Ordinal(sum.Position)} of {sum.Teams}   W{sum.Won} D{sum.Drawn} L{sum.Lost}, goals {sum.GoalsFor}-{sum.GoalsAgainst}", UIKit.Ink, 28);
+            if (sum.Promoted) UIKit.Note(list, "Promoted!", UIKit.Accent, 30);
+            if (sum.Relegated) UIKit.Note(list, "Relegated.", UIKit.Bad, 30);
             UIKit.Note(list, $"Objective ({sum.ObjectiveKind}): finish {Fmt.Ordinal(sum.ObjectiveTarget)} or better - {(sum.ObjectiveMet ? "met" : "missed")}", sum.ObjectiveMet ? UIKit.Accent : UIKit.Bad, 26);
             foreach (var c in sum.Cups) UIKit.Note(list, $"{Fmt.Competition(c.CompetitionId)}: {(c.Won ? "WON" : c.Stage)}", c.Won ? UIKit.Accent : UIKit.Ink);
             foreach (var t in sum.Titles) UIKit.Note(list, "Title: " + t, UIKit.Accent, 26);
