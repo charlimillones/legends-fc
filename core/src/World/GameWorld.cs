@@ -30,6 +30,9 @@ namespace LegendsFC.Core.World
         /// <summary>Titles won, per club: "Champions Cup 2027/28" style entries (competition id, season start year).</summary>
         public List<Season.TitleRecord> Honours = new List<Season.TitleRecord>();
 
+        /// <summary>The user's inbox (manager messages) and what its triggers remember.</summary>
+        public Inbox.InboxState Inbox = new Inbox.InboxState();
+
         /// <summary>League id for league clubs, country id for cup-only clubs (keys of the finance config).</summary>
         public string MoneyKey(Model.Club club) => ClubLeague.TryGetValue(club.Id, out var l) && l != null ? l : club.CountryId;
     }

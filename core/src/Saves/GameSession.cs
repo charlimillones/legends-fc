@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using LegendsFC.Core.Data;
 using LegendsFC.Core.Season;
 using LegendsFC.Core.Util;
@@ -66,14 +68,53 @@ namespace LegendsFC.Core.Saves
             Save(nowUtc);
         }
 
-        /// <summary>Plays one week (the end of the season runs after week 52), then autosaves.</summary>
+        /// <summary>Manager messages delivered with the last week (at most 2).</summary>
+        public List<Inbox.InboxMessage> NewMessages { get; private set; } = new List<Inbox.InboxMessage>();
+
+        /// <summary>Plays one week (the end of the season runs after week 52), delivers the inbox, then autosaves.</summary>
         public WeekReport AdvanceWeek(string nowUtc)
         {
+            var before = Inbox.InboxEngine.Snapshot(World);
             if (World.Calendar.Week == 0 || World.Calendar.Runs.Count == 0) _calendar.Start(World, Rng);
             var report = _calendar.PlayWeek(World, Rng);
+            var played = World.Calendar;   // the season-end reset replaces it
             if (World.Calendar.SeasonOver) LastSeason = _cycle.EndSeason(World, Rng, _calendar.Outcomes(World));
+            NewMessages = Inbox.InboxEngine.AfterWeek(World, before, report, played, _d);
             if (Autosave) Save(nowUtc);
             return report;
+        }
+
+        // ---- the user's actions between weeks (same rules as the AI)
+
+        public Model.Club UserClub => World.Clubs.FirstOrDefault(c => c.Id == World.UserClubId);
+
+        /// <summary>Instant upgrade at the fixed price (Oct 9). The manager thanks you in next week's messages.</summary>
+        public Facilities.UpgradeResult UpgradeFacility(Model.Facility f)
+        {
+            var club = UserClub;
+            var r = Facilities.FacilityRules.Upgrade(club, f, _d.FacilityRules);
+            if (r == Facilities.UpgradeResult.Done) Inbox.InboxEngine.QueueUpgrade(World, club, f, _d);
+            return r;
+        }
+
+        public bool RepairFacility(Model.Facility f)
+        {
+            var club = UserClub;
+            bool needed = club.Facilities[f].Condition < 100;
+            bool ok = Facilities.FacilityRules.Repair(club, f, _d.FacilityRules);
+            if (ok && needed) Inbox.InboxEngine.Queue(World, "MSG-REPAIRED", f, _d, ("facility", _d.FacilityName(f)));
+            return ok;
+        }
+
+        /// <summary>Repair all: pays every repair at once (or nothing). One manager thanks you for the biggest job.</summary>
+        public bool RepairAll()
+        {
+            var club = UserClub;
+            var worst = club.Facilities.OrderBy(kv => kv.Value.Condition).ThenBy(kv => kv.Key).First();
+            bool needed = worst.Value.Condition < 100;
+            bool ok = Facilities.FacilityRules.RepairAll(club, _d.FacilityRules);
+            if (ok && needed) Inbox.InboxEngine.Queue(World, "MSG-REPAIRED", worst.Key, _d, ("facility", _d.FacilityName(worst.Key)));
+            return ok;
         }
 
         public void Save(string nowUtc) => _store?.Save(SlotId, World, Rng, Name, nowUtc);

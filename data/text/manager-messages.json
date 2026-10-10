@@ -1,0 +1,617 @@
+{
+  "_source": "Facility manager messages, 45 triggers x 5 wordings, accepted by Carlos Oct 9 (manager-messages-draft.md v4). Priority: 1 injuries and health, 2 damage, level drops and maintenance, 3 contracts and rival interest, 4 everything else. waitsFor = the system the trigger needs before it can fire. [brackets] are filled in by the game. repeatable (PROPOSAL): the monthly report is exempt from the no-repeat rules, since it comes 13 times a season and has 5 wordings.",
+  "roles": {
+    "Stadium": "groundskeeper",
+    "TrainingGround": "head of training",
+    "Academy": "academy director",
+    "MedicalCentre": "head of medical",
+    "ClubStore": "store manager",
+    "ScoutingCentre": "Chief Scout"
+  },
+  "triggers": [
+    {
+      "id": "MSG-UPGRADED",
+      "name": "Facility upgraded",
+      "sender": "any",
+      "priority": 4,
+      "wordings": [
+        "Thanks, boss! The new [facility] level [level] is ready. You'll notice the difference.",
+        "Level [level] is open for business. The staff can't stop smiling.",
+        "The work's done. The [facility] has never looked better.",
+        "Money well spent, boss. Level [level] is up and running.",
+        "Come and have a look at the new [facility]. Level [level], finished today."
+      ]
+    },
+    {
+      "id": "MSG-COND-60",
+      "name": "Condition below 60%",
+      "sender": "any",
+      "priority": 2,
+      "wordings": [
+        "The [facility] is starting to show its age. A bit of maintenance would help.",
+        "Nothing serious yet, but the [facility] needs some attention.",
+        "Wear and tear is building up here. Condition is at [n]%.",
+        "A few things need fixing at the [facility]. Better now than later.",
+        "The [facility] has seen better days. I'd budget for repairs."
+      ]
+    },
+    {
+      "id": "MSG-COND-30",
+      "name": "Condition below 30%",
+      "sender": "any",
+      "priority": 2,
+      "wordings": [
+        "Boss, the [facility] is in poor shape. It's hurting our work.",
+        "I have to be honest: the [facility] is falling apart. [n]% condition.",
+        "We can't keep working like this. The [facility] needs repairs now.",
+        "If we don't fix the [facility] soon, we could lose a level.",
+        "The staff complain every day. The [facility] is at [n]%."
+      ]
+    },
+    {
+      "id": "MSG-REPAIRED",
+      "name": "Maintenance paid",
+      "sender": "any",
+      "priority": 2,
+      "wordings": [
+        "All repaired. Like new again.",
+        "Thanks for the investment, boss. Everything works as it should.",
+        "Repairs finished. The [facility] is back to 100%.",
+        "The workers have gone home. Good as new.",
+        "That's sorted. We can get back to work properly."
+      ]
+    },
+    {
+      "id": "MSG-LEVEL-DROP",
+      "name": "Level drop",
+      "sender": "any",
+      "priority": 2,
+      "wordings": [
+        "Bad news: we've lost a level on the [facility]. We'll need investment to get it back.",
+        "It finally happened, boss. The [facility] has dropped to level [level].",
+        "Years without proper care have caught up with us. We're down to level [level].",
+        "I'm sorry to say the [facility] is now level [level].",
+        "The [facility] couldn't hold on. Level [level] now, and condition is at 50%."
+      ]
+    },
+    {
+      "id": "MSG-MANAGER-RETIRING",
+      "name": "Manager retiring",
+      "sender": "any",
+      "priority": 4,
+      "wordings": [
+        "This will be my last season, boss. It's been an honour.",
+        "I'm hanging up my keys at the end of the season. Thank you for everything.",
+        "After all these years, it's time for me to rest. I'll leave this summer.",
+        "I wanted you to hear it from me first: I'm retiring at the end of the season.",
+        "One last season, then I'll pass the [facility] to someone younger."
+      ]
+    },
+    {
+      "id": "MSG-NEW-MANAGER",
+      "name": "New manager arrives",
+      "sender": "any",
+      "priority": 4,
+      "wordings": [
+        "Hello, boss. I'm [name], the new [role]. Give me a few weeks to settle in.",
+        "[name] here, your new [role]. Happy to be at [club].",
+        "Nice to meet you, boss. I'm [name]. I'll get to know the [facility] quickly.",
+        "I'm [name], the new [role]. The handover cost us a little, but we'll be fine.",
+        "[name], reporting for work. The [facility] is in good hands."
+      ]
+    },
+    {
+      "id": "MSG-EVENT-DAMAGE",
+      "name": "Random event hits the facility",
+      "sender": "any",
+      "priority": 2,
+      "waitsFor": "events",
+      "wordings": [
+        "The storm did some damage here. I've listed the repairs.",
+        "We've had some trouble at the [facility]: [event]. Condition is down to [n]%.",
+        "[event] hit us this week. The repairs are on your desk.",
+        "Not a good week, boss. [event] damaged the [facility].",
+        "[event]. Nobody was hurt, but the [facility] needs work."
+      ]
+    },
+    {
+      "id": "MSG-SELL-OUT",
+      "name": "Sell-out",
+      "sender": "Stadium",
+      "priority": 4,
+      "wordings": [
+        "Full house today! Not an empty seat in the ground.",
+        "Sold out! [n] fans packed in.",
+        "Every ticket gone. The noise was incredible.",
+        "We had to turn people away at the gates. Sell-out.",
+        "Not a seat to spare today. The fans are with us."
+      ]
+    },
+    {
+      "id": "MSG-LOW-ATTENDANCE",
+      "name": "Low attendance",
+      "sender": "Stadium",
+      "priority": 4,
+      "wordings": [
+        "Lots of empty seats today. The fans need something to cheer about.",
+        "Only [n] came today. The ground felt cold.",
+        "The stands were half empty. Results would bring them back.",
+        "Quiet day at the turnstiles, boss.",
+        "We could hear the players shouting. Not many fans in today."
+      ]
+    },
+    {
+      "id": "MSG-RECORD-ATTENDANCE",
+      "name": "Record attendance",
+      "sender": "Stadium",
+      "priority": 4,
+      "wordings": [
+        "New attendance record: [n] fans!",
+        "History made: [n] fans, the most ever.",
+        "Write it down, boss: [n] people today. A club record.",
+        "We've never had a crowd like it. [n] fans!",
+        "The old record has gone. [n] through the gates today."
+      ]
+    },
+    {
+      "id": "MSG-BIG-MATCH",
+      "name": "Big match coming",
+      "sender": "Stadium",
+      "priority": 4,
+      "wordings": [
+        "We're getting the ground ready for the derby. It'll be electric.",
+        "[opponent] are coming on [day]. We're expecting a big crowd.",
+        "Big game this week. The pitch is in perfect shape.",
+        "Tickets for the [competition] match are almost gone.",
+        "Everyone in town is talking about [opponent]. We'll be ready."
+      ]
+    },
+    {
+      "id": "MSG-STADIUM-UPGRADED",
+      "name": "Stadium upgrade done",
+      "sender": "Stadium",
+      "priority": 4,
+      "wordings": [
+        "The new stand looks fantastic. Capacity is now [n].",
+        "Level [level] is finished. We can fit [n] fans now.",
+        "More seats, better views. The fans will love it.",
+        "The builders have left. Our new capacity is [n].",
+        "The stadium looks like a big club's ground now."
+      ]
+    },
+    {
+      "id": "MSG-ATTRIBUTE-UP",
+      "name": "Player attribute rises",
+      "sender": "TrainingGround",
+      "priority": 4,
+      "wordings": [
+        "The lads are working hard. [player]'s [attribute] has improved.",
+        "Good news: [player] is getting better at [attribute].",
+        "[player] has made a step forward in [attribute].",
+        "All that work is paying off. [player]'s [attribute] is up.",
+        "I noticed it in training today: [player]'s [attribute] has improved."
+      ]
+    },
+    {
+      "id": "MSG-GOOD-WEEK",
+      "name": "Several players improve in a week",
+      "sender": "TrainingGround",
+      "priority": 4,
+      "wordings": [
+        "Great week of training. [n] players improved.",
+        "Everyone was sharp this week. [n] players got better.",
+        "Brilliant week at the Training Grounds: [n] improvements.",
+        "The squad is buzzing. [n] players improved this week.",
+        "I haven't seen a week like this in a while. [n] players stepped up."
+      ]
+    },
+    {
+      "id": "MSG-HEAVY-TOO-LONG",
+      "name": "Heavy regime too long",
+      "sender": "TrainingGround",
+      "priority": 1,
+      "waitsFor": "per-player training regimes",
+      "wordings": [
+        "[player] looks tired. Maybe ease off the heavy sessions.",
+        "[player] has been on heavy training for weeks. He needs a break.",
+        "I'd change [player]'s regime. He's running on empty.",
+        "Heavy work is good, but not forever. [player] is struggling.",
+        "[player] is exhausted. Lighter sessions for a while?"
+      ]
+    },
+    {
+      "id": "MSG-STALLED",
+      "name": "Player stalls",
+      "sender": "TrainingGround",
+      "priority": 4,
+      "wordings": [
+        "[player] has hit a wall. A different coach or regime might help.",
+        "[player] hasn't improved in a while.",
+        "We're not getting more out of [player] right now. Try something new?",
+        "[player] seems stuck. Maybe a change of routine.",
+        "Nothing new from [player] lately. He might need a fresh approach."
+      ]
+    },
+    {
+      "id": "MSG-COACH-SIGNED",
+      "name": "New coach signed",
+      "sender": "TrainingGround",
+      "priority": 4,
+      "waitsFor": "coaches",
+      "wordings": [
+        "[coach] has joined the staff. The [position] group is excited.",
+        "Welcome, [coach]! He'll work with the [position] group.",
+        "[coach] starts today. The players already like him.",
+        "New face on the training pitch: [coach], for the [position] group.",
+        "[coach] has arrived. The [position] group finally has its own coach."
+      ]
+    },
+    {
+      "id": "MSG-COACH-CONTRACT",
+      "name": "Coach contract ending",
+      "sender": "TrainingGround",
+      "priority": 3,
+      "waitsFor": "coaches",
+      "wordings": [
+        "[coach]'s contract ends this season. Want to renew?",
+        "Just a reminder: [coach] is out of contract in the summer.",
+        "[coach] asked me about his future. His deal is nearly over.",
+        "We should talk about [coach]. His contract runs out soon.",
+        "[coach] would like to know if he's staying next season."
+      ]
+    },
+    {
+      "id": "MSG-COACH-GROUP-BIG",
+      "name": "Coach group too big",
+      "sender": "TrainingGround",
+      "priority": 4,
+      "waitsFor": "coaches",
+      "wordings": [
+        "[coach] is training a lot of players. Growth will be slower.",
+        "[coach] has [n] players to look after. That's too many.",
+        "The [position] group is crowded. [coach] can't give everyone time.",
+        "[coach] is stretched thin. Another coach would help.",
+        "Too many players for one coach in the [position] group."
+      ]
+    },
+    {
+      "id": "MSG-INTAKE",
+      "name": "Youth intake day",
+      "sender": "Academy",
+      "priority": 4,
+      "wordings": [
+        "The new intake has arrived: [n] youngsters. Come and take a look.",
+        "[n] new kids joined the Youth Academy today.",
+        "Intake day! [n] youngsters are ready to learn.",
+        "Fresh faces at the Youth Academy: [n] of them.",
+        "The new group is here. [n] kids hoping to make it."
+      ]
+    },
+    {
+      "id": "MSG-TOP-PROSPECT",
+      "name": "Top prospect in the intake",
+      "sender": "Academy",
+      "priority": 4,
+      "wordings": [
+        "One of the kids stands out. Keep an eye on [player].",
+        "There's something about [player]. I like him.",
+        "[player] caught everyone's eye this week.",
+        "If I had to pick one from this intake, it's [player].",
+        "Remember the name: [player]."
+      ]
+    },
+    {
+      "id": "MSG-PROTEGE",
+      "name": "Protégé created",
+      "sender": "Academy",
+      "priority": 4,
+      "wordings": [
+        "[player] has joined the Youth Academy. Big things are expected of him.",
+        "Your protégé [player] has arrived. We'll look after him.",
+        "[player] is here. The whole academy knows he's special to you.",
+        "Welcome, [player]. Your protégé starts today.",
+        "[player] has moved into the Youth Academy. Let's make him a star."
+      ]
+    },
+    {
+      "id": "MSG-YOUNGSTER-READY",
+      "name": "Youngster ready for the first team",
+      "sender": "Academy",
+      "priority": 4,
+      "wordings": [
+        "[player] is ready for the first team, in my opinion.",
+        "I think [player] could help the first team now.",
+        "[player] has nothing left to prove here. Give him a chance?",
+        "It's time for [player] to train with the first team.",
+        "[player] is knocking on the door, boss."
+      ]
+    },
+    {
+      "id": "MSG-DEBUT",
+      "name": "Academy graduate debuts",
+      "sender": "Academy",
+      "priority": 4,
+      "waitsFor": "match lineups",
+      "wordings": [
+        "Proud day. [player] made his debut!",
+        "From our Youth Academy to the first team: well done, [player]!",
+        "I watched [player]'s debut with a tear in my eye.",
+        "Another one of ours! [player] has made his debut.",
+        "[player] played his first game for [club]. Everyone here is proud."
+      ]
+    },
+    {
+      "id": "MSG-YOUNGSTER-RELEASED",
+      "name": "Youngster released",
+      "sender": "Academy",
+      "priority": 4,
+      "wordings": [
+        "We had to let [player] go. I hope he finds a club.",
+        "[player] has left the Youth Academy. Not everyone makes it.",
+        "Hard day. We said goodbye to [player].",
+        "[player] is moving on. We wish him luck.",
+        "I told [player] the news myself. He took it well."
+      ]
+    },
+    {
+      "id": "MSG-INJURED",
+      "name": "Player injured",
+      "sender": "MedicalCentre",
+      "priority": 1,
+      "waitsFor": "injuries",
+      "wordings": [
+        "We're taking care of [player]. He should be out for about [n] weeks.",
+        "[player] picked up a [injury]. [n] weeks out.",
+        "[player] will miss the next [n] weeks with a [injury].",
+        "Bad luck for [player]: a [injury]. About [n] weeks.",
+        "[player] is in the treatment room. Expect him back in [n] weeks."
+      ]
+    },
+    {
+      "id": "MSG-SERIOUS-INJURY",
+      "name": "Serious injury",
+      "sender": "MedicalCentre",
+      "priority": 1,
+      "waitsFor": "injuries",
+      "wordings": [
+        "It's serious, boss. [player] will miss [n] months.",
+        "The scans aren't good. [player] is out for [n] months.",
+        "Terrible news: [player] has a [injury]. [n] months out.",
+        "[player]'s season might be over. [n] months.",
+        "We'll do everything we can, but [player] is out for [n] months."
+      ]
+    },
+    {
+      "id": "MSG-RECOVERY-AHEAD",
+      "name": "Recovery ahead of schedule",
+      "sender": "MedicalCentre",
+      "priority": 1,
+      "waitsFor": "injuries",
+      "wordings": [
+        "Good news: [player] is recovering faster than expected.",
+        "[player] is ahead of schedule. Maybe [n] weeks less.",
+        "[player] is healing well. He'll be back sooner than we thought.",
+        "Our physios have done great work with [player].",
+        "[player] is flying through his recovery."
+      ]
+    },
+    {
+      "id": "MSG-BACK-IN-TRAINING",
+      "name": "Player back in training",
+      "sender": "MedicalCentre",
+      "priority": 1,
+      "waitsFor": "injuries",
+      "wordings": [
+        "[player] is back in training and fit to play.",
+        "[player] has been cleared. He's available.",
+        "Welcome back, [player]! Fully fit.",
+        "[player] trained with the group today. No pain.",
+        "[player]'s injury is behind him. Ready when you need him."
+      ]
+    },
+    {
+      "id": "MSG-ILLNESS",
+      "name": "Illness spreading",
+      "sender": "MedicalCentre",
+      "priority": 1,
+      "waitsFor": "injuries",
+      "wordings": [
+        "A bug is going round the dressing room. We're isolating the sick players.",
+        "[n] players are ill this week. We're keeping them apart.",
+        "Flu has hit the squad. [n] players are in bed.",
+        "Something is going round. Expect a few players to miss training.",
+        "We're cleaning everything. [n] players are sick."
+      ]
+    },
+    {
+      "id": "MSG-TOO-MANY-INJURIES",
+      "name": "Too many injuries",
+      "sender": "MedicalCentre",
+      "priority": 1,
+      "waitsFor": "injuries",
+      "wordings": [
+        "We've got [n] players in the treatment room. It's stretching us thin.",
+        "[n] injured at once. We're working overtime.",
+        "The treatment room is full, boss. [n] players.",
+        "I've never seen so many injuries at once: [n].",
+        "We're struggling with [n] injured players."
+      ]
+    },
+    {
+      "id": "MSG-INJURY-RISK",
+      "name": "Player at injury risk",
+      "sender": "MedicalCentre",
+      "priority": 1,
+      "waitsFor": "injuries",
+      "wordings": [
+        "[player] is showing signs of strain. I'd rest him.",
+        "[player] is close to the limit. One more game could be one too many.",
+        "I'm worried about [player]. Rest him if you can.",
+        "[player]'s body needs a break.",
+        "[player] is tired and at risk. Your call, boss."
+      ]
+    },
+    {
+      "id": "MSG-BIG-WIN",
+      "name": "Big win",
+      "sender": "ClubStore",
+      "priority": 4,
+      "wordings": [
+        "Shirt sales are up after that win!",
+        "Everyone wants a scarf after [score] against [opponent]!",
+        "That win was great for business, boss.",
+        "Busy day at the Club Store. The fans are happy.",
+        "We sold out of scarves after the win."
+      ]
+    },
+    {
+      "id": "MSG-NEW-KIT",
+      "name": "New kit launched",
+      "sender": "ClubStore",
+      "priority": 4,
+      "waitsFor": "kits",
+      "wordings": [
+        "The new kit is flying off the shelves.",
+        "The new shirts are a hit. We can barely keep up.",
+        "Queues outside the store for the new kit!",
+        "The fans love the new kit.",
+        "Launch day went well. The new kit is everywhere in town."
+      ]
+    },
+    {
+      "id": "MSG-STAR-SIGNING",
+      "name": "Star signing",
+      "sender": "ClubStore",
+      "priority": 4,
+      "wordings": [
+        "Everyone wants [player]'s shirt. We've sold [n] already.",
+        "[player]'s name is on every shirt we sell.",
+        "The [player] effect: sales are way up.",
+        "We've ordered more letters. [player] shirts are selling fast.",
+        "Kids are queueing for [player]'s shirt."
+      ]
+    },
+    {
+      "id": "MSG-BAD-RUN",
+      "name": "Bad run",
+      "sender": "ClubStore",
+      "priority": 4,
+      "wordings": [
+        "Sales are slow. The fans are disappointed.",
+        "Quiet week in the store. Nobody is buying.",
+        "The results are hurting sales, boss.",
+        "We need some wins. The shelves are full.",
+        "Fans walk past the store without looking in."
+      ]
+    },
+    {
+      "id": "MSG-TROPHY",
+      "name": "Trophy won",
+      "sender": "ClubStore",
+      "priority": 4,
+      "wordings": [
+        "Trophy merchandise is selling out!",
+        "Champions shirts are gone in minutes!",
+        "Best week ever for the Club Store. The [trophy] sells itself.",
+        "Everyone wants a piece of the [trophy] celebration.",
+        "We've printed [trophy] shirts all night. Still not enough."
+      ]
+    },
+    {
+      "id": "MSG-MONTHLY-REPORT",
+      "name": "Monthly report",
+      "sender": "ClubStore",
+      "priority": 4,
+      "repeatable": true,
+      "wordings": [
+        "This month's Club Store income: [amount].",
+        "Monthly figures are in: [amount].",
+        "The Club Store made [amount] this month.",
+        "[amount] from the store this month, [up/down] on last month.",
+        "Here's the month, boss: [amount] in sales."
+      ]
+    },
+    {
+      "id": "MSG-SCOUT-REPORT",
+      "name": "Scout report ready",
+      "sender": "ScoutingCentre",
+      "priority": 4,
+      "waitsFor": "scouts",
+      "wordings": [
+        "[scout] has finished his report on [region/position].",
+        "New report on your desk: [region/position].",
+        "[scout] is back from [region]. His notes are ready.",
+        "The [position] report is done. [n] players worth a look.",
+        "[scout] has sent his report. Have a look when you can."
+      ]
+    },
+    {
+      "id": "MSG-WONDERKID",
+      "name": "Wonderkid found",
+      "sender": "ScoutingCentre",
+      "priority": 4,
+      "waitsFor": "scouts",
+      "wordings": [
+        "We've found a special talent in [country]: [player], [age].",
+        "[scout] can't stop talking about [player] ([age], [country]).",
+        "Rare find: [player], [age]. Watch him.",
+        "A [age]-year-old in [country] has caught our eye: [player].",
+        "I'd move fast on [player]. Others will find him soon."
+      ]
+    },
+    {
+      "id": "MSG-OPPONENT-REPORT",
+      "name": "Next opponent report",
+      "sender": "ScoutingCentre",
+      "priority": 4,
+      "waitsFor": "scouts",
+      "wordings": [
+        "Here's what we know about [opponent] before [day].",
+        "The [opponent] report is ready. Watch out for [player].",
+        "We've studied [opponent]. They like to play [formation].",
+        "Our notes on [opponent] are on your desk.",
+        "[opponent] have won [n] of their last 5. Here's how they play."
+      ]
+    },
+    {
+      "id": "MSG-SCOUTING-UPGRADED",
+      "name": "Scouting upgrade",
+      "sender": "ScoutingCentre",
+      "priority": 4,
+      "wordings": [
+        "With the new level we can see a lot more about players.",
+        "Level [level]! Our reports will be much sharper now.",
+        "The new Scouting Centre means fewer surprises.",
+        "We can reach further now. More countries, more details.",
+        "Better tools, better reports. Thanks, boss."
+      ]
+    },
+    {
+      "id": "MSG-RIVAL-INTEREST",
+      "name": "Rival interest in our player",
+      "sender": "ScoutingCentre",
+      "priority": 3,
+      "wordings": [
+        "[club] has been scouting [player]. Expect a bid.",
+        "[club] scouts were at our last game. They were watching [player].",
+        "Word is [club] like [player].",
+        "I've heard [club] are asking about [player].",
+        "Be ready, boss. [club] want [player]."
+      ]
+    },
+    {
+      "id": "MSG-SCOUT-CONTRACT",
+      "name": "Scout contract ending",
+      "sender": "ScoutingCentre",
+      "priority": 3,
+      "waitsFor": "scouts",
+      "wordings": [
+        "[scout]'s contract ends soon.",
+        "[scout] is out of contract this summer.",
+        "Do we keep [scout]? His deal is nearly over.",
+        "[scout] asked about a new contract.",
+        "Reminder: [scout]'s contract runs out at the end of the season."
+      ]
+    }
+  ]
+}

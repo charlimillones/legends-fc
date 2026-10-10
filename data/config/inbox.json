@@ -1,0 +1,23 @@
+{
+  "_source": "Inbox (rules confirmed Oct 8, wordings Oct 9). At most 2 manager messages a week by priority; lower ones wait up to 2 weeks, then are dropped. The thresholds below are PROPOSALS for when each trigger fires.",
+  "managerMessagesPerWeek": 2,
+  "maxWaitWeeks": 2,
+  "_attendanceNote": "Attendance for home league matches (PROPOSAL): the season fill rate (finance.json fillBase + fillMood) x a random 0.85-1.15, up to the Stadium's capacity. A full ground is a sell-out; under 60% is a low attendance.",
+  "attendanceRandomMin": 0.85,
+  "attendanceRandomMax": 1.15,
+  "lowAttendanceBelow": 0.6,
+  "_trainingNote": "A player stalls after 12 training weeks without any attribute rising (players 29 or younger). 5 or more players improving in a week is a great week.",
+  "stallTrainingWeeks": 12,
+  "stallMaxAge": 29,
+  "goodWeekPlayers": 5,
+  "_storeNote": "Big win: by 3+ goals. Bad run: 5 matches without a win. Star signing: a new arrival who goes straight into the squad's top 3 (shirts sold = reputation x 20-60). Monthly report every 4 weeks (store income for the month).",
+  "bigWinMargin": 3,
+  "badRunMatches": 5,
+  "starSigningTopRank": 3,
+  "shirtsPerReputationMin": 20,
+  "shirtsPerReputationMax": 60,
+  "weeksPerMonth": 4,
+  "_youthNote": "Youngsters are academy players 21 or younger. Ready for the first team: rated at least as high as the squad's 18th best player (once per player).",
+  "youngsterMaxAge": 21,
+  "youngsterReadyRank": 18
+}
