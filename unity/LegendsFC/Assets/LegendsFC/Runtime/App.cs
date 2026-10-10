@@ -43,7 +43,7 @@ namespace LegendsFC.App
             I = this;
             Application.targetFrameRate = 60;
             Application.runInBackground = true;
-            // Landscape only, like the match (PROPOSAL Oct 10): the screens are laid out for 16:9 and wider.
+            // Landscape only, like the match (confirmed by Carlos, Oct 10): the screens are laid out for 16:9 and wider.
             Screen.autorotateToPortrait = false; Screen.autorotateToPortraitUpsideDown = false;
             Screen.autorotateToLandscapeLeft = true; Screen.autorotateToLandscapeRight = true;
             Screen.orientation = ScreenOrientation.AutoRotation;   // the week keeps playing if the app loses focus (and the editor keeps rendering)

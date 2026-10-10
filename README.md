@@ -10,7 +10,8 @@ Offline mobile football game for phones and tablets: club management (career, tr
 | `data/` | Game data: `rules/` (JSON rule sets), `config/` (tuning constants, each with its source). |
 | `unity/` | The Unity 6 project (match, screens). Created on the Windows PC. |
 | `tools/balancing/` | Balancing simulations (Python). |
-| `docs/progress.md` | What's done, in progress and next. |
+| `docs/progress.md` | Finished work only (open work lives in the project backlog). |
+| `docs/how-we-work.md` | How every chat and sub-agent works on this project (top rule). |
 
 ## Run the tests
 ```

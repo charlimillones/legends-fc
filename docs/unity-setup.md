@@ -2,8 +2,8 @@
 
 1. **Git for Windows:** run `Git-2.56.0.2-64-bit.exe` from Downloads and accept the defaults.
 2. **Unity Hub:** sign in at unity.com (free account), download Unity Hub and install it.
-3. **Unity editor:** in Unity Hub, go to Installs → Install Editor → **Unity 6 LTS**, and tick these modules:
-   - **iOS Build Support** (exports the Xcode project; it's compiled on a cloud Mac later)
+3. **Unity editor:** in Unity Hub, go to Installs → Install Editor → **Unity 6.6** (6000.6.5f1), and tick these modules:
+   - **iOS Build Support** (exports the Xcode project; compiling it on a cloud Mac is open work: backlog U-10)
    - Android Build Support (optional)
 4. **Get the code:** clone this repo into `Documents\Legends FC\05 Local Files\legends-fc`:
    `git clone https://github.com/charlimillones/legends-fc.git`
@@ -13,7 +13,7 @@
 7. **iPhone and iPad testing:**
    - **Every day:** Window → General → Device Simulator, then choose an iPhone or iPad.
    - **Touch on your device:** install Unity Remote 5 on the iPhone, plus the Apple Devices app on Windows (for USB). In the editor: Project Settings → Editor → Device: Any iOS Device.
-   - **Real builds (later):** GitHub Actions on a cloud Mac uploads to TestFlight. This needs the Apple Developer Program ($99/yr).
+   - **Real builds (later):** GitHub Actions on a cloud Mac uploads to TestFlight. This needs the Apple Developer Program ($99/yr as of Oct 8, price unverified since; paying needs Carlos's specific yes, backlog U-10 and L-03).
 
 ## Status (Oct 9, 2026)
 - Done: Unity 6.6 (6000.6.5f1) with iOS, Web and Windows build support; the URP project `unity/LegendsFC` was created from the Universal 3D template (local project, no Unity Cloud); the core package is added to the manifest.

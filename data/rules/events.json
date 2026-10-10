@@ -1,5 +1,5 @@
 {
-  "_source": "Random events (decided Oct 7: rare surprises, random but balanced over time - e.g. 3 bad and 1 good one season, the reverse the next; some ask you to choose; no repeats too soon; softened by facilities, staff and personalities; AI clubs get the same events). Draft list in random-events-draft.md. Numbers PROPOSAL (Oct 9 night). Events that change player morale wait for the morale system (party, bust-up, time off).",
+  "_source": "Random events (decided Oct 7: rare surprises, random but balanced over time - e.g. 3 bad and 1 good one season, the reverse the next; some ask you to choose; no repeats too soon; softened by facilities, staff and personalities; AI clubs get the same events). Draft list in random-events-draft.md. Numbers proposed Oct 9 night, accepted by Carlos Oct 10. Events that change player morale wait for the morale system (party, bust-up, time off).",
   "chancePerMatchWeek": 0.07,
   "maxPerSeason": 4,
   "noRepeatSeasons": 3,

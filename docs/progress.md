@@ -38,7 +38,7 @@
   - **Fixtures:** round-robin, with every club playing once per round and home games balanced.
   - **Results:** the approved sim-mode model.
   - **League tables:** points, then goal difference, then goals scored.
-  - **Formats:** double round-robin; Argentina single round-robin (PROPOSAL).
+  - **Formats:** double round-robin; Argentina copies its real zone formats (Oct 8, below).
   - **Balancing check in CI:** title winners in England's first division average 78–97 points; draws are 18–32%.
   - **Speed:** a full season of all 8 leagues runs in well under 2 s.
 
@@ -60,7 +60,6 @@
   - **Weekly training:** the training formula plus the confirmed form factor and age-decay ceiling. Bad form lowers the rating; potential is never exceeded.
   - **Season cycle:** sim season, training, promotion and relegation, ageing, random retirements, random academy intake of 2-4 per club, at least 16 players per club at all times (any positions), and AI-only squad balance (at least 2 GKs, at most 32, free-agent signings below 16).
   - **Stability:** over 10 seasons the world stays stable (England's first-division average XI goes from 76.4 to 77.5), with 3 different champions. 10 seasons take about 12 s.
-  - **Interim, until the systems exist:** AI clubs use default training (moderate regime, average coach, one coach per group); form is neutral; surplus players are released instead of sold.
 
 - **Step 7: money, contracts and free agents** (branch `feature/money`, 105 tests):
   - **Currencies:** 22 main currencies (rates of Oct 8, 2026). One per world, chosen by the user at creation; everything is stored in EUR and only displayed in the chosen currency.
@@ -74,7 +73,6 @@
   - **Free agents (Oct 9):** a player without a club signs for no fee if he accepts the wage (+0.6 for his academy or a former club). The same rule for AI and user.
   - **Squads:** 16–32 players for every club; nobody can sell or release below 16.
   - **Finance report:** `dotnet run --project dotnet/LegendsFC.Tools -- finance-report <seed>`.
-  - **Known gap until the transfer market exists:** clubs keep about a third of their income, so cash builds up (England's first division: about 3 seasons of income after 10 seasons). Transfers and facilities will spend it.
 
 - **Step 8: transfer market** (branch `feature/transfer-market`, 123 tests; rules confirmed by Carlos Oct 9):
   - **Negotiations:**
@@ -94,7 +92,6 @@
     - buy-then-flip makes a profit 38% of the time, average −3% (no risk-free exploit);
     - wages settle near 75% of income.
   - **Tools:** `market-report`, `flip-test` and `wage-room` in `dotnet/LegendsFC.Tools`.
-  - **Not yet:** the winter window (needs the weekly calendar), swaps (v1.x), scouting filters (scouting step), and a money sink for rich clubs (facilities step).
 - **Facility display names** (branch `feature/facility-names`): Stadium, Training Grounds, Youth Academy, Medical Building, Club Store, Scouting Centre. The ids are unchanged.
 - **Unity project** (branch `feature/unity-project`): URP, Unity 6.6, with the core package. The smoke test passes in the editor.
 
@@ -122,7 +119,6 @@
   - **AI clubs:** they repair below 70% and upgrade with spare money (the money sink).
   - **Upkeep:** the flat 3% upkeep was replaced by real repairs.
   - **10-season sim:** levels show wealth (England 8.0 → Argentina's 2nd division 3.3); English top-flight cash after 10 seasons falls from €694M to €441M per club.
-  - **Next:** the inbox and the 45 manager messages (step 9b).
 
 - **Step 4b: cups and competitions** (branch `feature/cups`, 157 tests; accepted by Carlos Oct 9, `data/world/cups.json`):
   - **Domestic cups:** English Cup (second division starts, extra time and penalties, final week 51), English League Cup (straight to penalties, European clubs join in the last 32, two-legged semis), Spanish Cup (lower division at home, Super Cup clubs join in the last 32), Brazilian Cup (Champions Cup clubs join in the last 16, two legs from there, two-legged final), Argentine Cup (neutral, straight to penalties).
@@ -132,7 +128,7 @@
   - **Engine:** extra time (a third of the 90-minute scoring rate), two-legged ties on aggregate, coefficient over 5 seasons for pots and seeds, prize money paid at season end, honours list. Half-played seasons survive a save (tested at weeks 7, 28 and 45).
   - **Sim (10 seasons):** most matches for one club in one week: 3. English top-flight clubs earn about €11M a season from cups on average (winners up to €65M); English top-flight cash after 10 seasons rises from €441M to €519M per club. Cup-only countries earn 2-3x their small income from continental cups (no wage-share target for them).
 
-- **Step 11: saves** (branch `feature/saves`, 164 tests; settings in `data/config/saves.json`, PROPOSAL):
+- **Step 11: saves** (branch `feature/saves`, 164 tests; settings in `data/config/saves.json`, confirmed by Carlos Oct 9):
   - **Worlds:** up to 5 on a device (slots W01-W05), listed most recent first with club, season, week and money; delete frees the slot.
   - **Autosave** after every week through `GameSession.AdvanceWeek` (the UI's "continue" button). The end of the season runs inside it.
   - **Never lose a save:** compressed JSON written to a temp file first, then swapped in; the last 2 saves kept as backups; a damaged or half-written save loads the newest good copy.
@@ -159,7 +155,7 @@
   - **Inbox:** 8 more triggers live (injuries, serious injuries, recovery ahead, back in training, too many injured, injury risk, heavy regime too long, academy debut): 35 of 45.
   - **Speed:** a full season with every cup in about 5-6 s on the cloud machine (was about 3 s); 10 seasons in about 60 s.
 
-- **Coaches** (branch `feature/coaches`, NOT merged: waiting for Carlos; `config/coaches.json`, PROPOSAL numbers):
+- **Coaches** (branch `feature/coaches`, merged; `config/coaches.json`, numbers accepted by Carlos Oct 10):
   - 4 types (goalkeeper, defence, midfield, forward), a rating, a contract of 1-4 seasons and a one-time price (no wages): EUR 25K x 1.1^(rating - 40) per season (rating 60 = 168K, 80 = 1.1M); ex-players 30% cheaper at their old clubs.
   - Limit = 3 x Training Grounds working level (level 1 = 3, level 10 = 30).
   - Growth: with a coach (0.5 + rating/100) x crowd; without one 0.6 (natural development). A 50-rated coach with 7 players = the balance before coaches.
@@ -168,21 +164,21 @@
   - User: hire, renew, release, assign players (a coach trains only his group), auto-assign. Inbox: coach signed, contract ending (week 40), group too big (7+): 38 of 45 triggers live.
   - League quality over 10 seasons: English top-flight average XI 77.1 -> 76.0.
 
-- **Scouting** (branch `feature/scouting`, stacked on `feature/coaches`, NOT merged; `config/scouting.json`, PROPOSAL numbers; 198 tests):
+- **Scouting** (branch `feature/scouting`, merged; `config/scouting.json`, numbers accepted by Carlos Oct 10; 198 tests):
   - **Market coverage by Scouting Centre level:** 1 your league, 2 your country, 4 your confederation, 6 every league, 8 everyone. Scout reports open any player for 2 seasons.
   - **What you see** (`PlayerView`, never the archetype, hidden age values or exact potential): own players exact; others as ranges (+/-6 at level 1 down to exact attributes from level 8); potential as a range from level 7 (+/-10 down to +/-4 at level 10, never exact); personality from level 9 (own players: level 5 or after a season at the club).
   - **Scouts:** up to 5, rating 20-95, same price formula as coaches; a task (country or confederation, position, age); 0-2 reports a week; better scouts are more accurate (range +/- (100 - rating)/8) and spot more talent; 70+ reveal personality; a report on a 19-or-under with 80+ estimated potential is a wonderkid. AI clubs don't scout (the AI market reads the world).
   - **Next-opponent report** from level 3 (formation and best player). Inbox: 4 more triggers live (42 of 45: only kits, illness and random-event damage wait).
   - Scouting uses its own random stream: it never changes the game (tested).
 
-- **Club story** (branch `feature/club-story`, stacked on `feature/scouting`, NOT merged; `config/board.json`, `rules/events.json`, PROPOSAL numbers; 205 tests):
+- **Club story** (branch `feature/club-story`, merged; `config/board.json`, `rules/events.json`, numbers accepted by Carlos Oct 10; 205 tests):
   - **Board:** 3 objectives a season (safe / standard / ambitious = expected place +/- a margin), chosen before week 9; the objective sets the wage bar and the stakes (bonus 0 / 3% / 10% of income; confidence +10/+15/+25 met, -20/-25/-35 missed); confidence 0-100 moves with league results, the table every 4 weeks and fan mood; ask for more wage room once a season with a shown chance.
   - **Sacking and jobs:** sacked below 15 confidence from week 20 or below 25 at season end; then 2-3 offers from lower clubs and the world plays on without you; season-end offers from clubs near your reputation; apply to any club (chance from the reputation gap). Manager reputation from objectives, titles, promotion, relegation, sackings.
   - **Season summary** (league finish, cups, top scorer, biggest win and defeat, record, objective, titles) and **awards** (every league: Player of the Season, Golden Boot, Top Assists, Young Player, Goalkeeper; world: Golden Ball, World Golden Boot).
   - **Random events:** 19 events (8 bad, 7 good, 4 choices) plus a rare disaster; about 2.5 per club per season, balanced over time, no repeats within 3 seasons, softened by the Medical Building and the Stadium; AI clubs get the same events; the user answers choices in the inbox (unanswered = decline after a week). Morale events wait for the morale system. Inbox: illness and event damage live (44 of 45).
   - **Protégé:** the first one free and fully custom (name, nationality, position, foot, personality; potential = academy average + 5); then one a season (position or personality) at a share of his value.
 
-- **20-season test run and speed pass** (branch `feature/speed`, stacked on `feature/club-story`, NOT merged; 210 tests; tool: `dotnet run --project LegendsFC.Tools -- soak 1 20`):
+- **20-season test run and speed pass** (branch `feature/speed`, merged; 210 tests; tool: `dotnet run --project LegendsFC.Tools -- soak 1 20`):
   - **Speed:** about 5.5 s per simulated season on the dev machine (20 seasons in 118 s).
   - **Saves:** 7.4 MB → 4.4 MB after 20 seasons; load 5.2 s → 0.8 s; save 0.4 s. How: player stats saved as short arrays; players retired for more than a season move to a light archive (name, clubs, season-by-season numbers; those who never played are dropped); transfer records kept 5 seasons; the inbox keeps its newest 100 messages (Carlos, Oct 10; open decisions always stay); AI clubs' event logs only as far as the no-repeat rule looks; current-format saves load without the JSON tree.
   - **Economy (approved Oct 10):** rich clubs piled up cash (ENG-1 average 189M → 1.4B in 20 seasons) because the wage bar stopped them spending. The wage bar now adds 25% of the money held above one season of income (same rule for the user): ENG-1 average 586M after 20 seasons and levelling off; ENG-1 wages ~73% of income.
@@ -190,7 +186,7 @@
   - Stable over 20 seasons: injuries 50-75 at a time, ~880 coaches at clubs, ~530 events a season, league quality (ENG-1 XI 77 → 80, ARG-1 69 → 71).
 
 - **Unity first playable** (branch `feature/unity-first-playable`, Oct 10): every management screen as a placeholder on the GameSession API, the sim-mode match replay, saves on the device, a Windows build (see docs/unity-setup.md). Played in the editor from a new world through a full season (relegation, season summary, awards, job offers) and into the next.
-  - Landscape only (proposal); checked on a phone-shaped screen in the Device Simulator (safe area respected).
+  - Landscape only (confirmed by Carlos, Oct 10); checked on a phone-shaped screen in the Device Simulator (safe area respected).
   - Found while playing: some clubs start with 32 players, so the free first protégé is refused until someone leaves; the academy intake took the user's squad to 34 (max 32); a relegated club keeps top-flight wages (wage room -44M). (Fixed: the season summary now says promoted or relegated.)
 
 - **Squad limits, relegation money, assistant manager** (Carlos, Oct 10; branch `feature/squad-limits`):
@@ -199,16 +195,5 @@
   - Relegation: every contract at a relegated club drops 30%; a club leaving a top division gets a parachute of 40% of the TV gap with next season's income (England about 26M).
   - Assistant manager, on by default: sets the mentality for each match by the AI rule (choosing one yourself turns it off) and rests players under 60 energy, back to their regime at 85. The weakest English club left unmanaged: 18 points on average before, 22 now (26 when the AI runs it); the rest of the gap is transfers, coaches and repairs nobody made.
 
-## In progress
-- Step 3b: all national teams (needs the full FIFA country list).
-
-## Next
-- Inbox and the 45 manager messages (step 9b); match attendance per game (Stadium messages, cup gate split).
-- First playable test build in Unity.
-
-## Open questions for Carlos
-- Can players be two-footed? Right now feet are Left or Right only.
-- How often does each personality appear? For now they're all equally likely (a PROPOSAL).
-
-## Blockers / waiting on Carlos
-- **Unity project:** the editor (6.6) and iOS Build Support are installed. Desktop control expired overnight; one approval is needed to create the URP project and run `unity/bootstrap/Editor/LegendsSmokeTest.cs`.
+## Open work
+Open work, questions and blockers are no longer kept here. They live in the project backlog (`claude/backlog.md` in the claude.ai project; see `docs/how-we-work.md`). This file records finished work only.
