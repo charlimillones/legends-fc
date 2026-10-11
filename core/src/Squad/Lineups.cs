@@ -90,8 +90,11 @@ namespace LegendsFC.Core.Squad
         public static bool Available(GameWorld w, Player p, string competitionId, GameData d)
             => !p.Injured && !Discipline.IsSuspended(w, p, competitionId, d);
 
-        /// <summary>The team a club sends out for a match.</summary>
-        public static TeamSheet Pick(GameWorld w, Club club, string competitionId, RatingTable r, GameData d)
+        /// <summary>
+        /// The team a club sends out for a match. commit: an AI club keeps the formation it chose (false = only look, as the
+        /// pre-match peek does; the sheet is the same either way).
+        /// </summary>
+        public static TeamSheet Pick(GameWorld w, Club club, string competitionId, RatingTable r, GameData d, bool commit = true)
         {
             var c = d.Squad;
             var squad = Transfers.Market.Squad(w, club.Id).OrderBy(p => p.Id, StringComparer.Ordinal).ToList();
@@ -101,7 +104,7 @@ namespace LegendsFC.Core.Squad
             string formation;
             if (user && c.Formations.ContainsKey(t.Formation)) formation = t.Formation;
             else if (!r.Formations.TryGetValue(club.Id, out formation)) r.Formations[club.Id] = formation = BestFormation(available, r, d);
-            if (!user) t.Formation = formation;
+            if (!user && commit) t.Formation = formation;
 
             var sheet = new TeamSheet { ClubId = club.Id, Formation = formation, Mentality = t.Mentality };
             sheet.Slots = c.Formations[formation].ToList();

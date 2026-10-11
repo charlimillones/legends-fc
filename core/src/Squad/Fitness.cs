@@ -21,18 +21,27 @@ namespace LegendsFC.Core.Squad
         /// <summary>Energy cost of a match. Sim mode estimates distance, passes and shots; the 3D match will pass in what it measured.</summary>
         public static void MatchEnergy(Player p, PlayerMatch line, int mentality, MatchEngine.Context x)
         {
-            var c = x.Data.Squad; var rng = x.Rng;
+            var c = x.Data.Squad;
             if (line.Minutes <= 0) return;
-            string pos = line.Position.ToString();
             double share = line.Minutes / 90.0;
-            if (line.Km <= 0)
+            if (!line.Measured && line.Km <= 0)
             {
-                line.Km = Math.Round(c.KmPer90[pos] * rng.Uniform(c.KmRandomMin, c.KmRandomMax) * (1 + c.KmPerMentalityStep * mentality) * share, 1);
-                line.Passes = (int)Math.Round(c.PassesPer90[pos] * rng.Uniform(c.ActivityRandomMin, c.ActivityRandomMax) * share);
-                line.Shots = Math.Max(line.Goals, (int)Math.Round(c.ShotsPer90[pos] * rng.Uniform(c.ActivityRandomMin, c.ActivityRandomMax) * share * (1 + 0.1 * mentality)));
+                var (km, passes, shots) = Estimate(line, share, mentality, x);
+                line.Km = km; line.Passes = passes; line.Shots = Math.Max(line.Goals, shots);
             }
             double cost = (line.Km * c.EnergyPerKm + line.Passes * c.EnergyPerPass + line.Shots * c.EnergyPerShot) * StaminaFactor(p, c);
             p.Energy = Math.Max(0, Math.Round(p.Energy - cost, 1));
+        }
+
+        /// <summary>Sim-mode estimate of distance, passes and shots for a share of 90 minutes, in his position and mentality.</summary>
+        public static (double km, int passes, int shots) Estimate(PlayerMatch line, double share, int mentality, MatchEngine.Context x)
+        {
+            var c = x.Data.Squad; var rng = x.Rng;
+            string pos = line.Position.ToString();
+            double km = Math.Round(c.KmPer90[pos] * rng.Uniform(c.KmRandomMin, c.KmRandomMax) * (1 + c.KmPerMentalityStep * mentality) * share, 1);
+            int passes = (int)Math.Round(c.PassesPer90[pos] * rng.Uniform(c.ActivityRandomMin, c.ActivityRandomMax) * share);
+            int shots = (int)Math.Round(c.ShotsPer90[pos] * rng.Uniform(c.ActivityRandomMin, c.ActivityRandomMax) * share * (1 + 0.1 * mentality));
+            return (km, passes, shots);
         }
 
         /// <summary>A match injury: type by share, length × the club's Medical Building recovery multiplier.</summary>

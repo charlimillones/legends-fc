@@ -95,8 +95,14 @@ namespace LegendsFC.Core.Season
             return Spread(rounds, def.Weeks.First(), def.Weeks.Last());
         }
 
-        /// <summary>Plays the next week. Returns false once the season's last week has been played.</summary>
-        public WeekReport PlayWeek(GameWorld w, GameRandom rng)
+        /// <summary>Plays the next week. Returns null once the season's last week has been played.</summary>
+        public WeekReport PlayWeek(GameWorld w, GameRandom rng) => PlayWeek(w, rng, null, null);
+
+        /// <summary>
+        /// Plays the next week. <paramref name="played"/>: a match the user played live from <paramref name="fixture"/> (the
+        /// peek taken before the week, already checked); it replaces the sim for that fixture. Null = every match simulated.
+        /// </summary>
+        public WeekReport PlayWeek(GameWorld w, GameRandom rng, Squad.PlayedMatch played, Squad.UserFixture fixture)
         {
             var cal = w.Calendar; var c = _d.Calendar; var m = w.Market;
             if (cal.SeasonOver) return null;
@@ -113,7 +119,7 @@ namespace LegendsFC.Core.Season
             // This week's rounds: real teams (squad and tactics, Oct 9). AI clubs set training regimes first.
             var swM = System.Diagnostics.Stopwatch.StartNew();
             Squad.Fitness.AiRegimes(w, _d);
-            var ctx = new Squad.MatchEngine.Context { World = w, Data = _d, Ratings = new Squad.RatingTable(_d), Rng = rng };
+            var ctx = new Squad.MatchEngine.Context { World = w, Data = _d, Ratings = new Squad.RatingTable(_d), Rng = rng, Played = played, PlayedFixture = fixture };
             foreach (var run in cal.Runs)
             {
                 run.Info = cal.Seeds;
@@ -130,6 +136,8 @@ namespace LegendsFC.Core.Season
                     if (w.UserClubId != null) report.UserMatches.AddRange(results.Where(r => r.Home == w.UserClubId || r.Away == w.UserClubId));
                 }
             }
+            if (played != null && !ctx.PlayedApplied)
+                throw new System.InvalidOperationException($"The played match {played.HomeClubId} v {played.AwayClubId} ({played.CompetitionId}) was not on this week's schedule.");
 
             // Facilities: weekly wear; AI clubs repair and upgrade (confirmed Oct 9).
             Facilities.FacilityRules.WeeklyWear(w, rng, _d.FacilityRules);
@@ -168,6 +176,50 @@ namespace LegendsFC.Core.Season
                 cal.SeasonOver = true;
             }
             return report;
+        }
+
+        /// <summary>
+        /// The user's first match in the coming week (null if none), with both team sheets as the match will use them
+        /// (MatchEngine.TeamSheets). Looks only: changes nothing in the world and draws no random numbers. Each competition's
+        /// next round is read from a copy of it, replayed from its saved results. Only the first round a competition plays in
+        /// the week can be seen (a second round that week depends on the first one's results).
+        /// </summary>
+        public Squad.UserFixture PeekUserFixture(GameWorld w)
+        {
+            var cal = w.Calendar;
+            if (w.UserClubId == null || cal.SeasonOver || cal.Week == 0 || cal.Runs.Count == 0) return null;
+            int week = cal.Week + 1;
+            foreach (var real in cal.Runs)
+            {
+                if (real.Finished || !cal.RoundWeeks.TryGetValue(real.CompetitionId, out var weeks)) continue;
+                if (real.PlayedRounds.Count >= weeks.Count || weeks[real.PlayedRounds.Count] > week) continue;
+                var copy = new CompetitionRun
+                {
+                    CompetitionId = real.CompetitionId, Seed = real.Seed, Clubs = real.Clubs.ToList(), PlannedRounds = real.PlannedRounds,
+                    PlayedRounds = real.PlayedRounds.ToList(), PlayedStages = real.PlayedStages.ToList(),
+                    Pools = (real.Pools ?? new Dictionary<string, List<string>>()).ToDictionary(kv => kv.Key, kv => kv.Value?.ToList()),
+                    Inputs = (real.Inputs ?? new Dictionary<string, List<string>>()).ToDictionary(kv => kv.Key, kv => kv.Value?.ToList()),
+                    Info = cal.Seeds,
+                };
+                Round round;
+                try { round = copy.Next(_d); }
+                catch (System.InvalidOperationException) { continue; }   // waits for clubs from a competition played earlier this week
+                if (round == null) continue;
+                for (int i = 0; i < round.Fixtures.Count; i++)
+                {
+                    var f = round.Fixtures[i];
+                    if (f.Home != w.UserClubId && f.Away != w.UserClubId) continue;
+                    Squad.MatchEngine.TeamSheets(real.CompetitionId, f, w, new Squad.RatingTable(_d), _d, false, out var home, out var away);
+                    return new Squad.UserFixture
+                    {
+                        Week = week, CompetitionId = real.CompetitionId, Stage = round.Stage, Fixture = f,
+                        Decide = round.PenaltiesOnDraw, ExtraTime = round.ExtraTime,
+                        FirstLeg = round.FirstLegs != null ? round.FirstLegs[i] : (MatchResult?)null,
+                        HomeSheet = home, AwaySheet = away, UserIsHome = f.Home == w.UserClubId,
+                    };
+                }
+            }
+            return null;
         }
 
         /// <summary>Clubs a competition sends on (qualifying losers, 3rd-placed clubs) reach the competitions waiting for them.</summary>

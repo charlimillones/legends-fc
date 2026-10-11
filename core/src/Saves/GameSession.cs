@@ -78,14 +78,34 @@ namespace LegendsFC.Core.Saves
         public List<Inbox.InboxMessage> NewMessages { get; private set; } = new List<Inbox.InboxMessage>();
 
         /// <summary>Plays one week (the end of the season runs after week 52), delivers the inbox, then autosaves.</summary>
-        public WeekReport AdvanceWeek(string nowUtc)
+        public WeekReport AdvanceWeek(string nowUtc) => AdvanceWeek(nowUtc, null);
+
+        /// <summary>
+        /// The user's match in the coming week (null if none): competition, fixture, how a draw is settled, and both team sheets
+        /// as the match uses them (the user's from the Tactics screen, else the auto-pick; the AI's by the same rules as the sim,
+        /// mentality included). Changes nothing and draws no random numbers. If the club plays twice in the week, the first match.
+        /// </summary>
+        public LegendsFC.Core.Squad.UserFixture NextUserFixture() => _calendar.PeekUserFixture(World);
+
+        /// <summary>
+        /// Plays one week with the user's match played live: <paramref name="played"/> must be the match NextUserFixture gives
+        /// now, played with its team sheets. Its result replaces the sim for that fixture; every other match is simulated.
+        /// An invalid played match throws ArgumentException before anything changes. Null = the week is fully simulated.
+        /// </summary>
+        public WeekReport AdvanceWeek(string nowUtc, LegendsFC.Core.Squad.PlayedMatch played)
         {
+            LegendsFC.Core.Squad.UserFixture fixture = null;
+            if (played != null)
+            {
+                fixture = NextUserFixture();
+                LegendsFC.Core.Squad.PlayedMatchCheck.Validate(played, fixture);
+            }
             var before = Inbox.InboxEngine.Snapshot(World);
             if (World.Calendar.Week == 0 || World.Calendar.Runs.Count == 0) _calendar.Start(World, Rng);
-            var report = _calendar.PlayWeek(World, Rng);
-            var played = World.Calendar;   // the season-end reset replaces it
+            var report = _calendar.PlayWeek(World, Rng, played, fixture);
+            var calendar = World.Calendar;   // the season-end reset replaces it
             if (World.Calendar.SeasonOver) LastSeason = _cycle.EndSeason(World, Rng, _calendar.Outcomes(World));
-            NewMessages = Inbox.InboxEngine.AfterWeek(World, before, report, played, _d);
+            NewMessages = Inbox.InboxEngine.AfterWeek(World, before, report, calendar, _d);
             if (Autosave) Save(nowUtc);
             return report;
         }
