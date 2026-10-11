@@ -4,7 +4,7 @@ Adopted by Carlos on Oct 10, 2026. This is the top rule for every chat, sub-agen
 
 - **Backlog (the only place that holds open work):** `claude/backlog.md`
 - **Decision log:** the "Decision log" section of `claude/game-design-decisions.md`
-- **Coordinator:** the one chat Carlos talks to. Role skills (developit, DaiVinci, artist) run as sub-agents launched by it.
+- **Coordinators (two lanes since Oct 11, see the end):** Master B (game: code, design, data, Unity) and Art Def (art). Both talk to Carlos. Role skills (developit, DaiVinci, artist) run as sub-agents launched by them.
 
 Carlos's text, unchanged:
 
@@ -59,3 +59,10 @@ Carlos's text, unchanged:
 Rule added by Carlos (Oct 10, 12:45), unchanged:
 
 Rule for every Projects doc you edit: re-read it with project_read immediately before writing, apply only your change to that fresh copy, then write it back. Never write a doc from a copy you read earlier in the session. Twice an older copy overwrote other chats' entries in game-design-decisions.md.
+
+---
+
+Change by Carlos (Oct 11): two lanes. "Both Def and you will talk to me." This replaces "the only chat that talks to me" above; everything else above still applies to both lanes.
+- **Master B** (game lane: code, game design, data, Unity, the repo) and **Art Def** (art lane: player models, kits, faces, buildings, animation) both talk to Carlos. Each is the coordinator of its lane and launches its own sub-agents. Art Stu is no longer a separate chat; Art Def launches the artist sub-agents.
+- **Who edits what:** Art Def edits only `claude/art-direction.md`, `claude/player-model-spec.md`, the Art rows (A-) of `claude/backlog.md`, and dated art lines in the decision log. Master B edits everything else, and only Master B touches the code repo. Both re-read a doc right before every write and change only their part.
+- **Between lanes:** neither asks Carlos to carry prompts. When one lane needs something from the other, it adds a dated backlog row that names the other lane.
