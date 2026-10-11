@@ -51,6 +51,8 @@ namespace LegendsFC.Core.Data
         public Scouting.ScoutingConfig Scouting = new Scouting.ScoutingConfig();
         public Career.BoardConfig Board = new Career.BoardConfig();
         public Career.EventData Events = new Career.EventData();
+        /// <summary>data/config/match.json: the real-time match engine's tuning numbers (PROPOSAL, Oct 11).</summary>
+        public LegendsFC.Core.Match.MatchConfig Match = new LegendsFC.Core.Match.MatchConfig();
 
         public Archetype Archetype(string id) => Archetypes.First(a => a.Id == id);
         public Personality Personality(string id) => Personalities.First(p => p.Id == id);
@@ -64,7 +66,7 @@ namespace LegendsFC.Core.Data
             "config/position-ratings.json", "config/out-of-position.json", "config/probability.json",
             "config/lucky-charm.json", "config/personalities.json",
             "world/countries.json", "world/competitions.json", "config/world-generation.json", "names/names.json",
-            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json", "world/cups.json", "config/saves.json", "text/manager-messages.json", "config/inbox.json", "config/squad.json", "config/match-events.json", "rules/injuries.json", "rules/discipline.json", "config/coaches.json", "config/scouting.json", "config/board.json", "rules/events.json",
+            "config/match-sim.json", "config/league-formats.json", "config/development.json", "config/market-value.json", "config/protege.json", "config/finance.json", "config/currencies.json", "config/transfers.json", "config/calendar.json", "config/facilities.json", "world/cups.json", "config/saves.json", "text/manager-messages.json", "config/inbox.json", "config/squad.json", "config/match-events.json", "rules/injuries.json", "rules/discipline.json", "config/coaches.json", "config/scouting.json", "config/board.json", "rules/events.json", "config/match.json",
         };
 
         /// <param name="read">Returns the JSON text for a relative path from <see cref="Files"/>.</param>
@@ -106,6 +108,8 @@ namespace LegendsFC.Core.Data
             d.Scouting = Parse<Scouting.ScoutingConfig>(read("config/scouting.json"));
             d.Board = Parse<Career.BoardConfig>(read("config/board.json"));
             d.Events = Parse<Career.EventData>(read("rules/events.json"));
+            d.Match = Parse<LegendsFC.Core.Match.MatchConfig>(read("config/match.json"));
+            d.Match.Squad = d.Squad;   // the match's energy cost uses squad.json's formula (one source)
             return d;
         }
 

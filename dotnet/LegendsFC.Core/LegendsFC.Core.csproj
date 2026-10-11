@@ -10,6 +10,10 @@
     <Compile Include="../../core/src/**/*.cs" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Tests can set up match situations (LiveMatch test hooks); Unity's asmdef doesn't see this. -->
+    <InternalsVisibleTo Include="LegendsFC.Core.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

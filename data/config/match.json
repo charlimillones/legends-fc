@@ -1,0 +1,869 @@
+{
+  "_source": "PROPOSAL, Master B brief Oct 11. Every tuning number of the real-time match. Attribute-driven values are ranges from attribute 1 to 99 (Min/Max as named). Sections with their own _source come from a decision.",
+  "pitch": {
+    "_source": "Real pitch and goal sizes (brief Oct 11: 105 x 68 m, goals 7.32 x 2.44 m).",
+    "length": 105,
+    "width": 68,
+    "goalWidth": 7.32,
+    "goalHeight": 2.44,
+    "postRadius": 0.06,
+    "penaltyBoxDepth": 16.5,
+    "penaltyBoxWidth": 40.32,
+    "goalAreaDepth": 5.5,
+    "goalAreaWidth": 18.32,
+    "playerMargin": 3,
+    "netDepth": 2
+  },
+  "clock": {
+    "_source": "Decided (match length): 5 real minutes for 90 match minutes (2 halves of 150 s); extra time 30 match minutes = 100 s real (2 halves of 50 s). Not adjustable. Break and celebration lengths: PROPOSAL, Master B brief Oct 11.",
+    "halfSeconds": 150,
+    "halfMinutes": 45,
+    "extraHalfSeconds": 50,
+    "extraHalfMinutes": 15,
+    "halfTimeBreakSeconds": 3,
+    "extraTimeBreakSeconds": 3,
+    "goalCelebrationSeconds": 2.5
+  },
+  "ball": {
+    "_source": "PROPOSAL, Master B brief Oct 11. Air drag close to a real ball (rho Cd A / 2m = 0.013 per metre).",
+    "radius": 0.11,
+    "gravity": 9.81,
+    "airDrag": 0.013,
+    "rollingDecel": 2.2,
+    "restitution": 0.55,
+    "bounceFriction": 0.85,
+    "rollVz": 1.0,
+    "stopSpeed": 0.2,
+    "maxSubstep": 0.25,
+    "postRestitution": 0.5
+  },
+  "movement": {
+    "_source": "PROPOSAL, Master B brief Oct 11. Stick under walkStick walks, above runs; holding the screen sprints (decided controls). Keepers move by Rushing Out and react by Reflexes.",
+    "walkStick": 0.5,
+    "jogSpeed": 3.6,
+    "arriveRadius": 1.0,
+    "walkSpeed": 2.2,
+    "runSpeedMin": 4.6,
+    "runSpeedMax": 7.2,
+    "sprintSpeedMin": 6.2,
+    "sprintSpeedMax": 9.4,
+    "accelMin": 3.5,
+    "accelMax": 8.5,
+    "brake": 12,
+    "turnRate": 12,
+    "dribbleTurnMin": 4.0,
+    "dribbleTurnMax": 9.5,
+    "dribbleSpeedMin": 0.8,
+    "dribbleSpeedMax": 0.94,
+    "dribbleOffset": 0.55,
+    "playerRadius": 0.4,
+    "keeperSpeedMin": 4.8,
+    "keeperSpeedMax": 6.8
+  },
+  "touch": {
+    "reachMin": 0.55,
+    "reachMax": 0.85,
+    "controlSpeedMin": 11,
+    "controlSpeedMax": 24,
+    "footHeight": 1.5,
+    "headerMin": 1.5,
+    "headerMax": 2.5,
+    "headerReach": 0.8,
+    "kickerIgnoreSeconds": 0.3,
+    "blockReach": 0.5,
+    "blockChance": 0.55,
+    "blockHeight": 1.8,
+    "blockSpeedKeep": 0.35,
+    "blockSpreadDeg": 70,
+    "headerDuelHeading": 1.0,
+    "headerDuelStrength": 0.4,
+    "headerDuelNoise": 0.25,
+    "headerLockSeconds": 0.3
+  },
+  "kicks": {
+    "_source": "PROPOSAL, Master B brief Oct 11. Kick power from how long the button is held (D-07). Through ball: tap = ground, hold past throughLoftHoldSeconds = lofted with bigger errors (confirmed anti lob-spam rule).",
+    "holdCapSeconds": 0.9,
+    "powerCurve": 1.0,
+    "passPowerMin": 0.9,
+    "passPowerMax": 1.25,
+    "passConeDeg": 35,
+    "freePassMin": 8,
+    "freePassMax": 35,
+    "passArrivalSpeed": 5,
+    "maxGroundSpeed": 27,
+    "minGroundSpeed": 6,
+    "loftAngleDeg": 32,
+    "throughLoftAngleDeg": 40,
+    "crossAngleDeg": 22,
+    "clearAngleDeg": 35,
+    "throughLoftHoldSeconds": 0.35,
+    "throughLeadMin": 4,
+    "throughLeadMax": 12,
+    "shotSpeedMin": 17,
+    "shotSpeedMax": 31,
+    "shotPowerFloor": 0.55,
+    "shotLoftMinDeg": 2,
+    "shotLoftMaxDeg": 12,
+    "passErrorMaxDeg": 12,
+    "passErrorMinDeg": 1.0,
+    "shotErrorMaxDeg": 12,
+    "shotErrorMinDeg": 1.5,
+    "headerErrorMaxDeg": 16,
+    "headerErrorMinDeg": 4,
+    "powerErrorMax": 0.14,
+    "powerErrorMin": 0.03,
+    "elevationErrorMaxDeg": 5,
+    "elevationErrorMinDeg": 1,
+    "loftedErrorScale": 1.4,
+    "throughLoftedErrorScale": 2.0,
+    "shotWildPower": 0.85,
+    "shotWildScale": 1.5,
+    "pressureRadius": 2.5,
+    "pressureScale": 0.6,
+    "headerSpeedMin": 7,
+    "headerSpeedMax": 15,
+    "headerAngleDeg": 8,
+    "throwSpeedMax": 15,
+    "throwAngleDeg": 25,
+    "loftSolveMaxSpeed": 34
+  },
+  "buttons": {
+    "_source": "PROPOSAL D-07 (decided DLS-style controls: stick + 3 buttons). Attack: A pass, B shoot, C through ball. Defence: A switch, B tackle, C pressure.",
+    "attack": {
+      "A": "Pass",
+      "B": "Shoot",
+      "C": "Through"
+    },
+    "defence": {
+      "A": "Switch",
+      "B": "Tackle",
+      "C": "Pressure"
+    }
+  },
+  "tackles": {
+    "range": 1.7,
+    "base": 0.5,
+    "skillWeight": 1.0,
+    "strengthWeight": 0.25,
+    "minChance": 0.1,
+    "maxChance": 0.9,
+    "cooldownSeconds": 0.8,
+    "failStunSeconds": 0.5,
+    "stunSpeed": 0.35,
+    "pokeSpeed": 3.5,
+    "keepChance": 0.5,
+    "protectSeconds": 0.35
+  },
+  "keeper": {
+    "_source": "Decided save model: Reflexes = reaction delay, Handling = catch vs parry, Rushing Out = coming off the line, Distribution = kicks and throws; the keeper is always AI. Numbers: PROPOSAL, Master B brief Oct 11.",
+    "reactionMax": 0.5,
+    "reactionMin": 0.1,
+    "diveSpeedMin": 4.0,
+    "diveSpeedMax": 6.5,
+    "standReach": 0.8,
+    "diveReach": 1.2,
+    "reachHeight": 2.55,
+    "catchBase": 0.3,
+    "catchHandling": 0.6,
+    "catchSpeedPenalty": 0.02,
+    "catchEasySpeed": 12,
+    "catchStretchPenalty": 0.25,
+    "tipHeight": 2.15,
+    "parrySpeedKeep": 0.35,
+    "parrySpreadDeg": 95,
+    "parryWideChance": 0.35,
+    "missMax": 0.4,
+    "missMin": 0.03,
+    "missPerSpeed": 0.08,
+    "missDiving": 0.1,
+    "holdMin": 0.8,
+    "holdMax": 1.6,
+    "lineBase": 1.0,
+    "linePerMetre": 0.08,
+    "lineMax": 5,
+    "lineRushBonus": 3,
+    "rushMin": 8,
+    "rushMax": 18,
+    "claimMin": 3,
+    "claimMax": 9,
+    "smotherRange": 1.3,
+    "smotherBase": 0.4,
+    "smotherSkill": 0.5,
+    "smotherCooldown": 0.7,
+    "threatMargin": 0.6,
+    "threatSeconds": 2.0,
+    "threatMinSpeed": 7,
+    "collectReach": 1.1,
+    "throwRange": 30,
+    "throwOpenDistance": 7,
+    "longKickAngleDeg": 38,
+    "releaseGuardSeconds": 0.3
+  },
+  "switching": {
+    "_source": "Decided: in possession control jumps to the carrier; defending, A switches to the defender who reaches the ball's path soonest (never the keeper); auto-switch by SwitchSensitivity (0 off, 1 most eager). Margins: PROPOSAL, Master B brief Oct 11.",
+    "marginAtLow": 1.6,
+    "marginAtHigh": 0.15,
+    "dwellSeconds": 0.4
+  },
+  "restarts": {
+    "_source": "Decided: the AI takes every restart after a short delay; the user's team waits for a button (a pass in the stick direction) up to a timeout. Numbers: PROPOSAL, Master B brief Oct 11.",
+    "aiDelay": 0.6,
+    "userTimeout": 5,
+    "maxWalk": 2.0,
+    "distance": 9.15,
+    "throwInDistance": 2,
+    "cornerAttackers": 4,
+    "cornerZoneDepth": 9
+  },
+  "ai": {
+    "decisionSeconds": 0.15,
+    "teammateLevel": 2,
+    "shotPower": 0.9,
+    "minHoldSeconds": 0.25,
+    "possessionPush": 12,
+    "defendDrop": 3,
+    "followBallX": 0.5,
+    "followBallY": 0.3,
+    "widthAttack": 1.1,
+    "widthDefend": 0.75,
+    "mentalityStep": 3,
+    "backLineMin": -41,
+    "backLineMax": 12,
+    "loftDrop": 4,
+    "loftSpace": 6,
+    "markRadius": 9,
+    "markGoalSide": 1.5,
+    "coverDepth": 5,
+    "onsideGap": 0.8,
+    "supportDistance": 11,
+    "passMin": 5,
+    "groundPassMax": 38,
+    "loftedPassMax": 50,
+    "passAvgSpeed": 14,
+    "loftAvgSpeed": 17,
+    "safetySharpness": 4,
+    "interceptReact": 0.25,
+    "passBase": 0.35,
+    "progressWeight": 1.2,
+    "goalWeight": 0.9,
+    "openWeight": 0.25,
+    "loftPenalty": 0.45,
+    "backPassPenalty": 0.3,
+    "goalScale": 22,
+    "shootRange": 30,
+    "shotScale": 1.2,
+    "shotDistanceScale": 18,
+    "blockFactor": 0.55,
+    "shotValueWeight": 3.5,
+    "shootAlways": 0.15,
+    "dribbleBase": 0.35,
+    "dribbleSpace": 6,
+    "dribbleProgress": 0.6,
+    "pressedRadius": 2.0,
+    "crossWideY": 15,
+    "crossZoneX": 33,
+    "crossBonus": 0.3,
+    "aimInset": 0.55,
+    "aimLow": 0.35,
+    "aimHigh": 1.7,
+    "aimHighChance": 0.35,
+    "tackleRate": 2.5,
+    "runTrigger": 40,
+    "runDepth": 8,
+    "runSeconds": 2.0,
+    "runCooldown": 2.5,
+    "runRate": 2.0,
+    "clearPressRadius": 3
+  },
+  "difficulty": [
+    {
+      "name": "Easy",
+      "reactionSeconds": 0.45,
+      "readNoise": 2.5,
+      "positioningQuality": 0.55,
+      "decisionNoise": 0.3
+    },
+    {
+      "name": "Normal",
+      "reactionSeconds": 0.3,
+      "readNoise": 1.5,
+      "positioningQuality": 0.75,
+      "decisionNoise": 0.18
+    },
+    {
+      "name": "Hard",
+      "reactionSeconds": 0.2,
+      "readNoise": 0.8,
+      "positioningQuality": 0.9,
+      "decisionNoise": 0.1
+    },
+    {
+      "name": "Legend",
+      "reactionSeconds": 0.12,
+      "readNoise": 0.3,
+      "positioningQuality": 1.0,
+      "decisionNoise": 0.05
+    }
+  ],
+  "_difficultyNote": "Decided: 4 levels, default 2; they change only the opponent AI's reading (readNoise, decisionNoise), reaction time and positioning quality, never attributes and never rubber-banding. The user's 10 AI teammates use ai.teammateLevel; AI vs AI uses the chosen level for both. Numbers: PROPOSAL, Master B brief Oct 11.",
+  "energy": {
+    "_source": "Decided (Carlos Oct 9): a match costs energy from distance and activity, using squad.json energyPerKm, energyPerPass, energyPerShot and the stamina factor (one source). Low energy lowers top speed and acceleration a little: PROPOSAL, Master B brief Oct 11.",
+    "speedLossPerPoint": 0.002,
+    "distanceScale": 0.5
+  },
+  "formations": {
+    "4-4-2": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "LB",
+        "x": -32,
+        "y": 22
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 8
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -8
+      },
+      {
+        "slot": "RB",
+        "x": -32,
+        "y": -22
+      },
+      {
+        "slot": "LM",
+        "x": -17,
+        "y": 23
+      },
+      {
+        "slot": "CM",
+        "x": -19,
+        "y": 8
+      },
+      {
+        "slot": "CM",
+        "x": -19,
+        "y": -8
+      },
+      {
+        "slot": "RM",
+        "x": -17,
+        "y": -23
+      },
+      {
+        "slot": "ST",
+        "x": -4,
+        "y": 7
+      },
+      {
+        "slot": "ST",
+        "x": -4,
+        "y": -7
+      }
+    ],
+    "4-3-3": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "LB",
+        "x": -32,
+        "y": 22
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 8
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -8
+      },
+      {
+        "slot": "RB",
+        "x": -32,
+        "y": -22
+      },
+      {
+        "slot": "CM",
+        "x": -18,
+        "y": 12
+      },
+      {
+        "slot": "CM",
+        "x": -22,
+        "y": 0
+      },
+      {
+        "slot": "CM",
+        "x": -18,
+        "y": -12
+      },
+      {
+        "slot": "LW",
+        "x": -5,
+        "y": 24
+      },
+      {
+        "slot": "RW",
+        "x": -5,
+        "y": -24
+      },
+      {
+        "slot": "ST",
+        "x": -3,
+        "y": 0
+      }
+    ],
+    "4-2-3-1": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "LB",
+        "x": -32,
+        "y": 22
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 8
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -8
+      },
+      {
+        "slot": "RB",
+        "x": -32,
+        "y": -22
+      },
+      {
+        "slot": "DM",
+        "x": -24,
+        "y": 8
+      },
+      {
+        "slot": "DM",
+        "x": -24,
+        "y": -8
+      },
+      {
+        "slot": "LM",
+        "x": -12,
+        "y": 23
+      },
+      {
+        "slot": "AM",
+        "x": -10,
+        "y": 0
+      },
+      {
+        "slot": "RM",
+        "x": -12,
+        "y": -23
+      },
+      {
+        "slot": "ST",
+        "x": -3,
+        "y": 0
+      }
+    ],
+    "4-1-4-1": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "LB",
+        "x": -32,
+        "y": 22
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 8
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -8
+      },
+      {
+        "slot": "RB",
+        "x": -32,
+        "y": -22
+      },
+      {
+        "slot": "DM",
+        "x": -26,
+        "y": 0
+      },
+      {
+        "slot": "LM",
+        "x": -15,
+        "y": 23
+      },
+      {
+        "slot": "CM",
+        "x": -16,
+        "y": 9
+      },
+      {
+        "slot": "CM",
+        "x": -16,
+        "y": -9
+      },
+      {
+        "slot": "RM",
+        "x": -15,
+        "y": -23
+      },
+      {
+        "slot": "ST",
+        "x": -3,
+        "y": 0
+      }
+    ],
+    "3-5-2": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 12
+      },
+      {
+        "slot": "CB",
+        "x": -36,
+        "y": 0
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -12
+      },
+      {
+        "slot": "LWB",
+        "x": -20,
+        "y": 27
+      },
+      {
+        "slot": "DM",
+        "x": -26,
+        "y": 0
+      },
+      {
+        "slot": "CM",
+        "x": -16,
+        "y": 9
+      },
+      {
+        "slot": "CM",
+        "x": -16,
+        "y": -9
+      },
+      {
+        "slot": "RWB",
+        "x": -20,
+        "y": -27
+      },
+      {
+        "slot": "ST",
+        "x": -4,
+        "y": 7
+      },
+      {
+        "slot": "ST",
+        "x": -4,
+        "y": -7
+      }
+    ],
+    "3-4-3": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 12
+      },
+      {
+        "slot": "CB",
+        "x": -36,
+        "y": 0
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -12
+      },
+      {
+        "slot": "LWB",
+        "x": -20,
+        "y": 26
+      },
+      {
+        "slot": "CM",
+        "x": -18,
+        "y": 8
+      },
+      {
+        "slot": "CM",
+        "x": -18,
+        "y": -8
+      },
+      {
+        "slot": "RWB",
+        "x": -20,
+        "y": -26
+      },
+      {
+        "slot": "LW",
+        "x": -4,
+        "y": 22
+      },
+      {
+        "slot": "RW",
+        "x": -4,
+        "y": -22
+      },
+      {
+        "slot": "ST",
+        "x": -2,
+        "y": 0
+      }
+    ],
+    "5-3-2": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "LWB",
+        "x": -30,
+        "y": 26
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 11
+      },
+      {
+        "slot": "CB",
+        "x": -36,
+        "y": 0
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -11
+      },
+      {
+        "slot": "RWB",
+        "x": -30,
+        "y": -26
+      },
+      {
+        "slot": "CM",
+        "x": -19,
+        "y": 13
+      },
+      {
+        "slot": "CM",
+        "x": -21,
+        "y": 0
+      },
+      {
+        "slot": "CM",
+        "x": -19,
+        "y": -13
+      },
+      {
+        "slot": "ST",
+        "x": -4,
+        "y": 7
+      },
+      {
+        "slot": "ST",
+        "x": -4,
+        "y": -7
+      }
+    ],
+    "4-5-1": [
+      {
+        "slot": "GK",
+        "x": -50,
+        "y": 0
+      },
+      {
+        "slot": "LB",
+        "x": -32,
+        "y": 22
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": 8
+      },
+      {
+        "slot": "CB",
+        "x": -35,
+        "y": -8
+      },
+      {
+        "slot": "RB",
+        "x": -32,
+        "y": -22
+      },
+      {
+        "slot": "LM",
+        "x": -15,
+        "y": 23
+      },
+      {
+        "slot": "CM",
+        "x": -17,
+        "y": 11
+      },
+      {
+        "slot": "CM",
+        "x": -20,
+        "y": 0
+      },
+      {
+        "slot": "CM",
+        "x": -17,
+        "y": -11
+      },
+      {
+        "slot": "RM",
+        "x": -15,
+        "y": -23
+      },
+      {
+        "slot": "ST",
+        "x": -3,
+        "y": 0
+      }
+    ]
+  },
+  "_formationsNote": "Base positions per slot (squad.json order), metres, team attacking +X, ball on the centre spot; +Y = the team's left. The shape shifts with the ball and possession; mentality moves the lines (ai.mentalityStep per step). PROPOSAL, Master B brief Oct 11.",
+  "testTeams": {
+    "_source": "Test teams for headless tests and the quick-match button: rating + position profile + noise. PROPOSAL, Master B brief Oct 11.",
+    "noise": 4,
+    "hiddenDrop": 35,
+    "profiles": {
+      "GK": {
+        "RushingOut": -3,
+        "Distribution": -5
+      },
+      "CB": {
+        "Tackling": 6,
+        "Heading": 6,
+        "Strength": 6,
+        "Positioning": 5,
+        "Pace": -4,
+        "Dribbling": -10,
+        "Shooting": -18,
+        "Crossing": -12,
+        "Passing": -6
+      },
+      "LB": {
+        "Pace": 5,
+        "Acceleration": 4,
+        "Crossing": 3,
+        "Tackling": 2,
+        "Shooting": -15,
+        "Heading": -6
+      },
+      "RB": {
+        "Pace": 5,
+        "Acceleration": 4,
+        "Crossing": 3,
+        "Tackling": 2,
+        "Shooting": -15,
+        "Heading": -6
+      },
+      "DM": {
+        "Tackling": 5,
+        "Positioning": 4,
+        "Passing": 3,
+        "Stamina": 4,
+        "Shooting": -10
+      },
+      "CM": {
+        "Passing": 6,
+        "Stamina": 4,
+        "Dribbling": 2,
+        "Shooting": -4,
+        "Tackling": -3
+      },
+      "AM": {
+        "Passing": 5,
+        "Dribbling": 6,
+        "Shooting": 3,
+        "Tackling": -15,
+        "Heading": -8
+      },
+      "LM": {
+        "Pace": 4,
+        "Crossing": 6,
+        "Dribbling": 3,
+        "Tackling": -8
+      },
+      "RM": {
+        "Pace": 4,
+        "Crossing": 6,
+        "Dribbling": 3,
+        "Tackling": -8
+      },
+      "LW": {
+        "Pace": 7,
+        "Acceleration": 6,
+        "Dribbling": 7,
+        "Crossing": 3,
+        "Tackling": -18,
+        "Heading": -8
+      },
+      "RW": {
+        "Pace": 7,
+        "Acceleration": 6,
+        "Dribbling": 7,
+        "Crossing": 3,
+        "Tackling": -18,
+        "Heading": -8
+      },
+      "ST": {
+        "Shooting": 8,
+        "Heading": 4,
+        "Strength": 2,
+        "Positioning": 3,
+        "Tackling": -22,
+        "Passing": -4,
+        "Crossing": -10
+      }
+    }
+  }
+}

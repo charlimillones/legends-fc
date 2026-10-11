@@ -509,7 +509,7 @@ namespace LegendsFC.Core.Inbox
         {
             if (wording.IndexOf("derby", StringComparison.OrdinalIgnoreCase) >= 0 && !values.ContainsKey("derby")) return false;
             if (wording.IndexOf("storm", StringComparison.OrdinalIgnoreCase) >= 0 && !values.ContainsKey("storm")) return false;
-            return Slot.Matches(wording).Cast<Match>().All(x => values.ContainsKey(x.Groups[1].Value));
+            return Slot.Matches(wording).Cast<System.Text.RegularExpressions.Match>().All(x => values.ContainsKey(x.Groups[1].Value));
         }
 
         private static string Fill(string wording, Dictionary<string, string> values) => Slot.Replace(wording, x => values[x.Groups[1].Value]);
