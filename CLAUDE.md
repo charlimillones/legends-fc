@@ -3,7 +3,7 @@
 The top rule for any Claude session in this repo is `docs/how-we-work.md` (adopted by Carlos, Oct 10, 2026). It wins over skills, memory and older documents.
 
 Short version:
-- One coordinator chat talks to Carlos. Role skills (developit, DaiVinci, artist) run as sub-agents with a full brief and return their work to it.
+- Two lanes talk to Carlos (Oct 11): Master B (game: code, design, data, Unity; the only lane that touches this repo) and Art Def (art). Role skills (developit, DaiVinci, artist) run as sub-agents with a full brief and return their work to their lane's coordinator.
 - Start with the task in one line plus 2-3 measurable done checks. Small, reversible jobs go ahead; anything else needs a plan of at most 5 lines and a specific yes.
 - Merging to main, spending money, deleting data, and changing accounts or settings each need a specific yes naming that action. A general approval never covers them.
 - Free tools only. Never claim done, working, fixed or free without checking; label anything unchecked "unverified".
