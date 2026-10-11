@@ -17,6 +17,12 @@ if (args.Length > 0 && args[0] == "match-batch")
     MatchBatch.Run(data, args.Length > 2 ? int.Parse(args[2]) : 200, args.Length > 3 ? int.Parse(args[3]) : 70, args.Length > 4 ? int.Parse(args[4]) : 70, seed);
     return;
 }
+if (args.Length > 0 && args[0] == "match-check")
+{
+    // Usage: match-check [seed] [matches]
+    MatchCheck.Run(data, args.Length > 2 ? int.Parse(args[2]) : 50, seed);
+    return;
+}
 if (args.Length > 0 && args[0] == "match-trace")
 {
     // Usage: match-trace [seed] [lines]

@@ -55,7 +55,8 @@ namespace LegendsFC.Core.Match
                     }
                     else if (defending)
                     {
-                        if (i == first) Press(i);
+                        if (_owner >= 0 && _p[_owner].Holding) DefendSpot(i);   // nobody presses a keeper with the ball in his hands
+                        else if (i == first) Press(i);
                         else if (i == second && _owner >= 0) Cover(i);
                         else if (i == second) { TimeToBall(i, out var pt); p.Target = pt; p.SpeedMode = 1; }
                         else DefendSpot(i);
@@ -134,6 +135,18 @@ namespace LegendsFC.Core.Match
                     if (facing && cx > line - a.RunTrigger && (float)_rng.NextDouble() < a.RunRate * Dt) p.RunTimer = a.RunSeconds;
                 }
                 if (p.Line == 3) f.X = line - a.OnsideGap;
+                if (p.Line == 3 && carrierOk && p.RunTimer <= 0)
+                {
+                    // the ball is wide in the final third: forwards attack the box (near post, far post, penalty spot)
+                    var cf = ToFrame(t, _ballPos.XY);
+                    if (MathF.Abs(cf.Y) > a.CrossWideY && cf.X > a.CrossZoneX)
+                    {
+                        float side = cf.Y > 0 ? 1 : -1;
+                        int k = p.Slot % 3;
+                        f = k == 0 ? new Vec2(HalfX - 6f, side * 2.5f) : k == 1 ? new Vec2(HalfX - 8f, -side * 3.5f) : new Vec2(HalfX - 11f, 0);
+                        mode = 2;
+                    }
+                }
                 if (p.RunTimer > 0) { f.X = line + a.RunDepth; mode = 2; }
             }
             if (p.RunTimer <= 0 && f.X > line - a.OnsideGap) f.X = line - a.OnsideGap;
@@ -290,11 +303,21 @@ namespace LegendsFC.Core.Match
                         float v = val * LaneSafety(t, cp, rp, d / a.PassAvgSpeed) + Noise(t);
                         if (v > bestV) { bestV = v; bestKind = 2; bestTarget = rp; bestR = j; bestKick = KickKind.Pass; }
                     }
-                    if (d >= 12f && d <= a.LoftedPassMax && !_p[j].Keeper)
+                    if (d >= 12f && d <= a.LoftedPassMax && !_p[j].Keeper && !wide)
                     {
-                        bool cross = wide && InOwnBox(1 - t, rp, 2f);
                         float v = val * LandingSafety(t, j, rp, d / a.LoftAvgSpeed) - a.LoftPenalty + Noise(t);
-                        if (v > bestV) { bestV = v; bestKind = 2; bestTarget = rp; bestR = j; bestKick = cross ? KickKind.Cross : KickKind.LoftedPass; }
+                        if (v > bestV) { bestV = v; bestKind = 2; bestTarget = rp; bestR = j; bestKick = KickKind.LoftedPass; }
+                    }
+                    if (wide && _p[j].Line >= 2)
+                    {
+                        // cross: into the box where he is arriving (between the six-yard line and the penalty spot)
+                        var bf = ToFrame(t, rp);
+                        var cf = new Vec2(MathUtil.Clamp(bf.X, HalfX - 12f, HalfX - 5f), MathUtil.Clamp(bf.Y, -7f, 7f));
+                        var ct = ToWorld(t, cf);
+                        float cd = Vec2.Distance(cp, ct);
+                        float tr = Vec2.Distance(_p[j].Pos, ct) / _p[j].SprintSpeed;
+                        float v = PassValue(t, cp, ct) * LandingSafety(t, j, ct, Math.Max(cd / a.LoftAvgSpeed, tr)) + a.CrossBonus + Noise(t);
+                        if (v > bestV) { bestV = v; bestKind = 2; bestTarget = ct; bestR = j; bestKick = KickKind.Cross; }
                     }
                     if (_p[j].RunTimer > 0)
                     {
@@ -535,9 +558,11 @@ namespace LegendsFC.Core.Match
                     float dive = MathUtil.Lerp(kc.DiveSpeedMin, kc.DiveSpeedMax, k.Reflexes);
                     if (MathF.Abs(need) > kc.StandReach * 0.7f && tk < 0.8f)
                     {
+                        // dive so he gets to the ball's line as it arrives (as fast as Reflexes allow)
+                        float sp = Math.Min(dive, MathF.Abs(need) / Math.Max(0.05f, tk));
                         k.Diving = true;
-                        k.DiveVel = new Vec2(0, MathF.Sign(need) * dive);
-                        k.DiveTimer = Math.Min(MathF.Abs(need) / dive + 0.15f, 0.7f);
+                        k.DiveVel = new Vec2(0, MathF.Sign(need) * sp);
+                        k.DiveTimer = Math.Min(tk + 0.2f, 1.0f);
                         k.Action = PlayerAction.Dive; k.ActionTimer = k.DiveTimer + 0.3f;
                     }
                     else

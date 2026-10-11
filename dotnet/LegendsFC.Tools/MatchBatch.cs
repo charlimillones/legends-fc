@@ -30,19 +30,20 @@ public static class MatchBatch
             for (int i = 0; i < 22; i++) { km[m, i] = rr.Players[i].Km; en[m, i] = rr.Players[i].Energy; }
         });
         double goals = 0, out_ = 0, shots = 0, saves = 0, passes = 0, tackles = 0, blocks = 0, corners = 0, throws = 0, gk = 0, posts = 0, headers = 0, sot = 0;
-        int hw = 0, aw = 0, dr = 0; double cat = 0, par = 0, tip = 0, tw = 0;
+        int hw = 0, aw = 0, dr = 0; double cat = 0, par = 0, tip = 0, tw = 0, cr = 0, th = 0, lth = 0, lp = 0;
         foreach (var r in res)
         {
             goals += r.hg + r.ag;
             if (r.hg > r.ag) hw++; else if (r.ag > r.hg) aw++; else dr++;
             out_ += r.c.OutOfPlayTicks / (double)r.c.ClockTicks;
             shots += r.c.Shots; saves += r.c.Saves; passes += r.c.Passes; tackles += r.c.Tackles; blocks += r.c.Blocks;
-            cat += r.c.Catches; par += r.c.Parries; tip += r.c.Tips; tw += r.c.TacklesWon;
+            cat += r.c.Catches; par += r.c.Parries; tip += r.c.Tips; tw += r.c.TacklesWon; cr += r.c.Crosses; th += r.c.ThroughBalls; lth += r.c.LoftedThroughBalls; lp += r.c.LoftedPasses;
             corners += r.c.Corners; throws += r.c.ThrowIns; gk += r.c.GoalKicks; posts += r.c.PostHits; headers += r.c.Headers; sot += r.c.ShotsOnTarget;
         }
         Console.WriteLine($"{n} matches, ratings {ratingHome} v {ratingAway}, {sw.Elapsed.TotalSeconds:F1} s");
         Console.WriteLine($"goals/match {goals / n:F2}  home {100.0 * hw / n:F0}%  draw {100.0 * dr / n:F0}%  away {100.0 * aw / n:F0}%  out of play {100 * out_ / n:F1}%");
         Console.WriteLine($"per match: shots {shots / n:F1} on target {sot / n:F1} saves {saves / n:F2} passes {passes / n:F0} tackles {tackles / n:F1} blocks {blocks / n:F1} headers {headers / n:F1} posts {posts / n:F2}");
+        Console.WriteLine($"pass kinds per match: crosses {cr / n:F1} through {th / n:F1} lofted through {lth / n:F1} lofted {lp / n:F1}");
         Console.Write("km by slot (home):");
         for (int i = 0; i < 11; i++) { double t = 0; for (int m = 0; m < n; m++) t += km[m, i]; Console.Write($" {t / n:F1}"); }
         Console.WriteLine();

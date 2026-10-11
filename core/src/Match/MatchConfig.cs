@@ -184,8 +184,12 @@ namespace LegendsFC.Core.Match
         /// <summary>Above this height a save is tipped over.</summary>
         public float TipHeight = 2.15f;
         public float ParrySpeedKeep = 0.35f, ParrySpreadDeg = 60f;
+        /// <summary>Share of parries pushed wide round the post (usually a corner).</summary>
+        public float ParryWideChance = 0.35f;
         /// <summary>Base save-chance fumble: even a reached ball beats him this often, less with Reflexes.</summary>
         public float MissMax = 0.3f, MissMin = 0.04f;
+        /// <summary>Harder shots (per 10 m/s above CatchEasySpeed) and full-stretch dives beat him more often.</summary>
+        public float MissPerSpeed = 0.08f, MissDiving = 0.1f;
         public float HoldMin = 0.8f, HoldMax = 1.6f;
         /// <summary>Off his line: depth from the goal = LineBase + LinePerMetre × ball distance, at most LineMax (+ RushingOut × LineRushBonus).</summary>
         public float LineBase = 1.0f, LinePerMetre = 0.08f, LineMax = 5f, LineRushBonus = 3f;
@@ -200,6 +204,8 @@ namespace LegendsFC.Core.Match
         public float CollectReach = 1.1f;
         /// <summary>Distribution: a throw goes to an open teammate within ThrowRange; otherwise a long kick (angle).</summary>
         public float ThrowRange = 30f, ThrowOpenDistance = 7f, LongKickAngleDeg = 38f;
+        /// <summary>Opponents can't touch a ball just released from the keeper's hands for this long.</summary>
+        public float ReleaseGuardSeconds = 0.3f;
     }
 
     public sealed class SwitchConfig
@@ -258,7 +264,7 @@ namespace LegendsFC.Core.Match
         /// <summary>Dribble evaluation.</summary>
         public float DribbleBase = 0.3f, DribbleSpace = 6f, DribbleProgress = 0.35f, PressedRadius = 2.0f;
         /// <summary>Cross from wide in the final third.</summary>
-        public float CrossWideY = 15f, CrossZoneX = 33f;
+        public float CrossWideY = 15f, CrossZoneX = 33f, CrossBonus = 0.3f;
         /// <summary>The carrier aims shots this far inside a post, and this high.</summary>
         public float AimInset = 0.7f, AimLow = 0.35f, AimHigh = 1.7f, AimHighChance = 0.35f;
         /// <summary>Tackle: the AI tries when in range, at most this often per second.</summary>

@@ -60,7 +60,8 @@ namespace LegendsFC.Core.Match
         private bool _lastTouchWasPass, _lastTouchDeflect;
         private int _shooter = -1;
         private float _shotAge = 99f;
-        private float _headerLock;
+        private float _headerLock, _handsGuard;
+        private int _handsGuardTeam = -1;
 
         public LiveMatch(MatchSetup setup, MatchConfig config)
         {
@@ -100,6 +101,7 @@ namespace LegendsFC.Core.Match
             ParseButtons(config.Buttons.Attack, _attackMap, true);
             ParseButtons(config.Buttons.Defence, _defenceMap, false);
 
+            for (int i = 0; i < N; i++) _ttbTick[i] = -1;
             _firstKickTeam = _rng.NextInt(0, 1);
             _etFirstKickTeam = _rng.NextInt(0, 1);
             StartKickOff(_firstKickTeam);
@@ -142,7 +144,7 @@ namespace LegendsFC.Core.Match
         {
             var r = new LiveMatchResult
             {
-                HomeClubId = _setup.Home.ClubId, AwayClubId = _setup.Away.ClubId,
+                CompetitionId = _setup.CompetitionId, HomeClubId = _setup.Home.ClubId, AwayClubId = _setup.Away.ClubId,
                 HomeGoals = _homeGoals, AwayGoals = _awayGoals,
                 ExtraTimePlayed = _extraTime, NeedsShootout = _needsShootout,
                 Goals = new List<GoalEvent>(_goals), Players = new List<PlayerStats>(N)
@@ -210,6 +212,7 @@ namespace LegendsFC.Core.Match
             UpdateMinute();
             _shotAge += Dt;
             if (_headerLock > 0) _headerLock -= Dt;
+            if (_handsGuard > 0) _handsGuard -= Dt;
             UpdateTimers();
             RecordBall();
             PredictBall();

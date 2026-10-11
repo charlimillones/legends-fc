@@ -166,6 +166,7 @@ namespace LegendsFC.Core.Match
         {
             _passReceiver = -1;
             _passTeam = -1;
+            _handsGuard = 0;
             for (int i = 0; i < N; i++) { _p[i].Threat = false; _p[i].IgnoreShot = 0; }
         }
 
@@ -263,7 +264,8 @@ namespace LegendsFC.Core.Match
                 if (d > reach || _ballPos.Z > _c.Keeper.ReachHeight) continue;
                 if (shot)
                 {
-                    float miss = MathUtil.Lerp(_c.Keeper.MissMax, _c.Keeper.MissMin, k.Reflexes);
+                    float miss = MathUtil.Lerp(_c.Keeper.MissMax, _c.Keeper.MissMin, k.Reflexes)
+                                 + _c.Keeper.MissPerSpeed * Math.Max(0, speed - _c.Keeper.CatchEasySpeed) / 10f + (k.Diving ? _c.Keeper.MissDiving : 0f);
                     if ((float)_rng.NextDouble() < miss) { k.IgnoreShot = 0.4f; continue; }
                 }
                 float catchP = _c.Keeper.CatchBase + _c.Keeper.CatchHandling * k.Handling
@@ -294,6 +296,12 @@ namespace LegendsFC.Core.Match
                     float spread = ((float)_rng.NextDouble() * 2 - 1) * _c.Keeper.ParrySpreadDeg * MathUtil.Deg;
                     var away = new Vec2(-own, 0).Rotated(spread);
                     if (away.X * -own < -0.15f) away = new Vec2(-own * 0.15f, away.Y).Normalized();   // never back into the net
+                    if ((float)_rng.NextDouble() < _c.Keeper.ParryWideChance)
+                    {
+                        // pushed wide, round the post: usually behind for a corner
+                        float side = MathF.Abs(_ballPos.Y) > 0.3f ? MathF.Sign(_ballPos.Y) : ((float)_rng.NextDouble() < 0.5f ? -1f : 1f);
+                        away = new Vec2(own * 0.35f, side).Normalized();
+                    }
                     float sp = Math.Max(3f, speed * _c.Keeper.ParrySpeedKeep);
                     _ballVel = new Vec3(away * sp, (float)_rng.NextDouble() * 2.5f);
                 }
@@ -334,6 +342,7 @@ namespace LegendsFC.Core.Match
             {
                 var p = _p[i];
                 if (p.KickIgnore > 0 && i == _lastKicker) continue;
+                if (_handsGuard > 0 && p.Team == _handsGuardTeam) continue;
                 if (p.Stun > 0 || p.Diving || p.IgnoreShot > 0) continue;
                 if (p.Keeper && InOwnBox(p.Team, p.Pos, 0.5f)) continue;   // hands: KeeperContact
                 float d = MathUtil.SegmentDistance(p.Pos, prev.XY, _ballPos.XY, out _);

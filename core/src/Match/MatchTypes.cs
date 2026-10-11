@@ -115,7 +115,7 @@ namespace LegendsFC.Core.Match
 
     public sealed class LiveMatchResult
     {
-        public string HomeClubId, AwayClubId;
+        public string CompetitionId, HomeClubId, AwayClubId;
         public int HomeGoals, AwayGoals;
         public bool ExtraTimePlayed, NeedsShootout;
         public List<GoalEvent> Goals;
@@ -129,6 +129,8 @@ namespace LegendsFC.Core.Match
         public int ClockTicks, OutOfPlayTicks;
         public int Shots, ShotsOnTarget, Saves, Catches, Parries, Tips, Blocks, Passes, Tackles, TacklesWon, Headers;
         public int ThrowIns, GoalKicks, Corners, KickOffs;
+        /// <summary>Pass kinds: crosses, through balls (ground and lofted), other lofted passes.</summary>
+        public int Crosses, ThroughBalls, LoftedThroughBalls, LoftedPasses;
         public int PostHits;
         /// <summary>Ticks each team owned the ball (home, away).</summary>
         public int HomePossessionTicks, AwayPossessionTicks;
@@ -137,6 +139,7 @@ namespace LegendsFC.Core.Match
         {
             ClockTicks = OutOfPlayTicks = Shots = ShotsOnTarget = Saves = Catches = Parries = Tips = Blocks = Passes = Tackles = TacklesWon = Headers = 0;
             ThrowIns = GoalKicks = Corners = KickOffs = PostHits = HomePossessionTicks = AwayPossessionTicks = 0;
+            Crosses = ThroughBalls = LoftedThroughBalls = LoftedPasses = 0;
         }
     }
 }

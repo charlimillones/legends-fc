@@ -53,7 +53,20 @@ namespace LegendsFC.Core.Match
         }
 
         /// <summary>Earliest time player i can reach the ball (loose: its predicted path; owned: the carrier).</summary>
+        private readonly int[] _ttbTick = new int[N], _ttbOwner = new int[N];
+        private readonly float[] _ttbTime = new float[N];
+        private readonly Vec2[] _ttbPoint = new Vec2[N];
+
+        /// <summary>Earliest time player i can reach the ball, cached for the tick (it's asked for many times).</summary>
         private float TimeToBall(int i, out Vec2 point)
+        {
+            if (_ttbTick[i] == _tick && _ttbOwner[i] == _owner) { point = _ttbPoint[i]; return _ttbTime[i]; }
+            float t = TimeToBallRaw(i, out point);
+            _ttbTick[i] = _tick; _ttbOwner[i] = _owner; _ttbTime[i] = t; _ttbPoint[i] = point;
+            return t;
+        }
+
+        private float TimeToBallRaw(int i, out Vec2 point)
         {
             var p = _p[i];
             float speed = Math.Max(1f, p.SprintSpeed * EnergyFactor(p));
@@ -155,6 +168,13 @@ namespace LegendsFC.Core.Match
             }
             p.UseDirect = true;
             p.DirectVel = dir * speed;
+            if (mag <= 0.05f && _owner < 0 && _controlled == _passReceiver)
+            {
+                // stick centred while a pass comes to him: he goes to meet it like any AI receiver
+                p.UseDirect = false;
+                TimeToBall(_controlled, out var pt);
+                p.Target = pt; p.SpeedMode = 2;
+            }
 
             bool carrier = _owner == _controlled && !p.Holding;
             if (carrier)
@@ -341,8 +361,8 @@ namespace LegendsFC.Core.Match
                     if (l2 >= r2 * r2 || l2 < 1e-8f) continue;
                     float l = MathF.Sqrt(l2);
                     var push = d * ((r2 - l) * 0.5f / l);
-                    if (!_p[i].Holding && !_p[i].Diving) _p[i].Pos = _p[i].Pos - push;
-                    if (!_p[j].Holding && !_p[j].Diving) _p[j].Pos = _p[j].Pos + push;
+                    if (!_p[i].Holding && !_p[i].Diving) { _p[i].Pos = _p[i].Pos - push; ClampPlayer(_p[i]); }
+                    if (!_p[j].Holding && !_p[j].Diving) { _p[j].Pos = _p[j].Pos + push; ClampPlayer(_p[j]); }
                 }
             }
         }
@@ -488,6 +508,8 @@ namespace LegendsFC.Core.Match
         {
             var p = _p[i];
             _owner = -1;
+            // a ball released from the keeper's hands can't be taken by an opponent straight away (same for both teams)
+            if (p.Holding) { _handsGuardTeam = 1 - p.Team; _handsGuard = _c.Keeper.ReleaseGuardSeconds; }
             p.Holding = false;
             _ballVel = v;
             if (_ballPos.Z < _c.Ball.Radius) _ballPos.Z = _c.Ball.Radius;
@@ -500,6 +522,10 @@ namespace LegendsFC.Core.Match
             Touch(i, pass, false);
             if (pass)
             {
+                if (kind == KickKind.Cross) _counters.Crosses++;
+                else if (kind == KickKind.ThroughGround) _counters.ThroughBalls++;
+                else if (kind == KickKind.ThroughLofted) _counters.LoftedThroughBalls++;
+                else if (kind == KickKind.LoftedPass) _counters.LoftedPasses++;
                 p.Passes++;
                 _counters.Passes++;
                 p.Energy -= (float)(_c.Squad.EnergyPerPass * p.StaminaFactor);

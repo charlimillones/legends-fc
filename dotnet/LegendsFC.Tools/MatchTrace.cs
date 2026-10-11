@@ -35,6 +35,9 @@ public static class MatchTrace
             lastShots = c.Shots; lastHeaders = c.Headers; lastSaves = c.Saves; lastBlocks = c.Blocks; lastPasses = c.Passes;
             if (b.Owner >= 0 || m.Phase != lastPhase) lastOwner = b.Owner;
             lastPhase = m.Phase;
+            if (Environment.GetEnvironmentVariable("TRACE_FROM") is string from && tick * LiveMatch.TickSeconds >= float.Parse(from)
+                && tick * LiveMatch.TickSeconds <= float.Parse(from) + 1.5f)
+                ev = (ev ?? "") + $" | tick owner {b.Owner} k11 {m.Players[11].Pos} act {m.Players[11].Action}";
             if (ev != null)
             {
                 Console.WriteLine($"{tick * LiveMatch.TickSeconds,6:F2}s m{m.Minute,3} {m.HomeGoals}-{m.AwayGoals} ball ({b.Pos.X,6:F1},{b.Pos.Y,6:F1},{b.Pos.Z,4:F1}) v({b.Vel.X,5:F1},{b.Vel.Y,5:F1},{b.Vel.Z,5:F1}) {ev}");

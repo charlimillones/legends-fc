@@ -323,5 +323,9 @@ public class MatchEngineTests
         var m = new LiveMatch(setup, d.Match);
         Run(m, new ControlInput(), 500);
         Assert.False(m.IsOver);
+        var res = m.Result();
+        Assert.Equal("ENG-1", res.CompetitionId);
+        Assert.Equal(home.ClubId, res.HomeClubId);
+        Assert.Equal(away.ClubId, res.AwayClubId);
     }
 }
