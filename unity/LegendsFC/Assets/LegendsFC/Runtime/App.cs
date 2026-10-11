@@ -115,6 +115,11 @@ namespace LegendsFC.App
 
         // ---- frame
 
+        private GameObject _frame;
+
+        /// <summary>Hides the menus while the 3D match is on screen.</summary>
+        public void ShowFrame(bool visible) { if (_frame != null) _frame.SetActive(visible); }
+
         private void BuildFrame()
         {
             if (FindAnyObjectByType<EventSystem>() == null)
@@ -122,7 +127,7 @@ namespace LegendsFC.App
                 var es = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
                 DontDestroyOnLoad(es);
             }
-            var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var canvasGo = _frame = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.transform.SetParent(transform, false);
             var canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 10;
@@ -260,7 +265,67 @@ namespace LegendsFC.App
 
         private bool _running;
 
-        private async void OnContinue()
+        /// <summary>
+        /// Continue: when the user's club plays this week, ask first whether to play the match or simulate it (Oct 11).
+        /// The sim limit (1 simulated per 2-3 played, backlog C-04) is not enforced yet.
+        /// </summary>
+        private void OnContinue()
+        {
+            if (_running || Session == null) return;
+            var fx = Session.NextUserFixture();
+            if (fx != null && !(Current is PreMatchScreen)) { Show(new PreMatchScreen(fx)); return; }
+            PlayWeek(null);
+        }
+
+        /// <summary>Simulates the week, the user's match included.</summary>
+        public void SimulateWeek() => PlayWeek(null);
+
+        /// <summary>Plays the user's match in 3D, then the week with that result.</summary>
+        public void PlayLive(LegendsFC.Core.Squad.UserFixture fx)
+        {
+            if (_running || Session == null) return;
+            var s = Session;
+            ulong seed = (ulong)(s.World.SeasonStartYear * 100 + fx.Week) * 1000003UL + (ulong)(uint)(fx.Fixture.Home + fx.Fixture.Away).GetHashCode();
+            var setup = LegendsFC.Core.Match.LiveMatchFactory.FromSheets(s.World, Data, fx.CompetitionId, fx.HomeSheet, fx.AwaySheet,
+                new LegendsFC.Core.Match.MatchSettings { UserSide = fx.UserIsHome ? 0 : 1 }, seed);
+            setup.ExtraTimeIfLevel = fx.Decide && fx.ExtraTime;
+            if (fx.FirstLeg.HasValue)
+            {
+                // the first leg's own result; the engine swaps it for the aggregate, like the season code does
+                setup.FirstLegHomeGoals = fx.FirstLeg.Value.HomeGoals;
+                setup.FirstLegAwayGoals = fx.FirstLeg.Value.AwayGoals;
+            }
+            setup.CompetitionId = fx.CompetitionId;
+            ShowFrame(false);
+            Match3D.Begin(setup, Data.Match, result =>
+            {
+                ShowFrame(true);
+                PlayWeek(LegendsFC.Core.Match.LiveMatchToSeason.ToPlayedMatch(result));
+            });
+        }
+
+        /// <summary>A match with two test teams (rated 70), outside any world, for trying the controls.</summary>
+        public void QuickMatch(bool watch)
+        {
+            var c = Data.Match;
+            var setup = new LegendsFC.Core.Match.MatchSetup
+            {
+                CompetitionId = "QUICK",
+                Home = LegendsFC.Core.Match.LiveMatchFactory.TestTeam(c, "Blues", "4-4-2", 70, 11),
+                Away = LegendsFC.Core.Match.LiveMatchFactory.TestTeam(c, "Reds", "4-3-3", 70, 12),
+                Seed = (ulong)DateTime.UtcNow.Ticks,
+                Settings = new LegendsFC.Core.Match.MatchSettings { UserSide = watch ? -1 : 0 }
+            };
+            ShowFrame(false);
+            Match3D.Begin(setup, c, result =>
+            {
+                ShowFrame(true);
+                Show(new TitleScreen());
+                Toast($"Quick match: Blues {result.HomeGoals} - {result.AwayGoals} Reds");
+            });
+        }
+
+        private async void PlayWeek(LegendsFC.Core.Squad.PlayedMatch played)
         {
             if (_running || Session == null) return;
             _running = true;
@@ -270,13 +335,13 @@ namespace LegendsFC.App
                 var s = Session;
                 int season = s.World.SeasonStartYear;
                 string now = NowUtc();
-                var report = await Task.Run(() => s.AdvanceWeek(now));
+                var report = await Task.Run(() => s.AdvanceWeek(now, played));
                 Busy(null);
                 bool seasonEnded = s.World.SeasonStartYear != season;
                 if (report.Sacked || s.World.UserClubId == null) Show(new JobsScreen());
                 else if (report.UserMatches.Count > 0) Show(new MatchScreen(report.UserMatches, s.World.SeasonStartYear == season ? null : season));
                 else if (seasonEnded) Show(new SeasonSummaryScreen());
-                else Show(Current is MatchScreen || Current == null ? new HomeScreen() : Current);
+                else Show(Current is MatchScreen || Current is PreMatchScreen || Current == null ? new HomeScreen() : Current);
                 if (s.NewMessages.Count > 0) Toast($"{s.NewMessages.Count} new message{(s.NewMessages.Count > 1 ? "s" : "")} in your inbox");
             }
             catch (Exception e)

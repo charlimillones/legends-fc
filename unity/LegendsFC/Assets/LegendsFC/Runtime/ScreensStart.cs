@@ -55,6 +55,10 @@ namespace LegendsFC.App
             var b = UIKit.Button(list, "New world", () => A.Show(new NewWorldScreen()), UIKit.Accent, 30, -1, 84);
             b.interactable = A.Store.FreeSlot() != null;
             if (!b.interactable) UIKit.Note(list, "All 5 slots are used: delete a world to start a new one.", UIKit.Warn);
+            UIKit.Gap(list, 10);
+            var quick = UIKit.Row(list, 84, 12);
+            UIKit.Button(quick, "Quick match", () => A.QuickMatch(false), UIKit.Panel2, 28, -1, 80);
+            UIKit.Button(quick, "Watch AI v AI", () => A.QuickMatch(true), UIKit.Panel2, 28, -1, 80);
         }
 
         private void Open(string slot)

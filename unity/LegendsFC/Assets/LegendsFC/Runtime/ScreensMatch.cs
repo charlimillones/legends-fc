@@ -12,6 +12,28 @@ using UnityEngine.UI;
 
 namespace LegendsFC.App
 {
+    /// <summary>Before the user's match (Oct 11): play it in 3D or simulate it.</summary>
+    public sealed class PreMatchScreen : UIScreen
+    {
+        private readonly LegendsFC.Core.Squad.UserFixture _fx;
+        public PreMatchScreen(LegendsFC.Core.Squad.UserFixture fx) { _fx = fx; }
+
+        public override void Build(RectTransform body)
+        {
+            var w = S.World;
+            string home = w.Clubs.First(c => c.Id == _fx.Fixture.Home).Name, away = w.Clubs.First(c => c.Id == _fx.Fixture.Away).Name;
+            var list = UIKit.Column(body, 16);
+            UIKit.Fill(list);
+            UIKit.Note(list, Fmt.Competition(_fx.CompetitionId) + (string.IsNullOrEmpty(_fx.Stage) ? "" : ", " + _fx.Stage), UIKit.Muted);
+            UIKit.Title(list, $"{home} v {away}");
+            if (_fx.FirstLeg.HasValue) UIKit.Note(list, $"First leg: {_fx.FirstLeg.Value.HomeGoals}-{_fx.FirstLeg.Value.AwayGoals}");
+            UIKit.Note(list, "Play the match yourself (5 minutes), or simulate it.");
+            UIKit.Gap(list, 10);
+            UIKit.Button(list, "Play match", () => A.PlayLive(_fx), UIKit.Accent, 32, -1, 90);
+            UIKit.Button(list, "Simulate", () => A.SimulateWeek(), UIKit.Panel2, 28, -1, 76);
+        }
+    }
+
     public sealed class MatchScreen : UIScreen
     {
         private readonly List<MatchResult> _matches;
