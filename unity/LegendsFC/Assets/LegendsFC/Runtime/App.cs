@@ -1,4 +1,4 @@
-// Legends FC app shell (Oct 10): loads the game data, keeps the open world (GameSession), and shows one screen at a time
+// The FC app shell (Oct 10; the game was renamed from Legends FC on Oct 11): loads the game data, keeps the open world (GameSession), and shows one screen at a time
 // inside a fixed frame (header with the club and the Continue button, a menu, and the screen's body).
 // It starts itself in any scene, so no scene setup is needed.
 using System;
@@ -33,7 +33,7 @@ namespace LegendsFC.App
         private static void Boot()
         {
             if (I != null) return;
-            var go = new GameObject("Legends FC");
+            var go = new GameObject("The FC");
             DontDestroyOnLoad(go);
             go.AddComponent<App>();
         }
@@ -53,6 +53,8 @@ namespace LegendsFC.App
             {
                 string dataDir = DataDirectory();
                 Data = await Task.Run(() => GameData.LoadFromDirectory(dataDir));
+                int copied = CopyOldWorlds(Application.persistentDataPath);
+                if (copied > 0) Debug.Log($"[LFC] copied {copied} save files from the old LegendsFC folder");
                 Store = new SaveStore(Application.persistentDataPath, Data.Saves);
                 Debug.Log($"[LFC] data loaded from {dataDir}; saves in {Application.persistentDataPath}");
                 Busy(null);
@@ -62,6 +64,43 @@ namespace LegendsFC.App
             {
                 Debug.LogException(e);
                 Busy("Couldn't load the game data:\n" + e.Message);
+            }
+        }
+
+        /// <summary>The game's name on screen (Carlos, Oct 11: "The FC", not "Legends FC").</summary>
+        public const string GameName = "The FC";
+
+        /// <summary>
+        /// The app was renamed (Oct 11), and on Windows and in the editor the save folder follows the product name, so worlds saved
+        /// under the old name would seem to vanish. Copies every file from the old folder that the new one doesn't have yet.
+        /// The old folder is left untouched (never lose a save). Returns the number of files copied.
+        /// </summary>
+        private static int CopyOldWorlds(string current)
+        {
+            try
+            {
+                string trimmed = current.TrimEnd('/', '\\');
+                string parent = Path.GetDirectoryName(trimmed);
+                if (string.IsNullOrEmpty(parent)) return 0;
+                string old = Path.Combine(parent, "LegendsFC");
+                if (string.Equals(Path.GetFullPath(old), Path.GetFullPath(trimmed), StringComparison.OrdinalIgnoreCase)) return 0;
+                string oldWorlds = Path.Combine(old, "worlds");
+                if (!Directory.Exists(oldWorlds)) return 0;
+                int n = 0;
+                foreach (string file in Directory.GetFiles(oldWorlds, "*", SearchOption.AllDirectories))
+                {
+                    string target = Path.Combine(trimmed, "worlds", file.Substring(oldWorlds.Length).TrimStart('/', '\\'));
+                    if (File.Exists(target)) continue;
+                    Directory.CreateDirectory(Path.GetDirectoryName(target));
+                    File.Copy(file, target);
+                    n++;
+                }
+                return n;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[LFC] couldn't copy the old saves: " + e.Message);
+                return 0;
             }
         }
 
@@ -103,7 +142,7 @@ namespace LegendsFC.App
             _header = header.rectTransform;
             _header.anchorMin = new Vector2(0, 1); _header.anchorMax = new Vector2(1, 1); _header.pivot = new Vector2(0.5f, 1);
             _header.offsetMin = new Vector2(0, -110); _header.offsetMax = Vector2.zero;
-            _headerTitle = UIKit.Label(_header, "Legends FC", 36, UIKit.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _headerTitle = UIKit.Label(_header, GameName, 36, UIKit.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIKit.Fill(_headerTitle.rectTransform, 30, 8, 900, 48);
             _headerInfo = UIKit.Label(_header, "", 24, UIKit.Muted);
             UIKit.Fill(_headerInfo.rectTransform, 30, 60, 420, 8);
@@ -201,7 +240,7 @@ namespace LegendsFC.App
             }
             else
             {
-                _headerTitle.text = "Legends FC";
+                _headerTitle.text = GameName;
                 _headerInfo.text = "First playable (placeholder screens)";
             }
         }

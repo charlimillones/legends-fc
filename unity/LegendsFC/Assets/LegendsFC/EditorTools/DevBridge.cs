@@ -5,7 +5,7 @@
 //   Logs/lfc-shot.flag     -> capture the Game view to Logs/lfc-shot.png (Play mode)
 //   Logs/lfc-tap.flag      -> press the button whose label is the file's text (Play mode)
 //   Logs/lfc-type.flag     -> put the file's text into the first input field on screen (Play mode)
-//   Logs/lfc-build.flag    -> build the Windows version to Builds/Windows/LegendsFC.exe (not in Play mode)
+//   Logs/lfc-build.flag    -> build the Windows version to Builds/Windows/The FC.exe (not in Play mode)
 // Compile results go to Logs/lfc-compile.txt; errors, exceptions and "[LFC]" logs to Logs/lfc-console.txt.
 // This assembly doesn't depend on the game scripts, so it keeps working when they fail to compile.
 using System;
@@ -67,7 +67,7 @@ public static class LegendsDevBridge
         var options = new BuildPlayerOptions
         {
             scenes = EditorBuildSettings.scenes.Where(x => x.enabled).Select(x => x.path).ToArray(),
-            locationPathName = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Builds", "Windows", "LegendsFC.exe")),
+            locationPathName = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Builds", "Windows", "The FC.exe")),
             target = BuildTarget.StandaloneWindows64,
             options = BuildOptions.None,
         };
