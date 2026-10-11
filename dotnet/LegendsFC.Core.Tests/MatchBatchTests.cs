@@ -6,7 +6,12 @@ using LegendsFC.Core.Match;
 using Xunit;
 using Xunit.Abstractions;
 
+/// <summary>Runs the heavy match batches alone, after the parallel tests, so they don't slow down timing tests (CI, Oct 11).</summary>
+[CollectionDefinition("Heavy match batches", DisableParallelization = true)]
+public class HeavyMatchBatches { }
+
 /// <summary>Done checks 2 and 3 (brief Oct 11): 200-match batches, strength, speed and zero allocations.</summary>
+[Collection("Heavy match batches")]
 public class MatchBatchTests
 {
     private readonly ITestOutputHelper _out;
