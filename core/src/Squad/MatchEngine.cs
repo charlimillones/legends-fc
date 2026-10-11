@@ -18,6 +18,9 @@ namespace LegendsFC.Core.Squad
         public string ClubId, PlayerId;
         /// <summary>Goal: the assist (null if none). Substitution: the player coming on.</summary>
         public string OtherPlayerId;
+        /// <summary>Goal: an own goal (ClubId is the club it counts for; PlayerId is the player of the other club who scored it).</summary>
+        [Newtonsoft.Json.JsonProperty(DefaultValueHandling = Newtonsoft.Json.DefaultValueHandling.Ignore)]
+        public bool OwnGoal;
     }
 
     /// <summary>One player's match: minutes, contributions, cards and rating (0 = not rated).</summary>
@@ -32,6 +35,8 @@ namespace LegendsFC.Core.Squad
         public int Passes, Shots;
         public bool CleanSheet, Injured;
         public double Rating;
+        /// <summary>Distance, passes and shots were measured by the live match (not estimated).</summary>
+        public bool Measured;
     }
 
     /// <summary>
@@ -48,6 +53,11 @@ namespace LegendsFC.Core.Squad
             public GameData Data;
             public RatingTable Ratings;
             public GameRandom Rng;
+            /// <summary>A match the user played live, and the fixture (with team sheets) it was played from. It replaces the sim
+            /// for that one fixture, once; every other fixture is simulated.</summary>
+            public PlayedMatch Played;
+            public UserFixture PlayedFixture;
+            public bool PlayedApplied;
         }
 
         private sealed class Side
@@ -67,17 +77,41 @@ namespace LegendsFC.Core.Squad
         }
 
         /// <summary>
+        /// The two team sheets for a fixture, mentality included: AI clubs, and the user's club while the assistant picks the
+        /// mentality (Oct 10), choose it by the AI rule. The sim and the pre-match peek (GameSession.NextUserFixture) both use
+        /// this, so they always agree. commit = false changes nothing in the world.
+        /// </summary>
+        public static void TeamSheets(string competitionId, Fixture f, GameWorld w, RatingTable r, GameData d, bool commit, out TeamSheet home, out TeamSheet away)
+        {
+            var c = d.Squad;
+            var homeClub = w.Clubs.First(k => k.Id == f.Home);
+            var awayClub = w.Clubs.First(k => k.Id == f.Away);
+            home = Lineups.Pick(w, homeClub, competitionId, r, d, commit);
+            away = Lineups.Pick(w, awayClub, competitionId, r, d, commit);
+            double homeOverall = Lineups.Strength(home, r, c).overall, awayOverall = Lineups.Strength(away, r, c).overall;
+            if (homeClub.Id != w.UserClubId || homeClub.Tactics.AssistantMentality) home.Mentality = Lineups.AiMentality(homeOverall, awayOverall, c);
+            if (awayClub.Id != w.UserClubId || awayClub.Tactics.AssistantMentality) away.Mentality = Lineups.AiMentality(awayOverall, homeOverall, c);
+        }
+
+        /// <summary>
         /// Plays a fixture. decide: knockout (a level result, or level aggregate with <paramref name="firstLeg"/>, goes to extra
-        /// time if <paramref name="extraTime"/>, then penalties).
+        /// time if <paramref name="extraTime"/>, then penalties). If the context holds a match played live for this fixture, its
+        /// result is used instead of the sim (once).
         /// </summary>
         public static MatchResult Play(string competitionId, Fixture f, bool decide, bool extraTime, MatchResult? firstLeg, Context x)
         {
+            var pm = x.Played;
+            if (pm != null && !x.PlayedApplied && pm.CompetitionId == competitionId && pm.HomeClubId == f.Home && pm.AwayClubId == f.Away)
+            {
+                x.PlayedApplied = true;
+                return PlayLive(competitionId, f, decide, extraTime, firstLeg, x);
+            }
+
             var w = x.World; var d = x.Data; var rng = x.Rng; var c = d.Squad; var e = d.MatchEvents;
-            var home = Prepare(w.Clubs.First(k => k.Id == f.Home), competitionId, x);
-            var away = Prepare(w.Clubs.First(k => k.Id == f.Away), competitionId, x);
-            // AI clubs, and the user's club while the assistant picks the mentality (Oct 10).
-            if (home.Club.Id != w.UserClubId || home.Club.Tactics.AssistantMentality) home.Sheet.Mentality = Lineups.AiMentality(home.Overall, away.Overall, c);
-            if (away.Club.Id != w.UserClubId || away.Club.Tactics.AssistantMentality) away.Sheet.Mentality = Lineups.AiMentality(away.Overall, home.Overall, c);
+            TeamSheets(competitionId, f, w, x.Ratings, d, true, out var homeSheet, out var awaySheet);
+            var home = Prepare(w.Clubs.First(k => k.Id == f.Home), homeSheet, x);
+            var away = Prepare(w.Clubs.First(k => k.Id == f.Away), awaySheet, x);
+            StartLines(home); StartLines(away);
 
             var events = new List<MatchEvent>();
             // ---- minute-by-minute: injuries, cards, substitutions
@@ -102,12 +136,7 @@ namespace LegendsFC.Core.Squad
             }
 
             // ---- goals
-            double base90 = d.MatchSim.BaseGoals;
-            double LambdaFor(Side us, Side them)
-                => base90 * Math.Exp(d.MatchSim.StrengthFactor * (us.Attack - them.Defence + d.MatchSim.HomeAdvantage * (us == home ? 1 : 0)))
-                   * (1 + c.MentalityScoringPerStep * us.Sheet.Mentality) * (1 + c.MentalityConcedingPerStep * them.Sheet.Mentality)
-                   * Math.Max(0.2, 1 - e.RedCardStrengthLoss * us.RedTime) * (1 + e.RedCardStrengthLoss * them.RedTime);
-            double lh = LambdaFor(home, away), la = LambdaFor(away, home);
+            double lh = Lambda(home, away, home, x), la = Lambda(away, home, home, x);
             int hg = Goals(home, lh, 1, 90, events, x), ag = Goals(away, la, 1, 90, events, x);
             var r = new MatchResult { Home = f.Home, Away = f.Away, HomeGoals = hg, AwayGoals = ag };
             int end = 90;
@@ -122,8 +151,78 @@ namespace LegendsFC.Core.Squad
                 if (RoundPlayer.Level(r, firstLeg))
                     r.PenaltyWinner = rng.Chance(d.LeagueFormats.ArgentinaFirst.PenaltyHomeWinChance) ? f.Home : f.Away;
             }
+            return Finish(home, away, r, f, end, competitionId, events, x);
+        }
 
-            // ---- after the match: minutes, ratings, energy, form, stats, bans served
+        /// <summary>
+        /// The fixture the user played live: score, scorers, assists and each player's minutes, distance, passes and shots
+        /// come from the played match (no simulated goals, cards, injuries or substitutions). A level knockout that didn't play
+        /// extra time live gets simulated extra time as usual, then penalties (the coin flip). Everything after the match
+        /// (ratings, energy, form, clean sheets, stats, bans served) is Finish, the same as for sim results.
+        /// </summary>
+        private static MatchResult PlayLive(string competitionId, Fixture f, bool decide, bool extraTime, MatchResult? firstLeg, Context x)
+        {
+            var w = x.World; var d = x.Data; var rng = x.Rng; var pm = x.Played; var fx = x.PlayedFixture;
+            var homeClub = w.Clubs.First(k => k.Id == f.Home); var awayClub = w.Clubs.First(k => k.Id == f.Away);
+            // The match was played with the sheets the peek gave; an AI club keeps the formation it chose, as Pick does.
+            foreach (var (club, sheet) in new[] { (homeClub, fx.HomeSheet), (awayClub, fx.AwaySheet) })
+            {
+                if (club.Id == w.UserClubId) continue;
+                club.Tactics.Formation = sheet.Formation;
+                if (!x.Ratings.Formations.ContainsKey(club.Id)) x.Ratings.Formations[club.Id] = sheet.Formation;
+            }
+            var home = Prepare(homeClub, fx.HomeSheet, x);
+            var away = Prepare(awayClub, fx.AwaySheet, x);
+            LiveLines(home, pm, x); LiveLines(away, pm, x);
+
+            var events = new List<MatchEvent>();
+            foreach (var g in pm.Goals.OrderBy(g => g.Minute))
+            {
+                if (!g.OwnGoal) (home.Lines.ContainsKey(g.ScorerId) ? home : away).Lines[g.ScorerId].Goals++;
+                if (g.AssistId != null) (home.Lines.ContainsKey(g.AssistId) ? home : away).Lines[g.AssistId].Assists++;
+                events.Add(new MatchEvent { Minute = g.Minute, Type = EventType.Goal, ClubId = g.ClubId, PlayerId = g.ScorerId, OtherPlayerId = g.AssistId, OwnGoal = g.OwnGoal });
+            }
+            var r = new MatchResult { Home = f.Home, Away = f.Away, HomeGoals = pm.HomeGoals, AwayGoals = pm.AwayGoals, AfterExtraTime = pm.ExtraTimePlayed };
+            int end = pm.ExtraTimePlayed ? 120 : 90;
+            if (decide)
+            {
+                if (RoundPlayer.Level(r, firstLeg) && extraTime && !pm.ExtraTimePlayed)
+                {
+                    // Extra time in sim mode, with the players on the pitch at the end of the live 90 minutes.
+                    double lh = Lambda(home, away, home, x), la = Lambda(away, home, home, x);
+                    foreach (var s in new[] { home, away })
+                        foreach (var p in s.OnPitch.Where(p => p != null)) s.On[p.Id] = 90;
+                    r.HomeGoals += Goals(home, lh / 3, 91, 120, events, x);
+                    r.AwayGoals += Goals(away, la / 3, 91, 120, events, x);
+                    foreach (var s in new[] { home, away })
+                        foreach (var p in s.OnPitch.Where(p => p != null))
+                        {
+                            var line = s.Lines[p.Id];
+                            var (km, passes, shots) = Fitness.Estimate(line, 30 / 90.0, s.Sheet.Mentality, x);
+                            line.Km = Math.Round(line.Km + km, 1); line.Passes += passes; line.Shots = Math.Max(line.Goals, line.Shots + shots);
+                        }
+                    r.AfterExtraTime = true; end = 120;
+                }
+                if (RoundPlayer.Level(r, firstLeg))
+                    r.PenaltyWinner = rng.Chance(d.LeagueFormats.ArgentinaFirst.PenaltyHomeWinChance) ? f.Home : f.Away;
+            }
+            return Finish(home, away, r, f, end, competitionId, events, x);
+        }
+
+        /// <summary>Expected goals over 90 minutes for one side (agreed Oct 9).</summary>
+        private static double Lambda(Side us, Side them, Side home, Context x)
+        {
+            var d = x.Data; var c = d.Squad; var e = d.MatchEvents;
+            double base90 = d.MatchSim.BaseGoals;
+            return base90 * Math.Exp(d.MatchSim.StrengthFactor * (us.Attack - them.Defence + d.MatchSim.HomeAdvantage * (us == home ? 1 : 0)))
+                   * (1 + c.MentalityScoringPerStep * us.Sheet.Mentality) * (1 + c.MentalityConcedingPerStep * them.Sheet.Mentality)
+                   * Math.Max(0.2, 1 - e.RedCardStrengthLoss * us.RedTime) * (1 + e.RedCardStrengthLoss * them.RedTime);
+        }
+
+        /// <summary>After the match: minutes, ratings, energy, form, stats, bans served (the same for sim and live results).</summary>
+        private static MatchResult Finish(Side home, Side away, MatchResult r, Fixture f, int end, string competitionId, List<MatchEvent> events, Context x)
+        {
+            var w = x.World; var d = x.Data; var rng = x.Rng; var c = d.Squad; var e = d.MatchEvents;
             var lines = new List<PlayerMatch>();
             foreach (var s in new[] { home, away })
             {
@@ -160,17 +259,60 @@ namespace LegendsFC.Core.Squad
             return r;
         }
 
-        private static Side Prepare(Club club, string competitionId, Context x)
+        private static Side Prepare(Club club, TeamSheet sheet, Context x)
         {
-            var sheet = Lineups.Pick(x.World, club, competitionId, x.Ratings, x.Data);
             var s = new Side { Club = club, Sheet = sheet, OnPitch = sheet.Starters.ToArray(), Bench = sheet.Bench.ToList(), SubsLeft = x.Data.Squad.Substitutions };
             foreach (var p in sheet.Starters.Concat(sheet.Bench).Where(p => p != null)) s.Players[p.Id] = p;
             (s.Attack, s.Defence, s.Overall) = Lineups.Strength(sheet, x.Ratings, x.Data.Squad);
             int charms = Transfers.Market.Squad(x.World, club.Id).Count(p => p.PersonalityId == "PER-LUCKY");
             s.Luck = Rules.LuckyCharm.TeamLuck(charms, x.Data.LuckyCharm);
-            for (int i = 0; i < s.OnPitch.Length; i++)
-                if (s.OnPitch[i] != null) { s.On[s.OnPitch[i].Id] = 0; s.Lines[s.OnPitch[i].Id] = new PlayerMatch { PlayerId = s.OnPitch[i].Id, ClubId = club.Id, Position = sheet.SlotPositions[i], Started = true }; }
             return s;
+        }
+
+        /// <summary>Sim mode: the starters are on the pitch from minute 0.</summary>
+        private static void StartLines(Side s)
+        {
+            for (int i = 0; i < s.OnPitch.Length; i++)
+                if (s.OnPitch[i] != null) { s.On[s.OnPitch[i].Id] = 0; s.Lines[s.OnPitch[i].Id] = new PlayerMatch { PlayerId = s.OnPitch[i].Id, ClubId = s.Club.Id, Position = s.Sheet.SlotPositions[i], Started = true }; }
+        }
+
+        /// <summary>
+        /// A live match: one line per player who played, with what the match measured. Who was on the pitch at the end (used by
+        /// simulated extra time): starters who played the club's longest time keep their slot; players who came on fill the
+        /// other slots, best fit first (goalkeeper slot first), and are rated in that slot's position.
+        /// </summary>
+        private static void LiveLines(Side s, PlayedMatch pm, Context x)
+        {
+            var c = x.Data.Squad;
+            var mine = pm.Players.Where(p => p.ClubId == s.Club.Id && p.Minutes > 0).ToList();
+            int full = mine.Count == 0 ? 0 : mine.Max(p => p.Minutes);
+            var slotOf = new Dictionary<string, int>();
+            for (int i = 0; i < s.Sheet.Starters.Count; i++) if (s.Sheet.Starters[i] != null) slotOf[s.Sheet.Starters[i].Id] = i;
+            var onPitch = new Player[s.Sheet.Slots.Count];
+            foreach (var p in mine)
+                if (slotOf.TryGetValue(p.PlayerId, out int i) && p.Minutes >= full) onPitch[i] = s.Players[p.PlayerId];
+            var cameOn = mine.Where(p => !slotOf.ContainsKey(p.PlayerId)).Select(p => s.Players[p.PlayerId]).ToList();
+            var position = new Dictionary<string, Position>();
+            foreach (var i in Enumerable.Range(0, onPitch.Length).OrderBy(i => s.Sheet.SlotPositions[i] == Position.GK ? 0 : 1).ThenBy(i => i))
+            {
+                if (onPitch[i] != null || cameOn.Count == 0) continue;
+                var pos = s.Sheet.SlotPositions[i];
+                var best = cameOn.OrderByDescending(p => Lineups.Effective(p, pos, x.Ratings, c)).ThenBy(p => p.Id, StringComparer.Ordinal).First();
+                cameOn.Remove(best);
+                onPitch[i] = best; position[best.Id] = pos;
+            }
+            s.OnPitch = onPitch;
+            s.Bench = new List<Player>(); s.SubsLeft = 0;
+            foreach (var p in mine)
+            {
+                bool started = slotOf.TryGetValue(p.PlayerId, out int slot);
+                var pos = started ? s.Sheet.SlotPositions[slot] : position.TryGetValue(p.PlayerId, out var q) ? q : s.Players[p.PlayerId].MainPosition;
+                s.Lines[p.PlayerId] = new PlayerMatch
+                {
+                    PlayerId = p.PlayerId, ClubId = s.Club.Id, Position = pos, Started = started,
+                    Minutes = p.Minutes, Km = p.Km, Passes = p.Passes, Shots = p.Shots, Measured = true,
+                };
+            }
         }
 
         private static void Close(Side s, Player p, int minute)
