@@ -40,6 +40,8 @@
   "movement": {
     "_source": "PROPOSAL, Master B brief Oct 11. Stick under walkStick walks, above runs; holding the screen sprints (decided controls). Keepers move by Rushing Out and react by Reflexes.",
     "walkStick": 0.5,
+    "jogSpeed": 3.6,
+    "arriveRadius": 1.0,
     "walkSpeed": 2.2,
     "runSpeedMin": 5.0,
     "runSpeedMax": 7.0,
@@ -163,7 +165,7 @@
     "reachHeight": 2.55,
     "catchBase": 0.3,
     "catchHandling": 0.6,
-    "catchSpeedPenalty": 0.035,
+    "catchSpeedPenalty": 0.02,
     "catchEasySpeed": 12,
     "catchStretchPenalty": 0.25,
     "tipHeight": 2.15,
@@ -301,7 +303,8 @@
   "_difficultyNote": "Decided: 4 levels, default 2; they change only the opponent AI's reading (readNoise, decisionNoise), reaction time and positioning quality, never attributes and never rubber-banding. The user's 10 AI teammates use ai.teammateLevel; AI vs AI uses the chosen level for both. Numbers: PROPOSAL, Master B brief Oct 11.",
   "energy": {
     "_source": "Decided (Carlos Oct 9): a match costs energy from distance and activity, using squad.json energyPerKm, energyPerPass, energyPerShot and the stamina factor (one source). Low energy lowers top speed and acceleration a little: PROPOSAL, Master B brief Oct 11.",
-    "speedLossPerPoint": 0.002
+    "speedLossPerPoint": 0.002,
+    "distanceScale": 0.5
   },
   "formations": {
     "4-4-2": [

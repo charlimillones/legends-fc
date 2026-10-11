@@ -78,6 +78,8 @@ namespace LegendsFC.Core.Match
     {
         /// <summary>Stick below this = walk; above = run. Holding the screen = sprint.</summary>
         public float WalkStick = 0.5f;
+        /// <summary>AI only: jogging speed for small repositioning, and the distance at which a player stops adjusting.</summary>
+        public float JogSpeed = 3.6f, ArriveRadius = 1.0f;
         public float WalkSpeed = 2.2f, RunSpeedMin = 5.0f, RunSpeedMax = 7.0f, SprintSpeedMin = 6.6f, SprintSpeedMax = 9.0f;
         public float AccelMin = 4.0f, AccelMax = 8.0f, Brake = 12f;
         /// <summary>Turning (rad/s) without and with the ball.</summary>
@@ -278,6 +280,9 @@ namespace LegendsFC.Core.Match
     {
         /// <summary>Top speed and acceleration drop per energy point below squad.json energyPenaltyBelow.</summary>
         public float SpeedLossPerPoint = 0.002f;
+        /// <summary>Match km = real metres × (90 match minutes / real minutes) × DistanceScale. The real-time match is busier
+        /// than real football, so this keeps a match's km (and energy cost) close to sim mode's (about 10-12 km).</summary>
+        public float DistanceScale = 0.5f;
     }
 
     public sealed class FormationSlot

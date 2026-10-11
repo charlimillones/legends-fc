@@ -114,4 +114,58 @@ public class MatchPhysicsTests
         Assert.Same(d.Squad, C.Squad);
         Assert.False(string.IsNullOrEmpty(JObject.Parse(File.ReadAllText(Path.Combine(TestData.Root, "config", "match.json")))["_source"]?.ToString()));
     }
+
+    /// <summary>Every key in match.json maps to a config field, every number field is in the file, and the engine uses it.</summary>
+    [Fact]
+    public void EveryNumberInMatchJsonIsUsed()
+    {
+        var json = JObject.Parse(File.ReadAllText(Path.Combine(TestData.Root, "config", "match.json")));
+        var missingFields = new List<string>();
+        var fieldsSeen = new HashSet<FieldInfo>();
+        Walk(json, typeof(MatchConfig), "", missingFields, fieldsSeen);
+        Assert.Empty(missingFields);
+
+        // every numeric field of the config classes is present in the file and referenced by the engine's code
+        var src = string.Join("\n", Directory.GetFiles(Path.Combine(TestData.Root, "..", "core", "src", "Match"), "*.cs")
+            .Where(f => !f.EndsWith("MatchConfig.cs")).Select(File.ReadAllText));
+        var unused = new List<string>();
+        var notInFile = new List<string>();
+        foreach (var t in typeof(MatchConfig).Assembly.GetTypes().Where(t => t.Namespace == "LegendsFC.Core.Match" && t.Name.EndsWith("Config") || t == typeof(DifficultyLevel) || t == typeof(FormationSlot)))
+        {
+            foreach (var f in t.GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (f.FieldType != typeof(float) && f.FieldType != typeof(int) && f.FieldType != typeof(double)) continue;
+                if (!fieldsSeen.Contains(f)) notInFile.Add(t.Name + "." + f.Name);
+                if (!src.Contains("." + f.Name)) unused.Add(t.Name + "." + f.Name);
+            }
+        }
+        Assert.Empty(notInFile);
+        Assert.Empty(unused);
+    }
+
+    private static void Walk(JToken token, Type type, string path, List<string> missing, HashSet<FieldInfo> seen)
+    {
+        if (token is JObject obj)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            {
+                var vt = type.GetGenericArguments()[1];
+                foreach (var prop in obj.Properties()) Walk(prop.Value, vt, path + "." + prop.Name, missing, seen);
+                return;
+            }
+            foreach (var prop in obj.Properties())
+            {
+                if (prop.Name.StartsWith("_")) continue;
+                var f = type.GetFields(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(x => string.Equals(x.Name, prop.Name, StringComparison.OrdinalIgnoreCase));
+                if (f == null) { missing.Add(path + "." + prop.Name); continue; }
+                seen.Add(f);
+                Walk(prop.Value, f.FieldType, path + "." + prop.Name, missing, seen);
+            }
+        }
+        else if (token is JArray arr && type.IsGenericType && typeof(IEnumerable).IsAssignableFrom(type))
+        {
+            var et = type.GetGenericArguments()[0];
+            foreach (var item in arr) Walk(item, et, path + "[]", missing, seen);
+        }
+    }
 }

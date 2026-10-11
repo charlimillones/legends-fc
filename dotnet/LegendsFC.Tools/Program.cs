@@ -11,6 +11,18 @@ var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
 while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, "data", "rules"))) dir = dir.Parent;
 var data = GameData.LoadFromDirectory(Path.Combine(dir.FullName, "data"));
 ulong seed = args.Length > 1 ? ulong.Parse(args[1]) : 2026;
+if (args.Length > 0 && args[0] == "match-batch")
+{
+    // Usage: match-batch [seed] [matches] [home rating] [away rating]
+    MatchBatch.Run(data, args.Length > 2 ? int.Parse(args[2]) : 200, args.Length > 3 ? int.Parse(args[3]) : 70, args.Length > 4 ? int.Parse(args[4]) : 70, seed);
+    return;
+}
+if (args.Length > 0 && args[0] == "match-trace")
+{
+    // Usage: match-trace [seed] [lines]
+    MatchTrace.Run(data, seed, args.Length > 2 ? int.Parse(args[2]) : 200);
+    return;
+}
 if (args.Length > 0 && args[0] == "protege-report")
 {
     var g = new WorldGenerator(data);
