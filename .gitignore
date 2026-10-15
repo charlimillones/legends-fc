@@ -21,3 +21,7 @@ unity/**/Assets/StreamingAssets/data/
 unity/**/Assets/StreamingAssets/data.meta
 unity/**/Assets/StreamingAssets.meta
 unity/**/Assets/StreamingAssets/
+
+# Unity scene backups after a crash (kept on the PC, not in git)
+unity/LegendsFC/Assets/_Recovery/
+unity/LegendsFC/Assets/_Recovery.meta
