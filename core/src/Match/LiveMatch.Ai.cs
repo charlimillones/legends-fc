@@ -39,6 +39,8 @@ namespace LegendsFC.Core.Match
                 }
                 int sup1 = -1, sup2 = -1;
                 if (attacking && _owner >= 0) NearestSupport(t, out sup1, out sup2);
+                bool holdingKeeper = _owner >= 0 && _p[_owner].Holding;
+                if (!attacking && !holdingKeeper && (defending || _lastPossTeam != t)) AssignMarks(t, first, _owner >= 0 ? second : -1);
 
                 for (int s = 0; s < 11; s++)
                 {
@@ -169,7 +171,10 @@ namespace LegendsFC.Core.Match
             var p = _p[i];
             int t = p.Team;
             var a = _c.Ai;
-            var f = ShapeSpot(i, false, out _);
+            var f = ShapeSpot(i, false, out var bf);
+            // in its own half the team forms a compact block (Carlos Oct 15 playtest), blended in over BlendMetres
+            float wc = CompactWeight(bf);
+            if (wc > 0) f = Vec2.Lerp(f, CompactSpot(i, f, bf), wc);
             if (p.Line == 1 && _owner >= 0 && _p[_owner].Team != t)
             {
                 // anti lob-spam (confirmed): drop deeper when the passer faces forward with space
@@ -179,29 +184,38 @@ namespace LegendsFC.Core.Match
                 f.X = Math.Max(f.X, -HalfX + 2f);
             }
             var w = ToWorld(t, f);
-            // marking: the nearest attacker to my spot, goal-side
-            int own = -Dir(t);
-            var goal = new Vec2(own * HalfX, 0);
-            int mark = -1; float md = a.MarkRadius * (0.5f + 0.5f * p.Positioning);
-            if (p.Line == 3) md = 0;   // forwards hold their place, they don't mark
-            for (int s = 0; s < 11 && md > 0; s++)
+            float q = _level[t].PositioningQuality * (0.6f + 0.4f * p.Positioning);
+            if (ManMark(i, out var mm))
             {
-                int j = (1 - t) * 11 + s;
-                if (_p[j].Keeper || j == _owner) continue;
-                float d = Vec2.Distance(_p[j].Pos, w);
-                if (d < md) { md = d; mark = j; }
+                // a dangerous runner: marked goal-side, a little ahead of his run
+                w = Vec2.Lerp(w, mm, _level[t].PositioningQuality);
             }
-            if (mark >= 0)
+            else if (!(wc >= 1f && p.Line == 1))
             {
-                var o = _p[mark].Pos;
-                var mp = o + (goal - o).Normalized() * a.MarkGoalSide;
-                float q = _level[t].PositioningQuality * (0.6f + 0.4f * p.Positioning);
-                w = Vec2.Lerp(w, mp, q);
+                // marking: the nearest attacker to my spot, goal-side (a full block's back line holds its line instead)
+                int own = -Dir(t);
+                var goal = new Vec2(own * HalfX, 0);
+                int mark = -1; float md = a.MarkRadius * (0.5f + 0.5f * p.Positioning);
+                if (p.Line == 3) md = 0;   // forwards hold their place, they don't mark
+                for (int s = 0; s < 11 && md > 0; s++)
+                {
+                    int j = (1 - t) * 11 + s;
+                    if (_p[j].Keeper || j == _owner) continue;
+                    float d = Vec2.Distance(_p[j].Pos, w);
+                    if (d < md) { md = d; mark = j; }
+                }
+                if (mark >= 0)
+                {
+                    var o = _p[mark].Pos;
+                    var mp = o + (goal - o).Normalized() * a.MarkGoalSide;
+                    w = Vec2.Lerp(w, mp, q);
+                }
             }
             w = ClampInside(w, 1f);
             p.Target = w;
             float dist = Vec2.Distance(p.Pos, w);
             p.SpeedMode = dist > 15f ? 2 : dist > 6f ? 1 : dist > _c.Movement.ArriveRadius ? 3 : 0;
+            if (_markTick[t] == _tick && _markOf[i] >= 0 && dist > _c.Defence.MarkSprintDistance) p.SpeedMode = 2;   // keep up with the runner
         }
 
         private void Press(int i)
@@ -214,11 +228,24 @@ namespace LegendsFC.Core.Match
                 var own = new Vec2(-Dir(t) * HalfX, 0);
                 p.Target = b + (own - b).Normalized() * 0.4f;
                 p.SpeedMode = 2;
-                var o = _p[_owner];
-                if (!o.Holding && Vec2.Distance(p.Pos, _ballPos.XY) < _c.Tackles.Range && (float)_rng.NextDouble() < _c.Ai.TackleRate * Dt)
-                    TryTackle(i);
+                if (AiCanTackle(i) && (float)_rng.NextDouble() < _c.Ai.TackleRate * Dt) StartTackle(i);
             }
             else { TimeToBall(i, out var pt); p.Target = pt; p.SpeedMode = 2; }
+        }
+
+        /// <summary>The AI lunges only when the ball is in reach and he isn't coming from behind the carrier (Oct 15).</summary>
+        private bool AiCanTackle(int i)
+        {
+            var p = _p[i];
+            var t = _c.Tackles;
+            if (_owner < 0 || _p[_owner].Team == p.Team || _p[_owner].Holding || p.LungeLeft > 0 || p.RecoverTimer > 0) return false;
+            var o = _p[_owner];
+            var toMe = p.Pos - o.Pos;
+            if (Vec2.Distance(p.Pos, _ballPos.XY) > t.AiDistance) return false;
+            var toGoal = new Vec2(-Dir(p.Team) * HalfX, 0) - o.Pos;
+            if (toMe.LengthSq < 1e-4f || toGoal.LengthSq < 1e-4f) return true;
+            float cos = Vec2.Dot(toMe.Normalized(), toGoal.Normalized());
+            return cos >= MathF.Cos(t.AiMaxAngleDeg * MathUtil.Deg);
         }
 
         private void Cover(int i)

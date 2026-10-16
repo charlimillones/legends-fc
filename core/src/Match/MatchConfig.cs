@@ -22,6 +22,7 @@ namespace LegendsFC.Core.Match
         public RestartConfig Restarts = new RestartConfig();
         public OffsideConfig Offside = new OffsideConfig();
         public AiConfig Ai = new AiConfig();
+        public DefenceConfig Defence = new DefenceConfig();
         public List<DifficultyLevel> Difficulty = new List<DifficultyLevel>();
         public EnergyConfig Energy = new EnergyConfig();
         /// <summary>Base positions per formation, one per slot in squad.json order (team attacking +X, ball at the centre spot).</summary>
@@ -162,12 +163,20 @@ namespace LegendsFC.Core.Match
         public Dictionary<string, string> Defence = new Dictionary<string, string>();
     }
 
+    /// <summary>A tackle is a lunge (Carlos Oct 15 playtest): a burst towards the ball for LungeSeconds at LungeSpeedFactor ×
+    /// his sprint speed (Action = Tackle), then RecoverSeconds at RecoverSpeed × his top speed. The duel is resolved the first
+    /// time the ball is within Range during the lunge; out of reach the whole lunge = a whiff. Same code for the user and the AI.</summary>
     public sealed class TackleConfig
     {
         public float Range = 1.7f;
         /// <summary>Success = Base + SkillWeight × (Tackling - Dribbling) + StrengthWeight × (Strength - Strength), on 0-1 attributes, clamped to MinChance..MaxChance.</summary>
         public float Base = 0.5f, SkillWeight = 0.6f, StrengthWeight = 0.25f, MinChance = 0.1f, MaxChance = 0.9f;
-        public float CooldownSeconds = 0.8f, FailStunSeconds = 0.5f, StunSpeed = 0.35f;
+        /// <summary>The carrier who loses a duel, and a smothered carrier, can't move or touch the ball well for a moment.</summary>
+        public float FailStunSeconds = 0.5f, StunSpeed = 0.35f;
+        public float LungeSeconds = 0.3f, LungeSpeedFactor = 1.15f, RecoverSeconds = 0.6f, RecoverSpeed = 0.4f;
+        /// <summary>The AI lunges only within AiDistance of the ball and when it isn't coming from behind the carrier: the angle
+        /// between carrier→own goal and carrier→tackler is at most AiMaxAngleDeg.</summary>
+        public float AiDistance = 1.2f, AiMaxAngleDeg = 110f;
         /// <summary>A won tackle pokes the ball away at this speed (the tackler often keeps it).</summary>
         public float PokeSpeed = 3.5f, KeepChance = 0.5f;
         /// <summary>The carrier is protected for this long after winning the ball.</summary>
@@ -215,6 +224,16 @@ namespace LegendsFC.Core.Match
         public float MarginAtLow = 1.6f, MarginAtHigh = 0.15f;
         /// <summary>No auto-switch within this time of the last switch.</summary>
         public float DwellSeconds = 0.4f;
+        /// <summary>Defending (Carlos Oct 15 playtest): the best defender is the one who gets goal-side of the threat soonest:
+        /// onto the stretch of the line from the threat to his own goal between GoalSideMin and GoalSideMax metres from it. The
+        /// threat is the carrier CarrierLeadSeconds ahead on his run, or the receiver of a pass in flight.</summary>
+        public float GoalSideMin = 1.5f, GoalSideMax = 10f, CarrierLeadSeconds = 0.4f;
+        /// <summary>A player further from his own goal line than the ball by more than BehindPlayMetres is behind the play: never
+        /// chosen while anyone else can be. Being behind the ball at all costs BehindWeight seconds per metre.</summary>
+        public float BehindPlayMetres = 3f, BehindWeight = 0.1f;
+        /// <summary>Pressing A again within CycleSeconds, while the ball moved less than CycleBallMove metres and the same
+        /// player has it, goes to the next candidate.</summary>
+        public float CycleSeconds = 2f, CycleBallMove = 6f;
     }
 
     public sealed class RestartConfig
@@ -281,6 +300,30 @@ namespace LegendsFC.Core.Match
         public float RunTrigger = 30f, RunDepth = 8f, RunSeconds = 2.0f, RunCooldown = 2.5f, RunRate = 0.8f;
         /// <summary>Clearance: own-box carrier under pressure kicks it long.</summary>
         public float ClearPressRadius = 3f;
+    }
+
+    /// <summary>The defending team's block in its own half (Carlos Oct 15 playtest: "The defense is too open"). Distances in
+    /// the defending team's frame (its own goal line at -52.5).</summary>
+    public sealed class DefenceConfig
+    {
+        /// <summary>The block forms when the ball is behind CompactFromX, fully BlendMetres further back.</summary>
+        public float CompactFromX = 0f, BlendMetres = 10f;
+        /// <summary>The back line holds one line LineBehindBall metres behind the ball, never deeper than DeepestLine; the
+        /// midfield line LineGap metres in front of it.</summary>
+        public float LineBehindBall = 9f, DeepestLine = -45f, LineGap = 9f;
+        /// <summary>Across: base width × CompactWidth, shifted by BallSideShift × the ball's distance from the middle.</summary>
+        public float CompactWidth = 0.6f, BallSideShift = 0.45f;
+        /// <summary>Man-marking the most dangerous runners: an attacker in the box, at or behind the back line, or running at
+        /// the goal faster than RunnerSpeed within RunnerZone metres of the back line. At most MarkRunners at a time; a marker is
+        /// picked within PickupRadius; defenders add DeepRunnerBias metres for a runner more than DeepRunnerGap in front of the
+        /// line (midfielders track runners from deep). The marker aims MarkLeadSeconds ahead of the runner.</summary>
+        public float RunnerSpeed = 3f, RunnerZone = 20f, PickupRadius = 18f, DeepRunnerGap = 4f, DeepRunnerBias = 8f, MarkLeadSeconds = 0.3f;
+        public int MarkRunners = 4;
+        /// <summary>"At or behind the back line" = within BehindLineMargin of it. Danger order: nearest the goal first, plus
+        /// BoxBonus metres in the box and RunnerBonus for a runner.</summary>
+        public float BehindLineMargin = 1f, BoxBonus = 20f, RunnerBonus = 5f;
+        /// <summary>A marker further than this from his spot sprints.</summary>
+        public float MarkSprintDistance = 3f;
     }
 
     /// <summary>One difficulty level: only the opponent AI's reading, reaction time and positioning (decided).</summary>

@@ -17,6 +17,7 @@ namespace LegendsFC.Core.Match
             KeeperAi();
             UserControl(input);
             MovePlayers();
+            TackleTick();
             BallTick();
         }
 
@@ -109,17 +110,19 @@ namespace LegendsFC.Core.Match
             for (int k = 0; k < 3; k++) if (_defenceMap[k] == ButtonAction.Switch && _btnPressed[k]) switchPressed = true;
             if (switchPressed || _controlled < 0)
             {
-                int best = BestDefender(_controlled, out _);
-                if (best >= 0) SetControlled(best);
+                int pick = switchPressed ? NextSwitch() : BestDefender(out _);
+                if (pick >= 0) SetControlled(pick);
                 return;
             }
             float sens = _setup.Settings == null ? 0.5f : _setup.Settings.SwitchSensitivity;
             if (sens <= 0 || _sinceSwitch < _c.Switching.DwellSeconds) return;
-            int cand = BestDefender(-1, out float tb);
+            // never take the ball off a player in the middle of his tackle
+            if (_p[_controlled].LungeLeft > 0) return;
+            int cand = BestDefender(out float sb);
             if (cand < 0 || cand == _controlled) return;
-            float tc = TimeToBall(_controlled, out _);
+            float sc = SwitchScore(_controlled, out bool behind);
             float margin = MathUtil.Lerp(_c.Switching.MarginAtLow, _c.Switching.MarginAtHigh, MathUtil.Clamp01(sens));
-            if (tc - tb > margin) SetControlled(cand);
+            if ((behind && !CandidateBehind(cand)) || sc - sb > margin) SetControlled(cand);
         }
 
         private void SetControlled(int i)
@@ -129,18 +132,107 @@ namespace LegendsFC.Core.Match
             _sinceSwitch = 0;
         }
 
-        /// <summary>The user's defender who can reach the ball's path soonest (never the keeper), excluding one player.</summary>
-        private int BestDefender(int exclude, out float time)
+        // Switch-button cycling: the ranked candidates from the last press and the situation they were ranked in.
+        private readonly int[] _switchList = new int[10];
+        private readonly float[] _switchScore = new float[10];
+        private int _switchCount, _switchIndex, _switchOwner = -2, _switchReceiver = -2;
+        private float _switchAge = 99f;
+        private Vec2 _switchBall;
+
+        /// <summary>The A button while defending: the best-placed defender, or the next one on a repeated press in the same
+        /// situation (Carlos Oct 15 playtest: "Wrong player chosen").</summary>
+        private int NextSwitch()
         {
-            int best = -1; time = float.MaxValue;
+            var sw = _c.Switching;
+            bool same = _switchCount > 0 && _switchAge <= sw.CycleSeconds && _switchOwner == _owner && _switchReceiver == _passReceiver
+                        && Vec2.Distance(_switchBall, _ballPos.XY) < sw.CycleBallMove;
+            _switchAge = 0;
+            if (!same)
+            {
+                RankDefenders();
+                _switchOwner = _owner; _switchReceiver = _passReceiver; _switchBall = _ballPos.XY;
+                _switchIndex = -1;
+            }
+            if (_switchCount == 0) return -1;
+            for (int k = 0; k < _switchCount; k++)
+            {
+                _switchIndex = (_switchIndex + 1) % _switchCount;
+                if (_switchList[_switchIndex] != _controlled) return _switchList[_switchIndex];
+            }
+            return _switchList[0];
+        }
+
+        /// <summary>Ranks the user's outfield players for the A button: best first; players behind the play only when nobody
+        /// else (other than the one he controls now) can be chosen.</summary>
+        private void RankDefenders()
+        {
+            _switchCount = 0;
+            int others = 0;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                if (pass == 1 && others > 0) break;
+                for (int s = 0; s < 11; s++)
+                {
+                    int i = _userTeam * 11 + s;
+                    if (_p[i].Keeper) continue;
+                    float sc = SwitchScore(i, out bool behind);
+                    if (behind != (pass == 1)) continue;
+                    if (i != _controlled) others++;
+                    int at = _switchCount++;
+                    while (at > 0 && _switchScore[at - 1] > sc) { _switchList[at] = _switchList[at - 1]; _switchScore[at] = _switchScore[at - 1]; at--; }
+                    _switchList[at] = i; _switchScore[at] = sc;
+                }
+            }
+        }
+
+        /// <summary>The user's best defender now (never the keeper): lowest switch score among the players not behind the
+        /// play, or among all when everyone is.</summary>
+        private int BestDefender(out float score)
+        {
+            int best = -1, bestBehind = -1; score = float.MaxValue; float sb = float.MaxValue;
             for (int s = 0; s < 11; s++)
             {
                 int i = _userTeam * 11 + s;
-                if (i == exclude || _p[i].Keeper) continue;
-                float t = TimeToBall(i, out _);
-                if (t < time) { time = t; best = i; }
+                if (_p[i].Keeper) continue;
+                float sc = SwitchScore(i, out bool behind);
+                if (behind) { if (sc < sb) { sb = sc; bestBehind = i; } }
+                else if (sc < score) { score = sc; best = i; }
             }
+            if (best < 0) { best = bestBehind; score = sb; }
             return best;
+        }
+
+        private bool CandidateBehind(int i) { SwitchScore(i, out bool behind); return behind; }
+
+        /// <summary>
+        /// How well player i can stop the attack (seconds, lower is better). Defending: the time to get goal-side of the
+        /// threat (the carrier ahead on his run, or the receiver of the opponent's pass) plus a cost per metre behind the ball;
+        /// behind = further from his own goal line than the ball by more than BehindPlayMetres. A loose ball nobody is
+        /// passing to: the time to reach it.
+        /// </summary>
+        private float SwitchScore(int i, out bool behind)
+        {
+            var sw = _c.Switching;
+            var p = _p[i];
+            behind = false;
+            bool defending = (_owner >= 0 && _p[_owner].Team != p.Team) || (_owner < 0 && _passReceiver >= 0 && _passTeam != p.Team);
+            if (!defending) return TimeToBall(i, out _);
+            Vec2 threat;
+            if (_owner >= 0) threat = _ballPos.XY + _p[_owner].Vel * sw.CarrierLeadSeconds;
+            else TimeToBall(_passReceiver, out threat);
+            int own = -Dir(p.Team);
+            var goal = new Vec2(own * HalfX, 0);
+            var toGoal = goal - threat;
+            float len = toGoal.Length;
+            var u = len > 1e-3f ? toGoal / len : new Vec2(own, 0);
+            float a = Math.Min(sw.GoalSideMin, len), b = Math.Min(sw.GoalSideMax, len);
+            float d = MathUtil.SegmentDistance(p.Pos, threat + u * a, threat + u * b, out _);
+            float speed = Math.Max(1f, p.SprintSpeed * EnergyFactor(p));
+            // metres further from his own goal line than the ball (the receiver for a pass): positive = behind it
+            float refX = _owner >= 0 ? _ballPos.X : threat.X;
+            float past = (p.Pos.X - refX) * -own;
+            behind = past > sw.BehindPlayMetres;
+            return d / speed + sw.BehindWeight * Math.Max(0, past);
         }
 
         // ------------------------------------------------------------------ the user's player
@@ -198,7 +290,7 @@ namespace LegendsFC.Core.Match
             {
                 var a = _defenceMap[k];
                 bool held = k == 0 ? input.A : k == 1 ? input.B : input.C;
-                if (a == ButtonAction.Tackle && _btnPressed[k]) TryTackle(_controlled);
+                if (a == ButtonAction.Tackle && _btnPressed[k]) StartTackle(_controlled);
                 if (a == ButtonAction.Pressure && held && _owner >= 0 && _p[_owner].Team != p.Team)
                 {
                     var to = _ballPos.XY - p.Pos;
@@ -311,6 +403,9 @@ namespace LegendsFC.Core.Match
                 float top = p.SprintSpeed * ef * (carrier ? p.DribbleFactor : 1f);
                 if (p.Holding) top = m.WalkSpeed;
                 if (p.Stun > 0) top *= _c.Tackles.StunSpeed;
+                if (p.RecoverTimer > 0) top *= _c.Tackles.RecoverSpeed;
+                bool lunging = p.LungeLeft > 0 && !p.LungeWon && !carrier;
+                if (lunging) { dv = p.LungeDir * p.LungeSpeed; top = p.LungeSpeed; }
                 dv = dv.ClampLength(top);
                 if (carrier && dv.LengthSq > 0.01f)
                 {
@@ -323,11 +418,12 @@ namespace LegendsFC.Core.Match
                 var delta = dv - p.Vel;
                 bool braking = Vec2.Dot(dv, p.Vel) < 0 || dv.LengthSq < p.Vel.LengthSq;
                 float maxDelta = (braking ? m.Brake : p.AccelRate * ef) * Dt;
-                p.Vel = p.Vel + delta.ClampLength(maxDelta);
+                if (lunging) p.Vel = dv;   // the lunge is a burst: no run-up
+                else p.Vel = p.Vel + delta.ClampLength(maxDelta);
                 p.Pos = p.Pos + p.Vel * Dt;
                 ClampPlayer(p);
                 float spd = p.Vel.Length;
-                if (!carrier)
+                if (!carrier && !lunging)
                 {
                     if (spd > 0.4f) p.Facing = MathUtil.TurnTowards(p.Facing, p.Vel.Angle, m.TurnRate * Dt);
                     else p.Facing = MathUtil.TurnTowards(p.Facing, (_ballPos.XY - p.Pos).Angle, m.TurnRate * Dt);
@@ -375,46 +471,104 @@ namespace LegendsFC.Core.Match
 
         // ------------------------------------------------------------------ tackles
 
-        /// <summary>A tackle attempt on the carrier (same duel for the user and the AI). Out of range = a lunge that misses.</summary>
-        private void TryTackle(int i)
+        /// <summary>
+        /// Starts a tackle (Carlos Oct 15 playtest: "The tackle does not make the player tackle"): a short lunge towards the
+        /// ball, faster than his run, with Action = Tackle for the whole lunge. Same code for the user (B) and the AI. Nothing
+        /// happens while he is already lunging or recovering, stunned, or holding the ball.
+        /// </summary>
+        private bool StartTackle(int i)
         {
             var p = _p[i];
             var t = _c.Tackles;
-            if (p.TackleCd > 0 || p.Stun > 0) return;
-            p.TackleCd = t.CooldownSeconds;
-            p.Action = PlayerAction.Tackle; p.ActionTimer = 0.3f;
-            if (_owner < 0 || _p[_owner].Team == p.Team || _p[_owner].Holding) { p.Stun = t.FailStunSeconds * 0.5f; return; }
+            if (p.LungeLeft > 0 || p.RecoverTimer > 0 || p.Stun > 0 || p.Diving || _owner == i) return false;
+            var to = _ballPos.XY - p.Pos;
+            p.LungeDir = to.LengthSq > 1e-4f ? to.Normalized() : Vec2.FromAngle(p.Facing);
+            p.LungeSpeed = p.SprintSpeed * EnergyFactor(p) * t.LungeSpeedFactor;
+            p.LungeLeft = Math.Max(1, (int)MathF.Round(t.LungeSeconds / Dt));
+            p.LungeDone = false; p.LungeWon = false;
+            p.Facing = p.LungeDir.Angle;
+            p.Action = PlayerAction.Tackle; p.ActionTimer = t.LungeSeconds;
+            _counters.TackleLunges++;
+            return true;
+        }
+
+        /// <summary>Each tick of play, after movement: a lunging player shows Action = Tackle and resolves the duel the first
+        /// time the carrier's ball is within reach.</summary>
+        private void TackleTick()
+        {
+            var t = _c.Tackles;
+            for (int i = 0; i < N; i++)
+            {
+                var p = _p[i];
+                if (p.LungeLeft <= 0) continue;
+                p.Action = PlayerAction.Tackle; p.ActionTimer = p.LungeLeft * Dt;
+                if (!p.LungeDone && _owner >= 0 && _p[_owner].Team != p.Team && !_p[_owner].Holding && _p[_owner].Protect <= 0
+                    && Vec2.Distance(p.Pos, _ballPos.XY) <= t.Range)
+                {
+                    p.LungeDone = true;
+                    p.LungeWon = ResolveTackle(i);
+                }
+            }
+        }
+
+        /// <summary>The lunge is over: unless he won the ball (or has it) he stumbles into a short, slower recovery.</summary>
+        private void EndLunge(int i)
+        {
+            var p = _p[i];
+            if (p.Action == PlayerAction.Tackle) { p.Action = 0; p.ActionTimer = 0; }
+            if (!p.LungeWon && _owner != i)
+            {
+                p.RecoverTimer = _c.Tackles.RecoverSeconds;
+                p.Vel = p.Vel.ClampLength(p.SprintSpeed * _c.Tackles.RecoverSpeed);
+            }
+            p.LungeDone = false; p.LungeWon = false;
+        }
+
+        /// <summary>The duel (same for both teams): Tackling and Strength against the carrier's Dribbling and Strength. Won =
+        /// the ball is his or knocked loose; lost = the carrier keeps it. Returns true when won.</summary>
+        private bool ResolveTackle(int i)
+        {
+            var p = _p[i];
+            var t = _c.Tackles;
             var o = _p[_owner];
-            if (Vec2.Distance(p.Pos, _ballPos.XY) > t.Range || o.Protect > 0) { p.Stun = t.FailStunSeconds; return; }
             _counters.Tackles++;
             float chance = t.Base + t.SkillWeight * (p.Tackling - o.Dribbling) + t.StrengthWeight * (p.Strength - o.Strength);
             chance = MathUtil.Clamp(chance, t.MinChance, t.MaxChance);
-            if ((float)_rng.NextDouble() < chance)
+            if ((float)_rng.NextDouble() >= chance) return false;
+            _counters.TacklesWon++;
+            int victim = _owner;
+            if ((float)_rng.NextDouble() < t.KeepChance)
             {
-                _counters.TacklesWon++;
-                int victim = _owner;
-                if ((float)_rng.NextDouble() < t.KeepChance)
-                {
-                    _owner = -1;
-                    TakeBall(i, false);
-                    p.Protect = t.ProtectSeconds;
-                }
-                else
-                {
-                    _owner = -1;
-                    var away = (_ballPos.XY - p.Pos).Normalized().Rotated(((float)_rng.NextDouble() * 2 - 1) * 0.7f);
-                    if (away.LengthSq < 0.1f) away = Vec2.FromAngle(p.Facing);
-                    _ballVel = new Vec3(away * t.PokeSpeed, 0);
-                    Touch(i, false, true);
-                    OffsideTouch(i, true);   // a tackle is a deliberate play
-                    _lastKicker = i;
-                    p.KickIgnore = 0.1f;
-                    _passReceiver = -1;
-                }
-                _p[victim].Stun = t.FailStunSeconds * 0.6f;
-                _p[victim].KickIgnore = 0.3f;
+                _owner = -1;
+                TakeBall(i, false);
+                p.Protect = t.ProtectSeconds;
             }
-            else p.Stun = t.FailStunSeconds;
+            else
+            {
+                _owner = -1;
+                var away = (_ballPos.XY - p.Pos).Normalized().Rotated(((float)_rng.NextDouble() * 2 - 1) * 0.7f);
+                if (away.LengthSq < 0.1f) away = Vec2.FromAngle(p.Facing);
+                _ballVel = new Vec3(away * t.PokeSpeed, 0);
+                Touch(i, false, true);
+                OffsideTouch(i, true);   // a tackle is a deliberate play
+                _lastKicker = i;
+                p.KickIgnore = 0.1f;
+                _passReceiver = -1;
+            }
+            _p[victim].Stun = t.FailStunSeconds * 0.6f;
+            _p[victim].KickIgnore = 0.3f;
+            return true;
+        }
+
+        /// <summary>No lunges or recoveries carry over a stoppage.</summary>
+        private void ClearTackles()
+        {
+            for (int i = 0; i < N; i++)
+            {
+                var p = _p[i];
+                p.LungeLeft = 0; p.RecoverTimer = 0; p.LungeDone = false; p.LungeWon = false;
+                if (p.Action == PlayerAction.Tackle) { p.Action = 0; p.ActionTimer = 0; }
+            }
         }
 
         // ------------------------------------------------------------------ kicks (same error model for everyone)

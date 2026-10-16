@@ -211,6 +211,7 @@ namespace LegendsFC.Core.Match
             _phaseTimer = 0;
             _restartTeam = conceding;
             for (int i = 0; i < N; i++) { _p[i].Holding = false; _p[i].Diving = false; }
+            ClearTackles();
             SetKickOffTargets(conceding);
         }
 

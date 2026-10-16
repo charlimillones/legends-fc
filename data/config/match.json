@@ -141,15 +141,21 @@
     }
   },
   "tackles": {
+    "_source": "Range, duel and poke: PROPOSAL, Master B brief Oct 11. Lunge and recovery (lungeSeconds, lungeSpeedFactor, recoverSeconds, recoverSpeed, aiDistance, aiMaxAngleDeg): Carlos Oct 15 playtest: switching, tackle, compact defence; numbers PROPOSAL. A tackle is a lunge towards the ball (Action = Tackle) for lungeSeconds at lungeSpeedFactor x sprint speed; the duel is resolved the first time the ball is within range; out of reach = a whiff; then recoverSeconds at recoverSpeed x top speed. Same code for the user and the AI; the AI lunges only within aiDistance and not from behind (angle carrier-goal to carrier-tackler at most aiMaxAngleDeg). No fouls yet.",
     "range": 1.7,
     "base": 0.5,
     "skillWeight": 1.0,
     "strengthWeight": 0.25,
     "minChance": 0.1,
     "maxChance": 0.9,
-    "cooldownSeconds": 0.8,
     "failStunSeconds": 0.5,
     "stunSpeed": 0.35,
+    "lungeSeconds": 0.3,
+    "lungeSpeedFactor": 1.15,
+    "recoverSeconds": 0.6,
+    "recoverSpeed": 0.4,
+    "aiDistance": 1.6,
+    "aiMaxAngleDeg": 110,
     "pokeSpeed": 3.5,
     "keepChance": 0.5,
     "protectSeconds": 0.35
@@ -203,7 +209,15 @@
     "_source": "Decided: in possession control jumps to the carrier; defending, A switches to the defender who reaches the ball's path soonest (never the keeper); auto-switch by SwitchSensitivity (0 off, 1 most eager). Margins: PROPOSAL, Master B brief Oct 11.",
     "marginAtLow": 1.6,
     "marginAtHigh": 0.15,
-    "dwellSeconds": 0.4
+    "dwellSeconds": 0.4,
+    "_sourceOct15": "Carlos Oct 15 playtest: switching, tackle, compact defence; numbers PROPOSAL. Defending, A and auto-switch pick the defender who gets goal-side of the threat soonest (onto the line from the threat to his goal, goalSideMin to goalSideMax metres from it); the threat is the carrier carrierLeadSeconds ahead on his run, or the receiver of a pass. Players more than behindPlayMetres behind the ball are never picked while anyone else can be; behind the ball costs behindWeight s per metre. Pressing A again within cycleSeconds with the same carrier and the ball moved under cycleBallMove metres goes to the next candidate.",
+    "goalSideMin": 1.5,
+    "goalSideMax": 10,
+    "carrierLeadSeconds": 0.4,
+    "behindPlayMetres": 3,
+    "behindWeight": 0.1,
+    "cycleSeconds": 2,
+    "cycleBallMove": 6
   },
   "restarts": {
     "_source": "Decided: the AI takes every restart after a short delay; the user's team waits for a button (a pass in the stick direction) up to a timeout. Numbers: PROPOSAL, Master B brief Oct 11.",
@@ -278,6 +292,27 @@
     "runCooldown": 2.5,
     "runRate": 2.0,
     "clearPressRadius": 3
+  },
+  "defence": {
+    "_source": "Carlos Oct 15 playtest: switching, tackle, compact defence; numbers PROPOSAL. Defending with the ball in its own half (blended in over blendMetres behind compactFromX), the back line holds one line lineBehindBall metres behind the ball (never deeper than deepestLine), the midfield line lineGap in front; width = base width x compactWidth shifted ballSideShift x the ball's distance from the middle. The nearest player presses, the next covers; up to markRunners of the most dangerous runners (in the box, at or behind the line within behindLineMargin, or running at goal faster than runnerSpeed within runnerZone of the line; order: nearest the goal, +boxBonus in the box, +runnerBonus for runners) are man-marked by the nearest free defender or midfielder within pickupRadius; defenders add deepRunnerBias for a runner more than deepRunnerGap in front of the line, so midfielders track runners from deep. Markers aim markLeadSeconds ahead of the runner and sprint beyond markSprintDistance. Targets: block (defenders + midfielders) at most 30 m deep and 45 m wide with the ball in its own third.",
+    "compactFromX": 0,
+    "blendMetres": 10,
+    "lineBehindBall": 9,
+    "deepestLine": -45,
+    "lineGap": 9,
+    "compactWidth": 0.6,
+    "ballSideShift": 0.45,
+    "runnerSpeed": 3,
+    "runnerZone": 20,
+    "pickupRadius": 18,
+    "deepRunnerGap": 4,
+    "deepRunnerBias": 8,
+    "markLeadSeconds": 0.3,
+    "markRunners": 4,
+    "behindLineMargin": 1,
+    "boxBonus": 20,
+    "runnerBonus": 5,
+    "markSprintDistance": 3
   },
   "difficulty": [
     {

@@ -21,6 +21,7 @@ namespace LegendsFC.Core.Match
             _lastPossTeam = team;
             _lastToucher = -1;
             SetKickOffTargets(team);
+            ClearTackles();
             Emit(MatchEventKind.KickOff, team, _taker);
             for (int i = 0; i < N; i++)
             {
@@ -90,6 +91,7 @@ namespace LegendsFC.Core.Match
             _ballVel = Vec3.Zero;
             _lastPossTeam = team;
             for (int i = 0; i < N; i++) { var p = _p[i]; p.Holding = false; p.Diving = false; p.Threat = false; p.RunTimer = 0; }
+            ClearTackles();
             _taker = phase == Phase.GoalKick ? _keeper[team] : NearestOutfield(team, spot);
             _takerReady = false;
             if (team == _userTeam && !_p[_taker].Keeper) SetControlled(_taker);

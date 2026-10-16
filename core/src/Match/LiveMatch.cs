@@ -265,6 +265,7 @@ namespace LegendsFC.Core.Match
             _ballPos = new Vec3(0, 0, _c.Ball.Radius);
             _ballVel = Vec3.Zero;
             for (int i = 0; i < N; i++) { _p[i].Holding = false; _p[i].Diving = false; _p[i].Action = 0; }
+            ClearTackles();
         }
 
         private void Finish()
@@ -275,6 +276,7 @@ namespace LegendsFC.Core.Match
             _owner = -1;
             _ballVel = Vec3.Zero;
             for (int i = 0; i < N; i++) _p[i].Vel = Vec2.Zero;
+            ClearTackles();
             Emit(MatchEventKind.FullTime, -1, -1);
         }
 
@@ -295,11 +297,13 @@ namespace LegendsFC.Core.Match
         private void UpdateTimers()
         {
             _sinceSwitch += Dt;
+            _switchAge += Dt;
             for (int i = 0; i < N; i++)
             {
                 var p = _p[i];
                 if (p.Stun > 0) p.Stun -= Dt;
-                if (p.TackleCd > 0) p.TackleCd -= Dt;
+                if (p.RecoverTimer > 0) p.RecoverTimer -= Dt;
+                if (p.LungeLeft > 0 && --p.LungeLeft == 0) EndLunge(i);
                 if (p.KickIgnore > 0) p.KickIgnore -= Dt;
                 if (p.Protect > 0) p.Protect -= Dt;
                 if (p.SmotherCd > 0) p.SmotherCd -= Dt;
@@ -382,7 +386,12 @@ namespace LegendsFC.Core.Match
             public float Energy;
             public int SpeedMode;          // 0 walk, 1 run, 2 sprint, 3 jog
             public bool UseDirect;
-            public float Stun, TackleCd, KickIgnore, Protect, SmotherCd, ActionTimer, RunTimer, RunCd;
+            public float Stun, KickIgnore, Protect, SmotherCd, ActionTimer, RunTimer, RunCd;
+            // tackle lunge (Oct 15): time left, direction and speed; then recovery time left
+            public int LungeLeft;          // ticks
+            public float LungeSpeed, RecoverTimer;
+            public Vec2 LungeDir;
+            public bool LungeDone, LungeWon;
             public byte Action;
             public float Decision, HoldTime;
             public Vec2 DribbleDir;

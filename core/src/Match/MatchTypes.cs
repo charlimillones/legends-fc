@@ -149,7 +149,10 @@ namespace LegendsFC.Core.Match
     {
         /// <summary>Ticks with the clock running, and the ones of those with the ball out of play (any phase but Play).</summary>
         public int ClockTicks, OutOfPlayTicks;
+        /// <summary>Tackles = duels (a lunge that reached the ball), TacklesWon = duels won.</summary>
         public int Shots, ShotsOnTarget, Saves, Catches, Parries, Tips, Blocks, Passes, Tackles, TacklesWon, Headers;
+        /// <summary>Tackle lunges started (Oct 15), duels and whiffs together.</summary>
+        public int TackleLunges;
         public int ThrowIns, GoalKicks, Corners, KickOffs;
         /// <summary>Offsides called, and free kicks awarded (Oct 15: so far only after an offside).</summary>
         public int Offsides, FreeKicks;
@@ -164,7 +167,7 @@ namespace LegendsFC.Core.Match
             ClockTicks = OutOfPlayTicks = Shots = ShotsOnTarget = Saves = Catches = Parries = Tips = Blocks = Passes = Tackles = TacklesWon = Headers = 0;
             ThrowIns = GoalKicks = Corners = KickOffs = PostHits = HomePossessionTicks = AwayPossessionTicks = 0;
             Crosses = ThroughBalls = LoftedThroughBalls = LoftedPasses = 0;
-            Offsides = FreeKicks = 0;
+            Offsides = FreeKicks = TackleLunges = 0;
         }
     }
 }
