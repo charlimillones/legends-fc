@@ -1,0 +1,3 @@
+# Files the web build leaves behind (Oct 15): Burst's web output and the Performance Testing package's run info.
+/Data/
+/Assets/Resources/PerformanceTestRun*

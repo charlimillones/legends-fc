@@ -54,6 +54,8 @@ namespace LegendsFC.App
         private Vector2 _stickOrigin, _stickNow;
         private ControlInput _input;
         private float _fps, _fpsTimer; private int _fpsFrames;
+        // stick check for tests (Oct 15): how far the controlled player went while the stick was held, logged on release
+        private bool _stickOn; private int _stickPlayer = -1; private float _stickSince; private Vector2 _stickFrom;
 
         private static readonly Color HomeShirt = new Color(0.20f, 0.42f, 0.90f), AwayShirt = new Color(0.86f, 0.22f, 0.20f);
         private static readonly Color HomeKeeper = new Color(0.55f, 0.85f, 0.25f), AwayKeeper = new Color(0.15f, 0.15f, 0.15f);
@@ -380,6 +382,7 @@ namespace LegendsFC.App
             // relative to the user's attacking direction, which flips at half time.
             float dir = _userTeam >= 0 ? _m.AttackDirection(_userTeam) : 1;
             _input = new ControlInput { MoveX = stick.x * dir, MoveY = stick.y * dir, Sprint = sprint, A = held[0], B = held[1], C = held[2] };
+            LogStick(stick.sqrMagnitude > 0.04f);
 
             // controls on screen
             bool show = _userTeam >= 0 && !_ended;
@@ -396,6 +399,19 @@ namespace LegendsFC.App
                 _buttonText[i].text = labels[i];
                 _buttonImage[i].color = new Color(1, 1, 1, held[i] ? 0.45f : 0.22f);
             }
+        }
+
+        private void LogStick(bool on)
+        {
+            if (_userTeam < 0 || on == _stickOn) return;
+            _stickOn = on;
+            int c = _m.ControlledIndex;
+            if (c < 0) { _stickPlayer = -1; return; }
+            var p = new Vector2(_m.Players[c].Pos.X, _m.Players[c].Pos.Y);
+            if (on) { _stickPlayer = c; _stickSince = Time.unscaledTime; _stickFrom = p; return; }
+            if (_stickPlayer == c)
+                Debug.Log($"[LFC] stick held {Time.unscaledTime - _stickSince:F1} s: controlled player moved {Vector2.Distance(_stickFrom, p):F1} m");
+            _stickPlayer = -1;
         }
 
         // ------------------------------------------------------------------ loop
