@@ -21,7 +21,7 @@ public class MatchBatchTests
 
     private sealed class Outcome
     {
-        public int Home, Away, Saves, BadTicks;
+        public int Home, Away, Saves, BadTicks, Offsides, FreeKicks;
         public double OutOfPlay;
         public bool FullTime;
     }
@@ -55,7 +55,7 @@ public class MatchBatchTests
         }
         return new Outcome
         {
-            Home = m.HomeGoals, Away = m.AwayGoals, Saves = m.Counters.Saves, BadTicks = bad, FullTime = m.Phase == Phase.FullTime && m.IsOver,
+            Home = m.HomeGoals, Away = m.AwayGoals, Saves = m.Counters.Saves, Offsides = m.Counters.Offsides, FreeKicks = m.Counters.FreeKicks, BadTicks = bad, FullTime = m.Phase == Phase.FullTime && m.IsOver,
             OutOfPlay = m.Counters.OutOfPlayTicks / (double)m.Counters.ClockTicks
         };
     }
@@ -71,14 +71,14 @@ public class MatchBatchTests
         var sw = Stopwatch.StartNew();
         Parallel.For(0, n, i => res[i] = Play(c, 70, 70, 1000 + (ulong)i));
         sw.Stop();
-        int fullTime = 0, home = 0, away = 0, bad = 0; double goals = 0, outOfPlay = 0, saves = 0;
+        int fullTime = 0, home = 0, away = 0, bad = 0; double goals = 0, outOfPlay = 0, saves = 0, offsides = 0, freeKicks = 0;
         foreach (var r in res)
         {
             if (r.FullTime) fullTime++;
             if (r.Home > r.Away) home++; else if (r.Away > r.Home) away++;
-            goals += r.Home + r.Away; outOfPlay += r.OutOfPlay; saves += r.Saves; bad += r.BadTicks;
+            goals += r.Home + r.Away; outOfPlay += r.OutOfPlay; saves += r.Saves; bad += r.BadTicks; offsides += r.Offsides; freeKicks += r.FreeKicks;
         }
-        _out.WriteLine($"{n} matches in {sw.Elapsed.TotalSeconds:F1} s: full time {fullTime}, goals/match {goals / n:F2}, home wins {100.0 * home / n:F1}%, away wins {100.0 * away / n:F1}%, draws {100.0 * (n - home - away) / n:F1}%, out of play {100 * outOfPlay / n:F1}%, saves/match {saves / n:F2}, bad positions {bad}");
+        _out.WriteLine($"{n} matches in {sw.Elapsed.TotalSeconds:F1} s: full time {fullTime}, goals/match {goals / n:F2}, home wins {100.0 * home / n:F1}%, away wins {100.0 * away / n:F1}%, draws {100.0 * (n - home - away) / n:F1}%, out of play {100 * outOfPlay / n:F1}%, saves/match {saves / n:F2}, offsides/match {offsides / n:F2}, free kicks/match {freeKicks / n:F2}, bad positions {bad}");
         Assert.Equal(n, fullTime);
         Assert.InRange(goals / n, 1.5, 4.5);
         Assert.InRange(home / (double)n, 0.30, 0.50);

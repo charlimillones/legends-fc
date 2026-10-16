@@ -290,10 +290,11 @@ namespace LegendsFC.Core.Match
             if (p.HoldTime >= a.MinHoldSeconds || pressed)
             {
                 bool wide = MathF.Abs(cp.Y) > a.CrossWideY && cp.X * dir > a.CrossZoneX;
+                float obx = cp.X * dir, osl = SecondLastOpponent(t);
                 for (int s = 0; s < 11; s++)
                 {
                     int j = t * 11 + s;
-                    if (j == i) continue;
+                    if (j == i || OffsidePosition(j, obx, osl)) continue;   // never pass to a player in an offside position
                     var rp = Lead(i, j);
                     float d = Vec2.Distance(cp, rp);
                     if (d < a.PassMin) continue;
@@ -512,7 +513,7 @@ namespace LegendsFC.Core.Match
             for (int s = 0; s < 11; s++)
             {
                 int j = t * 11 + s;
-                if (j == i || _p[j].Keeper) continue;
+                if (j == i || _p[j].Keeper || AiOffsideTarget(t, j)) continue;
                 var to = _p[j].Pos - cp;
                 float d = to.Length;
                 if (d < 4f || d > 20f) continue;
@@ -676,7 +677,7 @@ namespace LegendsFC.Core.Match
             for (int s = 0; s < 11; s++)
             {
                 int j = t * 11 + s;
-                if (j == ki) continue;
+                if (j == ki || AiOffsideTarget(t, j)) continue;
                 float d = Vec2.Distance(cp, _p[j].Pos);
                 if (d < _c.Ai.PassMin || d > kc.ThrowRange) continue;
                 float open = NearestOpponentOfTeam(t, _p[j].Pos);
@@ -693,7 +694,7 @@ namespace LegendsFC.Core.Match
             for (int s = 0; s < 11; s++)
             {
                 int j = t * 11 + s;
-                if (j == ki || _p[j].Line < 2) continue;
+                if (j == ki || _p[j].Line < 2 || AiOffsideTarget(t, j)) continue;
                 float x = _p[j].Pos.X * dir + NearestOpponentOfTeam(t, _p[j].Pos) * 0.5f + Noise(t) * 5f;
                 if (x > fx) { fx = x; far = j; }
             }

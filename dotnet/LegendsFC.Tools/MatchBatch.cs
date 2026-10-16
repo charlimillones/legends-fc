@@ -30,7 +30,7 @@ public static class MatchBatch
             for (int i = 0; i < 22; i++) { km[m, i] = rr.Players[i].Km; en[m, i] = rr.Players[i].Energy; }
         });
         double goals = 0, out_ = 0, shots = 0, saves = 0, passes = 0, tackles = 0, blocks = 0, corners = 0, throws = 0, gk = 0, posts = 0, headers = 0, sot = 0;
-        int hw = 0, aw = 0, dr = 0; double cat = 0, par = 0, tip = 0, tw = 0, cr = 0, th = 0, lth = 0, lp = 0;
+        int hw = 0, aw = 0, dr = 0; double cat = 0, par = 0, tip = 0, tw = 0, cr = 0, th = 0, lth = 0, lp = 0, offs = 0, fks = 0;
         foreach (var r in res)
         {
             goals += r.hg + r.ag;
@@ -38,7 +38,7 @@ public static class MatchBatch
             out_ += r.c.OutOfPlayTicks / (double)r.c.ClockTicks;
             shots += r.c.Shots; saves += r.c.Saves; passes += r.c.Passes; tackles += r.c.Tackles; blocks += r.c.Blocks;
             cat += r.c.Catches; par += r.c.Parries; tip += r.c.Tips; tw += r.c.TacklesWon; cr += r.c.Crosses; th += r.c.ThroughBalls; lth += r.c.LoftedThroughBalls; lp += r.c.LoftedPasses;
-            corners += r.c.Corners; throws += r.c.ThrowIns; gk += r.c.GoalKicks; posts += r.c.PostHits; headers += r.c.Headers; sot += r.c.ShotsOnTarget;
+            offs += r.c.Offsides; fks += r.c.FreeKicks; corners += r.c.Corners; throws += r.c.ThrowIns; gk += r.c.GoalKicks; posts += r.c.PostHits; headers += r.c.Headers; sot += r.c.ShotsOnTarget;
         }
         Console.WriteLine($"{n} matches, ratings {ratingHome} v {ratingAway}, {sw.Elapsed.TotalSeconds:F1} s");
         Console.WriteLine($"goals/match {goals / n:F2}  home {100.0 * hw / n:F0}%  draw {100.0 * dr / n:F0}%  away {100.0 * aw / n:F0}%  out of play {100 * out_ / n:F1}%");
@@ -50,6 +50,6 @@ public static class MatchBatch
         Console.Write("energy left (home):");
         for (int i = 0; i < 11; i++) { double t = 0; for (int m = 0; m < n; m++) t += en[m, i]; Console.Write($" {t / n:F0}"); }
         Console.WriteLine();
-        Console.WriteLine($"restarts: corners {corners / n:F1} throw-ins {throws / n:F1} goal kicks {gk / n:F1}  catches {cat / n:F2} parries {par / n:F2} tips {tip / n:F2} tackles won {tw / n:F1}");
+        Console.WriteLine($"restarts: corners {corners / n:F1} throw-ins {throws / n:F1} goal kicks {gk / n:F1} offsides {offs / n:F2} free kicks {fks / n:F2}  catches {cat / n:F2} parries {par / n:F2} tips {tip / n:F2} tackles won {tw / n:F1}");
     }
 }

@@ -215,6 +215,10 @@
     "cornerAttackers": 4,
     "cornerZoneDepth": 9
   },
+  "offside": {
+    "_source": "Offside: Carlos Oct 15 'Fix the offside' (standard rule, judged when the pass is played, free kick restart); other numbers PROPOSAL. Tolerance 0 m: level is onside. The free kick uses restarts.distance (9.15 m), restarts.aiDelay and restarts.userTimeout.",
+    "tolerance": 0
+  },
   "ai": {
     "decisionSeconds": 0.15,
     "teammateLevel": 2,

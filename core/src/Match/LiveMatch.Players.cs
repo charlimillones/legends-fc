@@ -406,6 +406,7 @@ namespace LegendsFC.Core.Match
                     if (away.LengthSq < 0.1f) away = Vec2.FromAngle(p.Facing);
                     _ballVel = new Vec3(away * t.PokeSpeed, 0);
                     Touch(i, false, true);
+                    OffsideTouch(i, true);   // a tackle is a deliberate play
                     _lastKicker = i;
                     p.KickIgnore = 0.1f;
                     _passReceiver = -1;
@@ -520,6 +521,9 @@ namespace LegendsFC.Core.Match
             _lastKicker = i;
             bool pass = IsPassKind(kind);
             Touch(i, pass, false);
+            // offside is judged when the ball is played; never from a throw-in, goal kick or corner
+            if (_phase == Phase.ThrowIn || _phase == Phase.GoalKick || _phase == Phase.Corner) ClearOffside();
+            else RecordOffside(i);
             if (pass)
             {
                 if (kind == KickKind.Cross) _counters.Crosses++;

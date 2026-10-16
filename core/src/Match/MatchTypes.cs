@@ -60,7 +60,29 @@ namespace LegendsFC.Core.Match
         public bool A, B, C;
     }
 
-    public enum Phase { KickOff, Play, ThrowIn, GoalKick, Corner, GoalScored, HalfTime, ExtraTimeBreak, FullTime }
+    /// <summary>FreeKick (Oct 15) is added at the end so the older values keep their numbers.</summary>
+    public enum Phase { KickOff, Play, ThrowIn, GoalKick, Corner, GoalScored, HalfTime, ExtraTimeBreak, FullTime, FreeKick }
+
+    /// <summary>Match events for on-screen banners (Oct 15). Values are never reused; Penalty, Foul, YellowCard and RedCard come later.</summary>
+    public enum MatchEventKind : byte
+    {
+        KickOff = 0, Goal = 1, OwnGoal = 2, Corner = 3, ThrowIn = 4, GoalKick = 5, Offside = 6, FreeKick = 7,
+        Save = 8, Woodwork = 9, HalfTime = 10, ExtraTime = 11, FullTime = 12
+    }
+
+    /// <summary>One match event, read with LiveMatch.GetEvent.</summary>
+    public struct MatchEventInfo
+    {
+        public MatchEventKind Kind;
+        /// <summary>The team the event belongs to: the team credited for Goal/OwnGoal, the team taking the restart for
+        /// Corner/ThrowIn/GoalKick/FreeKick/KickOff, the offending team for Offside, the keeper's team for Save, the shooting
+        /// team for Woodwork; 255 for HalfTime/ExtraTime/FullTime.</summary>
+        public byte Team;
+        public int Minute;
+        /// <summary>Player index 0-21 or -1: the scorer, the offside player, the saving keeper, the shooter for Woodwork,
+        /// the restart taker.</summary>
+        public sbyte Player;
+    }
 
     /// <summary>Animation hint in PlayerState.Action.</summary>
     public static class PlayerAction
@@ -129,6 +151,8 @@ namespace LegendsFC.Core.Match
         public int ClockTicks, OutOfPlayTicks;
         public int Shots, ShotsOnTarget, Saves, Catches, Parries, Tips, Blocks, Passes, Tackles, TacklesWon, Headers;
         public int ThrowIns, GoalKicks, Corners, KickOffs;
+        /// <summary>Offsides called, and free kicks awarded (Oct 15: so far only after an offside).</summary>
+        public int Offsides, FreeKicks;
         /// <summary>Pass kinds: crosses, through balls (ground and lofted), other lofted passes.</summary>
         public int Crosses, ThroughBalls, LoftedThroughBalls, LoftedPasses;
         public int PostHits;
@@ -140,6 +164,7 @@ namespace LegendsFC.Core.Match
             ClockTicks = OutOfPlayTicks = Shots = ShotsOnTarget = Saves = Catches = Parries = Tips = Blocks = Passes = Tackles = TacklesWon = Headers = 0;
             ThrowIns = GoalKicks = Corners = KickOffs = PostHits = HomePossessionTicks = AwayPossessionTicks = 0;
             Crosses = ThroughBalls = LoftedThroughBalls = LoftedPasses = 0;
+            Offsides = FreeKicks = 0;
         }
     }
 }

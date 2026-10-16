@@ -82,6 +82,7 @@ namespace LegendsFC.Core.Match
                             _ballVel.X -= (1 + _c.Ball.PostRestitution) * vn * n.X;
                             _ballVel.Y -= (1 + _c.Ball.PostRestitution) * vn * n.Y;
                             _counters.PostHits++;
+                            EmitWoodwork();
                         }
                         var np = post + n * r;
                         _ballPos.X = np.X; _ballPos.Y = np.Y;
@@ -102,6 +103,7 @@ namespace LegendsFC.Core.Match
                         _ballVel.X -= (1 + _c.Ball.PostRestitution) * vn * nx;
                         _ballVel.Z -= (1 + _c.Ball.PostRestitution) * vn * nz;
                         _counters.PostHits++;
+                        EmitWoodwork();
                     }
                     _ballPos.X = sx + nx * r; _ballPos.Z = gh + nz * r;
                 }
@@ -145,6 +147,7 @@ namespace LegendsFC.Core.Match
                 var spot = new Vec2(MathUtil.Clamp(_ballPos.X, -HalfX + 1, HalfX - 1), _ballPos.Y > 0 ? HalfY : -HalfY);
                 _counters.ThrowIns++;
                 BeginRestart(Phase.ThrowIn, 1 - touchTeam, spot);
+                Emit(MatchEventKind.ThrowIn, _restartTeam, _taker);
                 return;
             }
             int end = _ballPos.X > 0 ? 1 : -1;
@@ -154,11 +157,13 @@ namespace LegendsFC.Core.Match
             {
                 _counters.Corners++;
                 BeginRestart(Phase.Corner, 1 - defending, new Vec2(end * (HalfX - 0.5f), sy * (HalfY - 0.5f)));
+                Emit(MatchEventKind.Corner, _restartTeam, _taker);
             }
             else
             {
                 _counters.GoalKicks++;
                 BeginRestart(Phase.GoalKick, defending, new Vec2(end * (HalfX - _c.Pitch.GoalAreaDepth), sy * (_c.Pitch.GoalAreaWidth * 0.5f - 1f)));
+                Emit(MatchEventKind.GoalKick, _restartTeam, _taker);
             }
         }
 
@@ -168,6 +173,7 @@ namespace LegendsFC.Core.Match
             _passTeam = -1;
             _handsGuard = 0;
             for (int i = 0; i < N; i++) { _p[i].Threat = false; _p[i].IgnoreShot = 0; }
+            ClearOffside();
         }
 
         private void Goal(int scoring, int end)
@@ -189,6 +195,7 @@ namespace LegendsFC.Core.Match
                 if (scorer == _shooter) _counters.ShotsOnTarget++;
             }
             if (_goals.Count < _goalScorer.Length) _goalScorer[_goals.Count] = scorer;
+            Emit(own ? MatchEventKind.OwnGoal : MatchEventKind.Goal, scoring, scorer);
             _goals.Add(new GoalEvent
             {
                 Minute = _minute, Team = (byte)scoring,
@@ -228,6 +235,7 @@ namespace LegendsFC.Core.Match
         {
             var p = _p[i];
             Touch(i, false, false);
+            OffsideTouch(i, true);
             _owner = i;
             _lastPossTeam = p.Team;
             _passReceiver = -1;
@@ -272,7 +280,7 @@ namespace LegendsFC.Core.Match
                                - _c.Keeper.CatchSpeedPenalty * Math.Max(0, speed - _c.Keeper.CatchEasySpeed)
                                - (k.Diving ? _c.Keeper.CatchStretchPenalty : 0);
                 if (!shot && speed < _c.Keeper.CatchEasySpeed) catchP = 1;   // collecting a slow ball
-                if (onTarget) { _counters.Saves++; _counters.ShotsOnTarget++; }
+                if (onTarget) { _counters.Saves++; _counters.ShotsOnTarget++; Emit(MatchEventKind.Save, t, ki); }
                 if ((float)_rng.NextDouble() < catchP)
                 {
                     if (onTarget) _counters.Catches++;
@@ -281,9 +289,7 @@ namespace LegendsFC.Core.Match
                     k.Diving = false;
                     return true;
                 }
-                Touch(ki, false, true);
-                k.IgnoreShot = 0.5f;
-                _passReceiver = -1;
+                KeeperDeflectTouch(ki);
                 if (_ballPos.Z > _c.Keeper.TipHeight && towardGoal)
                 {
                     if (onTarget) _counters.Tips++;
@@ -308,6 +314,15 @@ namespace LegendsFC.Core.Match
                 return false;
             }
             return false;
+        }
+
+        /// <summary>A parry or tip: the keeper touches the ball without keeping it.</summary>
+        private void KeeperDeflectTouch(int ki)
+        {
+            Touch(ki, false, true);
+            OffsideTouch(ki, false);   // a save is not a deliberate play: an offside record stands
+            _p[ki].IgnoreShot = 0.5f;
+            _passReceiver = -1;
         }
 
         /// <summary>Would the loose ball cross team t's goal line inside the frame (plus margin)?</summary>
@@ -364,20 +379,28 @@ namespace LegendsFC.Core.Match
             }
             if (ctrl >= 0)
             {
+                if (OffsideCheck(ctrl)) return true;
                 TakeBall(ctrl, false);
                 return true;
             }
-            if (head >= 0) { DoHeader(head); return false; }
+            if (head >= 0)
+            {
+                if (OffsideCheck(head)) return true;
+                DoHeader(head);
+                return false;
+            }
             if (block >= 0)
             {
                 var p = _p[block];
                 if ((float)_rng.NextDouble() < _c.Touch.BlockChance)
                 {
+                    if (OffsideCheck(block)) return true;
                     float spread = ((float)_rng.NextDouble() * 2 - 1) * _c.Touch.BlockSpreadDeg * MathUtil.Deg;
                     var h = _ballVel.XY.Rotated(spread) * _c.Touch.BlockSpeedKeep;
                     _ballVel = new Vec3(h, Math.Abs(_ballVel.Z) * 0.3f + (float)_rng.NextDouble() * 1.5f);
                     _counters.Blocks++;
                     Touch(block, false, true);
+                    OffsideTouch(block, false);   // a block off an opponent is not a deliberate play
                     _passReceiver = -1;
                     p.KickIgnore = 0.25f;
                     _lastKicker = block;

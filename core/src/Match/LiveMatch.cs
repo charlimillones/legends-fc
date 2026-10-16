@@ -127,7 +127,7 @@ namespace LegendsFC.Core.Match
         public int AttackDirection(int team) => Dir(team);
         /// <summary>Seconds played in the current half. Added to the contract.</summary>
         public float HalfClock => _halfClock;
-        /// <summary>The team taking the current restart (kick-off, throw-in, goal kick, corner). Added to the contract.</summary>
+        /// <summary>The team taking the current restart (kick-off, throw-in, goal kick, corner, free kick). Added to the contract.</summary>
         public int RestartTeam => _restartTeam;
 
         public void Step(in ControlInput input)
@@ -245,10 +245,10 @@ namespace LegendsFC.Core.Match
         private void EndHalf()
         {
             ClearBallFlags();
-            if (_half == 1) { EnterBreak(Phase.HalfTime); return; }
+            if (_half == 1) { EnterBreak(Phase.HalfTime); Emit(MatchEventKind.HalfTime, -1, -1); return; }
             if (_half == 2)
             {
-                if (_setup.ExtraTimeIfLevel && AggregateLevel()) { _extraTime = true; EnterBreak(Phase.ExtraTimeBreak); return; }
+                if (_setup.ExtraTimeIfLevel && AggregateLevel()) { _extraTime = true; EnterBreak(Phase.ExtraTimeBreak); Emit(MatchEventKind.ExtraTime, -1, -1); return; }
                 Finish();
                 return;
             }
@@ -275,6 +275,7 @@ namespace LegendsFC.Core.Match
             _owner = -1;
             _ballVel = Vec3.Zero;
             for (int i = 0; i < N; i++) _p[i].Vel = Vec2.Zero;
+            Emit(MatchEventKind.FullTime, -1, -1);
         }
 
         private void BreakTick()

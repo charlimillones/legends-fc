@@ -53,9 +53,36 @@ namespace LegendsFC.Core.Match
             _lastPossTeam = _p[i].Team;
         }
 
+        /// <summary>Player i plays the ball from where it is with this velocity (no kick error): a pass, or a shot.</summary>
+        internal void TestKick(int i, Vec3 vel, int receiver = -1, bool shot = false)
+        {
+            _owner = -1;
+            Release(i, vel, shot ? KickKind.Shot : KickKind.Pass, receiver);
+            Publish();
+        }
+
+        /// <summary>Starts a restart (throw-in, corner, goal kick, free kick) for this team at this spot.</summary>
+        internal void TestBeginRestart(Phase phase, int team, Vec2 spot)
+        {
+            ClearBallFlags();
+            BeginRestart(phase, team, spot);
+            Publish();
+        }
+
+        /// <summary>The keeper parries the ball (same touch as a real parry): it leaves him with this velocity.</summary>
+        internal void TestKeeperParry(int keeper, Vec3 vel)
+        {
+            _owner = -1;
+            _ballPos = new Vec3(_p[keeper].Pos, 0.5f);
+            _ballVel = vel;
+            KeeperDeflectTouch(keeper);
+            Publish();
+        }
+
         internal float TestWalkSpeed => _c.Movement.WalkSpeed;
         internal float TestRunSpeed(int i) => _p[i].RunSpeed;
         internal float TestSprintSpeed(int i) => _p[i].SprintSpeed;
         internal int TestKeeper(int team) => _keeper[team];
+        internal int TestTaker => _taker;
     }
 }

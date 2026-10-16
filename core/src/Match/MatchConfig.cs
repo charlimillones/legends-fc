@@ -20,6 +20,7 @@ namespace LegendsFC.Core.Match
         public KeeperConfig Keeper = new KeeperConfig();
         public SwitchConfig Switching = new SwitchConfig();
         public RestartConfig Restarts = new RestartConfig();
+        public OffsideConfig Offside = new OffsideConfig();
         public AiConfig Ai = new AiConfig();
         public List<DifficultyLevel> Difficulty = new List<DifficultyLevel>();
         public EnergyConfig Energy = new EnergyConfig();
@@ -224,11 +225,18 @@ namespace LegendsFC.Core.Match
         public float UserTimeout = 5f;
         /// <summary>The taker is placed on the spot if he isn't there after this long.</summary>
         public float MaxWalk = 2.0f;
-        /// <summary>Opponents keep this far away (kick-offs, corners, goal kicks) and at throw-ins.</summary>
+        /// <summary>Opponents keep this far away (kick-offs, corners, goal kicks, free kicks) and at throw-ins.</summary>
         public float Distance = 9.15f, ThrowInDistance = 2f;
         /// <summary>Corner: attackers placed in the box (count) and the near-post zone depth.</summary>
         public int CornerAttackers = 4;
         public float CornerZoneDepth = 9f;
+    }
+
+    /// <summary>Offside (Carlos Oct 15: standard rule, judged when the pass is played, indirect free kick restart).</summary>
+    public sealed class OffsideConfig
+    {
+        /// <summary>Metres a player must be beyond the ball and the second-last opponent to be offside (0 = level is onside).</summary>
+        public float Tolerance = 0f;
     }
 
     public sealed class AiConfig

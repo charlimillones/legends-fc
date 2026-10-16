@@ -21,6 +21,7 @@ namespace LegendsFC.Core.Match
             _lastPossTeam = team;
             _lastToucher = -1;
             SetKickOffTargets(team);
+            Emit(MatchEventKind.KickOff, team, _taker);
             for (int i = 0; i < N; i++)
             {
                 var p = _p[i];
@@ -100,6 +101,7 @@ namespace LegendsFC.Core.Match
         {
             var into = new Vec2(-_restartSpot.X, -_restartSpot.Y);
             if (_phase == Phase.ThrowIn) into = new Vec2(0, -MathF.Sign(_restartSpot.Y));
+            else if (_phase == Phase.FreeKick) into = new Vec2(Dir(_restartTeam), 0);
             into = into.Normalized();
             if (into.LengthSq < 0.5f) into = new Vec2(Dir(_restartTeam), 0);
             facing = into.Angle;
@@ -305,6 +307,7 @@ namespace LegendsFC.Core.Match
                 var rp = _p[j].Pos;
                 float d = Vec2.Distance(cp, rp);
                 if (d < 3f || d > maxD) continue;
+                if (AiOffsideTarget(t, j)) continue;
                 float v = PassValue(t, cp, rp) * LaneSafety(t, cp, rp, d / _c.Ai.PassAvgSpeed) + Noise(t);
                 if (v > bv) { bv = v; r = j; }
             }
