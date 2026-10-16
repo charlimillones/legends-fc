@@ -1,0 +1,5 @@
+<!-- The FC (Oct 15): the game's data and saves are read with Newtonsoft.Json by reflection, which the build's code
+     stripping can't see. Keep every type of the core so the web (and later iPhone) builds load the data like the editor. -->
+<linker>
+  <assembly fullname="LegendsFC.Core" preserve="all"/>
+</linker>
