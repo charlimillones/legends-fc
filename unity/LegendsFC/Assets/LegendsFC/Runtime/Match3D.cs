@@ -33,13 +33,24 @@ namespace LegendsFC.App
         // ---- HUD and controls (screen pixels)
         private Canvas _hud;
         private Text _score, _clock, _phase;
+
+        // Banners at the top right for what happens in the match (Carlos, Oct 15): newest on top, each shown a few seconds.
+        private const int BannerSlots = 3;
+        private const float BannerSeconds = 2.6f;
+        private readonly RectTransform[] _bannerBox = new RectTransform[BannerSlots];
+        private readonly Image[] _bannerBg = new Image[BannerSlots], _bannerStrip = new Image[BannerSlots];
+        private readonly Text[] _bannerText = new Text[BannerSlots];
+        private readonly string[] _bannerMsg = new string[BannerSlots];
+        private readonly Color[] _bannerColor = new Color[BannerSlots];
+        private readonly float[] _bannerAge = new float[BannerSlots];
+        private int _eventsSeen;
         private RectTransform _stickBase, _stickKnob;
         private readonly RectTransform[] _buttons = new RectTransform[3];
         private readonly Text[] _buttonText = new Text[3];
         private readonly Image[] _buttonImage = new Image[3];
         private GameObject _endPanel;
         private Text _endText;
-        private int _stickTouch = -2, _sprintTouch = -2;     // -2 none, -1 mouse, else touch id
+        private int _stickTouch = -2;     // -2 none, -1 mouse, else touch id
         private Vector2 _stickOrigin, _stickNow;
         private ControlInput _input;
         private float _fps, _fpsTimer; private int _fpsFrames;
@@ -151,7 +162,7 @@ namespace LegendsFC.App
             _marker = Prim(PrimitiveType.Cylinder, w, Vector3.zero, new Vector3(1.3f, 0.01f, 1.3f), new Color(1f, 0.85f, 0.1f), "Controlled").transform;
 
             // light and camera (the scene's own camera is switched off during the match)
-            if (FindFirstObjectByType<Light>() == null)
+            if (FindAnyObjectByType<Light>() == null)
             {
                 var sun = new GameObject("Sun").AddComponent<Light>();
                 sun.transform.SetParent(transform, false);
@@ -162,7 +173,7 @@ namespace LegendsFC.App
             if (_hiddenCamera != null) _hiddenCamera.enabled = false;
             _cam = new GameObject("Match camera").AddComponent<Camera>();
             _cam.transform.SetParent(transform, false);
-            _cam.fieldOfView = 38; _cam.nearClipPlane = 0.3f; _cam.farClipPlane = 400;
+            _cam.fieldOfView = 40; _cam.nearClipPlane = 0.3f; _cam.farClipPlane = 400;
             _cam.clearFlags = CameraClearFlags.SolidColor; _cam.backgroundColor = new Color(0.10f, 0.12f, 0.16f);
             _cam.tag = "MainCamera";
             _camLook = Vector3.zero;
@@ -178,9 +189,33 @@ namespace LegendsFC.App
             return t;
         }
 
+        private static Sprite _round;
+
+        /// <summary>A soft-edged white disc, made once at runtime (no art files needed for grey boxes).</summary>
+        private static Sprite Round()
+        {
+            if (_round != null) return _round;
+            const int n = 128;
+            var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var px = new Color32[n * n];
+            float r = n / 2f - 1;
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float d = Mathf.Sqrt((x + 0.5f - n / 2f) * (x + 0.5f - n / 2f) + (y + 0.5f - n / 2f) * (y + 0.5f - n / 2f));
+                    byte a = (byte)(255 * Mathf.Clamp01(r - d));
+                    px[y * n + x] = new Color32(255, 255, 255, a);
+                }
+            tex.SetPixels32(px);
+            tex.Apply();
+            _round = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f));
+            return _round;
+        }
+
         private RectTransform Circle(Transform parent, float size, Color color, string name, out Image image)
         {
             image = UIKit.Box(parent, color, name);
+            image.sprite = Round();
             image.raycastTarget = false;
             var r = image.rectTransform;
             r.anchorMin = r.anchorMax = Vector2.zero; r.pivot = new Vector2(0.5f, 0.5f);
@@ -205,6 +240,26 @@ namespace LegendsFC.App
             UIKit.Fill(_clock.rectTransform, 0, 66, 0, 0);
             _phase = HudLabel(root, "", 54, TextAnchor.MiddleCenter);
             UIKit.Fill(_phase.rectTransform, 0, 0, 0, 0);
+
+            for (int i = 0; i < BannerSlots; i++)
+            {
+                _bannerBg[i] = UIKit.Box(root, new Color(0.05f, 0.07f, 0.1f, 0.8f), "Banner " + i);
+                _bannerBg[i].raycastTarget = false;
+                var r = _bannerBox[i] = _bannerBg[i].rectTransform;
+                r.anchorMin = r.anchorMax = new Vector2(1, 1); r.pivot = new Vector2(1, 1);
+                r.sizeDelta = new Vector2(430, 54);
+                r.anchoredPosition = new Vector2(-24, -24 - i * 62);
+                _bannerStrip[i] = UIKit.Box(r, Color.white, "Strip");
+                _bannerStrip[i].raycastTarget = false;
+                var sr = _bannerStrip[i].rectTransform;
+                sr.anchorMin = new Vector2(0, 0); sr.anchorMax = new Vector2(0, 1); sr.pivot = new Vector2(0, 0.5f);
+                sr.sizeDelta = new Vector2(8, 0); sr.anchoredPosition = Vector2.zero;
+                _bannerText[i] = UIKit.Label(r, "", 26, Color.white, TextAnchor.MiddleLeft, FontStyle.Bold);
+                _bannerText[i].raycastTarget = false;
+                UIKit.Fill(_bannerText[i].rectTransform, 22, 0, 12, 0);
+                _bannerBox[i].gameObject.SetActive(false);
+                _bannerAge[i] = BannerSeconds;
+            }
 
             _stickBase = Circle(root, 220, new Color(1, 1, 1, 0.12f), "Stick", out _);
             _stickKnob = Circle(root, 100, new Color(1, 1, 1, 0.35f), "Knob", out _);
@@ -384,10 +439,12 @@ namespace LegendsFC.App
             if (c >= 0) _marker.localPosition = _men[c].localPosition + Vector3.up * 0.02f;
 
             // broadcast camera from the side: follows the ball along the pitch, eases across it
-            var target = new Vector3(Mathf.Clamp(bp.x, -38f, 38f), 0, Mathf.Clamp(bp.z, -20f, 20f) * 0.6f);
+            // The ball sits near the middle of the screen (the 30-60% height band, D-09): the camera looks at a point that follows
+            // the ball along and across the pitch, so the near touchline comes into view when play goes there.
+            var target = new Vector3(Mathf.Clamp(bp.x, -40f, 40f), 0, Mathf.Clamp(bp.z * 0.9f, -30f, 30f));
             _camLook = Vector3.Lerp(_camLook, target, 1 - Mathf.Exp(-4f * Time.deltaTime));
-            _cam.transform.position = _camLook + new Vector3(0, 26f, -44f);
-            _cam.transform.LookAt(_camLook + new Vector3(0, 0, 4f));
+            _cam.transform.position = _camLook + new Vector3(0, 22f, -34f);
+            _cam.transform.LookAt(_camLook);
         }
 
         private static string PhaseText(Phase p, LiveMatch m)
@@ -399,12 +456,80 @@ namespace LegendsFC.App
                 case Phase.ExtraTimeBreak: return "Extra time";
                 case Phase.FullTime: return "Full time";
                 case Phase.KickOff: return m.Minute == 0 && m.Half == 1 ? "Kick-off" : "";
+                case Phase.FreeKick: return "";
                 default: return "";
+            }
+        }
+
+        private string PlayerName(int index)
+        {
+            if (index < 0 || index > 21) return null;
+            var team = index < 11 ? _setup.Home : _setup.Away;
+            var p = team.Starters[index % 11];
+            return p == null ? null : p.Name;
+        }
+
+        private string TeamName(int team) => team == 0 ? _setup.Home.Name : team == 1 ? _setup.Away.Name : null;
+
+        private string BannerText(MatchEventInfo e)
+        {
+            string team = TeamName(e.Team), who = PlayerName(e.Player);
+            switch (e.Kind)
+            {
+                case MatchEventKind.KickOff: return "Kick-off";
+                case MatchEventKind.Goal: return $"GOAL!  {who ?? team}  {e.Minute}'";
+                case MatchEventKind.OwnGoal: return $"Own goal  {who}  {e.Minute}'";
+                case MatchEventKind.Corner: return $"Corner  {team}";
+                case MatchEventKind.ThrowIn: return $"Throw-in  {team}";
+                case MatchEventKind.GoalKick: return $"Goal kick  {team}";
+                case MatchEventKind.Offside: return $"Offside  {who ?? team}";
+                case MatchEventKind.FreeKick: return $"Free kick  {team}";
+                case MatchEventKind.Save: return $"Save  {who ?? team}";
+                case MatchEventKind.Woodwork: return $"Off the woodwork!  {who ?? team}";
+                case MatchEventKind.HalfTime: return $"Half time  {_m.HomeGoals}-{_m.AwayGoals}";
+                case MatchEventKind.ExtraTime: return "Extra time";
+                case MatchEventKind.FullTime: return $"Full time  {_m.HomeGoals}-{_m.AwayGoals}";
+                default: return e.Kind.ToString();
+            }
+        }
+
+        private void PushBanner(string text, Color color)
+        {
+            for (int i = BannerSlots - 1; i > 0; i--)
+            {
+                _bannerMsg[i] = _bannerMsg[i - 1]; _bannerColor[i] = _bannerColor[i - 1]; _bannerAge[i] = _bannerAge[i - 1];
+            }
+            _bannerMsg[0] = text; _bannerColor[0] = color; _bannerAge[0] = 0;
+            Debug.Log("[LFC] banner: " + text);
+        }
+
+        private void Banners()
+        {
+            int count = _m.EventCount;
+            for (int k = Mathf.Max(_eventsSeen, count - 32); k < count; k++)
+            {
+                var e = _m.GetEvent(k);
+                var c = e.Team == 0 ? HomeShirt : e.Team == 1 ? AwayShirt : new Color(0.9f, 0.9f, 0.9f);
+                PushBanner(BannerText(e), c);
+            }
+            _eventsSeen = count;
+            for (int i = 0; i < BannerSlots; i++)
+            {
+                _bannerAge[i] += Time.deltaTime;
+                bool on = _bannerMsg[i] != null && _bannerAge[i] < BannerSeconds;
+                _bannerBox[i].gameObject.SetActive(on);
+                if (!on) continue;
+                float a = Mathf.Clamp01((BannerSeconds - _bannerAge[i]) / 0.4f);   // fade out over the last 0.4 s
+                _bannerText[i].text = _bannerMsg[i];
+                _bannerText[i].color = new Color(1, 1, 1, a);
+                _bannerBg[i].color = new Color(0.05f, 0.07f, 0.1f, 0.8f * a);
+                var sc = _bannerColor[i]; sc.a = a; _bannerStrip[i].color = sc;
             }
         }
 
         private void Hud()
         {
+            Banners();
             _score.text = $"{_setup.Home.Name}  {_m.HomeGoals} - {_m.AwayGoals}  {_setup.Away.Name}";
             _clock.text = $"{_m.Minute}'   {(_fps > 0 ? $"{_fps:F0} fps" : "")}";
             _phase.text = PhaseText(_m.Phase, _m);
