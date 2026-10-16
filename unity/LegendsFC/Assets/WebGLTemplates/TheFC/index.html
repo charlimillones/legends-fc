@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#11151c">
+  <title>{{{ PRODUCT_NAME }}}</title>
+  <!-- The FC web version (Oct 15): the game fills the whole browser window, nothing scrolls or zooms, and a note asks to
+       turn the phone sideways while it is upright (the game is landscape only). Everything is inline: no other page files. -->
+  <style>
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #11151c; color: #e8edf5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      touch-action: none; overscroll-behavior: none; -webkit-user-select: none; user-select: none;
+      -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+    }
+    #unity-canvas {
+      position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; height: 100dvh;
+      display: block; background: #11151c; outline: none; touch-action: none;
+    }
+    #loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; background: #11151c; z-index: 2;
+    }
+    #loading .name { font-size: 28px; font-weight: 700; letter-spacing: 0.04em; }
+    #loading .bar { width: min(60vw, 320px); height: 8px; border-radius: 4px; background: #2a3342; overflow: hidden; }
+    #loading .fill { width: 0; height: 100%; background: #3b82f6; transition: width 0.2s; }
+    #loading .msg { font-size: 14px; color: #9aa6b8; text-align: center; padding: 0 20px; }
+    #rotate {
+      position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; background: rgba(10, 13, 18, 0.94); z-index: 3; font-size: 20px; text-align: center; padding: 24px;
+    }
+    #rotate .icon { width: 44px; height: 72px; border: 3px solid #e8edf5; border-radius: 8px; transform: rotate(90deg); margin-bottom: 18px; }
+    @media (orientation: portrait) { #rotate { display: flex; } }
+  </style>
+</head>
+<body>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <div id="loading">
+    <div class="name">{{{ PRODUCT_NAME }}}</div>
+    <div class="bar"><div class="fill" id="loading-fill"></div></div>
+    <div class="msg" id="loading-msg">Loading...</div>
+  </div>
+  <div id="rotate"><div class="icon"></div><div>Turn your phone sideways</div></div>
+  <script>
+    var canvas = document.getElementById("unity-canvas");
+    var fill = document.getElementById("loading-fill");
+    var msg = document.getElementById("loading-msg");
+    var loading = document.getElementById("loading");
+
+    // Unity's own messages (warnings and errors) show under the loading bar instead of browser pop-ups.
+    function showBanner(text, type) {
+      if (type === "error") { loading.style.display = "flex"; msg.textContent = text; }
+      else console.warn(text);
+    }
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+      frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+#if USE_THREADS
+      workerUrl: buildUrl + "/{{{ WORKER_FILENAME }}}",
+#endif
+#if USE_WASM
+      codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+#endif
+#if MEMORY_FILENAME
+      memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+      symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+#endif
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+      productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+      productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+      showBanner: showBanner,
+      // Draw at the phone's full pixel density so text is sharp and the touch buttons keep their size.
+      devicePixelRatio: window.devicePixelRatio || 1,
+      matchWebGLToCanvasSize: true,
+    };
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        fill.style.width = Math.round(100 * progress) + "%";
+      }).then(function (instance) {
+        window.unityInstance = instance;
+        loading.style.display = "none";
+      }).catch(function (message) {
+        msg.textContent = "The game couldn't start: " + message;
+      });
+    };
+    script.onerror = function () { msg.textContent = "The game couldn't load (" + loaderUrl + ")."; };
+    document.body.appendChild(script);
+
+    // No page zoom or scroll from double taps and pinches.
+    document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+    document.addEventListener("dblclick", function (e) { e.preventDefault(); });
+  </script>
+</body>
+</html>

@@ -48,7 +48,7 @@ namespace LegendsFC.App
                 UIKit.Cell(row, $"Season {Fmt.Season(w.SeasonStartYear)}, week {w.Week}", 380, 24, UIKit.Muted);
                 string slot = w.SlotId;
                 UIKit.Button(row, "Continue", () => Open(slot), UIKit.Accent, 26, 200, 70);
-                UIKit.Button(row, "Delete", () => { A.Store.Delete(slot); A.Toast($"{w.Name} deleted"); A.Refresh(); }, UIKit.Panel2, 22, 140, 70);
+                UIKit.Button(row, "Delete", () => { A.Store.Delete(slot); App.FlushSaves(); A.Toast($"{w.Name} deleted"); A.Refresh(); }, UIKit.Panel2, 22, 140, 70);
             }
             if (worlds.Count == 0) UIKit.Note(list, "No worlds yet.");
             UIKit.Gap(list, 10);

@@ -11,6 +11,7 @@ using LegendsFC.Core.Saves;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 namespace LegendsFC.App
@@ -41,7 +42,11 @@ namespace LegendsFC.App
         private async void Start()
         {
             I = this;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Application.targetFrameRate = -1;   // in a browser, -1 follows the screen's refresh (requestAnimationFrame); 60 would use a timer
+#else
             Application.targetFrameRate = 60;
+#endif
             Application.runInBackground = true;
             // Landscape only, like the match (confirmed by Carlos, Oct 10): the screens are laid out for 16:9 and wider.
             Screen.autorotateToPortrait = false; Screen.autorotateToPortraitUpsideDown = false;
@@ -52,11 +57,15 @@ namespace LegendsFC.App
             try
             {
                 string dataDir = DataDirectory();
+#if UNITY_WEBGL && !UNITY_EDITOR
+                Data = await LoadDataFromWeb(dataDir);
+#else
                 Data = await Task.Run(() => GameData.LoadFromDirectory(dataDir));
+#endif
                 int copied = CopyOldWorlds(Application.persistentDataPath);
                 if (copied > 0) Debug.Log($"[LFC] copied {copied} save files from the old LegendsFC folder");
                 Store = new SaveStore(Application.persistentDataPath, Data.Saves);
-                Debug.Log($"[LFC] data loaded from {dataDir}; saves in {Application.persistentDataPath}");
+                Debug.Log($"[LFC] data loaded from {dataDir}; saves in {Application.persistentDataPath}; screen {Screen.width}x{Screen.height}");
                 Busy(null);
                 Show(new TitleScreen());
             }
@@ -108,8 +117,64 @@ namespace LegendsFC.App
         private static string DataDirectory()
         {
             if (Application.isEditor) return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "data"));
+            if (Application.platform == RuntimePlatform.WebGLPlayer) return Application.streamingAssetsPath + "/data";   // a web address
             return Path.Combine(Application.streamingAssetsPath, "data");
         }
+
+        /// <summary>
+        /// Web version (Oct 15): a browser can't read files, so this downloads the file list the build wrote (data/files.txt,
+        /// see DataForBuilds) and then every file on it, and gives GameData.Load the downloaded texts.
+        /// </summary>
+        private static async Task<GameData> LoadDataFromWeb(string root)
+        {
+            string list = await Download(root + "/files.txt");
+            var paths = list.Split('\n').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+            var downloads = paths.Select(x => Download(root + "/" + x)).ToList();   // all at once
+            var texts = new Dictionary<string, string>();
+            for (int i = 0; i < paths.Count; i++) texts[paths[i]] = await downloads[i];
+            Debug.Log($"[LFC] downloaded {texts.Count} data files");
+            return GameData.Load(rel => texts.TryGetValue(rel, out var text) ? text : throw new FileNotFoundException("Not in the web version's data: " + rel));
+        }
+
+        private static async Task<string> Download(string url)
+        {
+            using (var req = UnityWebRequest.Get(url))
+            {
+                var op = req.SendWebRequest();
+                while (!op.isDone) await Awaitable.NextFrameAsync();
+                if (req.result != UnityWebRequest.Result.Success) throw new IOException($"Couldn't download {url}: {req.error}");
+                return req.downloadHandler.text;
+            }
+        }
+
+        /// <summary>
+        /// Runs heavy work behind the busy overlay. On Windows and in the editor it runs on a worker thread; a browser has no
+        /// threads for the game, so the web version waits one frame (the overlay gets drawn) and then runs it on the main thread.
+        /// </summary>
+        private static async Task<T> Work<T>(Func<T> work)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            await Awaitable.NextFrameAsync();
+            return work();
+#else
+            return await Task.Run(work);
+#endif
+        }
+
+        /// <summary>
+        /// Web version: saves live in the browser's storage (IndexedDB). This asks the browser to write them now, after the
+        /// game has saved, so closing the tab doesn't lose them. Does nothing elsewhere.
+        /// </summary>
+        public static void FlushSaves()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { LfcSyncFs(); } catch (Exception e) { Debug.LogWarning("[LFC] couldn't flush the saves: " + e.Message); }
+#endif
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [System.Runtime.InteropServices.DllImport("__Internal")] private static extern void LfcSyncFs();
+#endif
 
         public static string NowUtc() => DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
@@ -241,7 +306,7 @@ namespace LegendsFC.App
                     UIKit.Button(_menu, text, () => Show(make()), on ? UIKit.AccentDark : UIKit.Panel2, 26, -1, 66);
                 }
                 UIKit.Gap(_menu, 20);
-                UIKit.Button(_menu, "Save and exit", () => { Session.Save(NowUtc()); Session = null; Show(new TitleScreen()); }, UIKit.Panel2, 22, -1, 56);
+                UIKit.Button(_menu, "Save and exit", () => { Session.Save(NowUtc()); FlushSaves(); Session = null; Show(new TitleScreen()); }, UIKit.Panel2, 22, -1, 56);
             }
             else
             {
@@ -335,7 +400,8 @@ namespace LegendsFC.App
                 var s = Session;
                 int season = s.World.SeasonStartYear;
                 string now = NowUtc();
-                var report = await Task.Run(() => s.AdvanceWeek(now, played));
+                var report = await Work(() => s.AdvanceWeek(now, played));
+                FlushSaves();   // the week autosaves
                 Busy(null);
                 bool seasonEnded = s.World.SeasonStartYear != season;
                 if (report.Sacked || s.World.UserClubId == null) Show(new JobsScreen());
@@ -353,13 +419,14 @@ namespace LegendsFC.App
             finally { _running = false; }
         }
 
-        /// <summary>Runs work off the main thread behind the busy overlay, then continues on the main thread.</summary>
+        /// <summary>Runs work off the main thread behind the busy overlay (on the web: after one frame, on the main thread), then continues on the main thread.</summary>
         public async void Run<T>(string message, Func<T> work, Action<T> then)
         {
             Busy(message);
             try
             {
-                var result = await Task.Run(work);
+                var result = await Work(work);
+                FlushSaves();   // new worlds and loads may have written save files
                 Busy(null);
                 then(result);
             }

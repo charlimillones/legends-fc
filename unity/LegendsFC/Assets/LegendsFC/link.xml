@@ -1,0 +1,13 @@
+<!-- The FC (Oct 15): the game's data and saves are read with Newtonsoft.Json by reflection, which the build's code
+     stripping can't see. Keep every type of the core so the web (and later iPhone) builds load the data like the editor.
+     The match's grey boxes come from GameObject.CreatePrimitive, which adds a collider (removed right away); with engine code
+     stripped the web build had no collider classes and logged an error per box, so the collider types are kept too. -->
+<linker>
+  <assembly fullname="LegendsFC.Core" preserve="all"/>
+  <assembly fullname="UnityEngine.PhysicsModule">
+    <type fullname="UnityEngine.BoxCollider" preserve="all"/>
+    <type fullname="UnityEngine.SphereCollider" preserve="all"/>
+    <type fullname="UnityEngine.CapsuleCollider" preserve="all"/>
+    <type fullname="UnityEngine.MeshCollider" preserve="all"/>
+  </assembly>
+</linker>

@@ -54,6 +54,8 @@ namespace LegendsFC.App
         private Vector2 _stickOrigin, _stickNow;
         private ControlInput _input;
         private float _fps, _fpsTimer; private int _fpsFrames;
+        // stick check for tests (Oct 15): how far the controlled player went while the stick was held, logged on release
+        private bool _stickOn; private int _stickPlayer = -1, _ticks, _stickSince; private Vector2 _stickFrom;   // _ticks: match steps so far
 
         private static readonly Color HomeShirt = new Color(0.20f, 0.42f, 0.90f), AwayShirt = new Color(0.86f, 0.22f, 0.20f);
         private static readonly Color HomeKeeper = new Color(0.55f, 0.85f, 0.25f), AwayKeeper = new Color(0.15f, 0.15f, 0.15f);
@@ -77,6 +79,11 @@ namespace LegendsFC.App
 
         // ------------------------------------------------------------------ world
 
+        // The grey boxes' material (URP Lit, same look as the default one). Builds only include shaders that some asset uses, and
+        // nothing referenced URP Lit, so the web build drew everything magenta (Oct 15). Loading it from Resources keeps it in.
+        private static Material _litBase;
+        private static bool _litLoaded;
+
         private static GameObject Prim(PrimitiveType type, Transform parent, Vector3 pos, Vector3 scale, Color color, string name)
         {
             var g = GameObject.CreatePrimitive(type);
@@ -85,7 +92,10 @@ namespace LegendsFC.App
             g.transform.SetParent(parent, false);
             g.transform.localPosition = pos;
             g.transform.localScale = scale;
-            g.GetComponent<Renderer>().material.color = color;
+            if (!_litLoaded) { _litBase = Resources.Load<Material>("LfcMatchLit"); _litLoaded = true; }
+            var r = g.GetComponent<Renderer>();
+            if (_litBase != null) r.sharedMaterial = _litBase;
+            r.material.color = color;
             return g;
         }
 
@@ -372,6 +382,7 @@ namespace LegendsFC.App
             // relative to the user's attacking direction, which flips at half time.
             float dir = _userTeam >= 0 ? _m.AttackDirection(_userTeam) : 1;
             _input = new ControlInput { MoveX = stick.x * dir, MoveY = stick.y * dir, Sprint = sprint, A = held[0], B = held[1], C = held[2] };
+            LogStick(stick.sqrMagnitude > 0.04f);
 
             // controls on screen
             bool show = _userTeam >= 0 && !_ended;
@@ -388,6 +399,17 @@ namespace LegendsFC.App
                 _buttonText[i].text = labels[i];
                 _buttonImage[i].color = new Color(1, 1, 1, held[i] ? 0.45f : 0.22f);
             }
+        }
+
+        private void LogStick(bool on)
+        {
+            if (_userTeam < 0 || on == _stickOn) return;
+            int c = _m.ControlledIndex;
+            var p = c >= 0 ? new Vector2(_m.Players[c].Pos.X, _m.Players[c].Pos.Y) : Vector2.zero;
+            if (_stickPlayer >= 0)
+                Debug.Log($"[LFC] stick {(_stickOn ? "held" : "untouched")} {(_ticks - _stickSince) * LiveMatch.TickSeconds:F1} match s: " +
+                          (_stickPlayer == c ? $"controlled player moved {Vector2.Distance(_stickFrom, p):F1} m" : "control switched to another player"));
+            _stickOn = on; _stickPlayer = c; _stickSince = _ticks; _stickFrom = p;
         }
 
         // ------------------------------------------------------------------ loop
@@ -411,6 +433,7 @@ namespace LegendsFC.App
                 {
                     Array.Copy(_cur, _prev, 23); Array.Copy(_curFace, _prevFace, 22);
                     _m.Step(_input);
+                    _ticks++;
                     Snapshot(_cur, _curFace);
                     _acc -= LiveMatch.TickSeconds;
                 }
