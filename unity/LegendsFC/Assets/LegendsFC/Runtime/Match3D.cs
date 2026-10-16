@@ -404,14 +404,11 @@ namespace LegendsFC.App
         private void LogStick(bool on)
         {
             if (_userTeam < 0 || on == _stickOn) return;
-            _stickOn = on;
             int c = _m.ControlledIndex;
-            if (c < 0) { _stickPlayer = -1; return; }
-            var p = new Vector2(_m.Players[c].Pos.X, _m.Players[c].Pos.Y);
-            if (on) { _stickPlayer = c; _stickSince = Time.unscaledTime; _stickFrom = p; return; }
-            if (_stickPlayer == c)
-                Debug.Log($"[LFC] stick held {Time.unscaledTime - _stickSince:F1} s: controlled player moved {Vector2.Distance(_stickFrom, p):F1} m");
-            _stickPlayer = -1;
+            var p = c >= 0 ? new Vector2(_m.Players[c].Pos.X, _m.Players[c].Pos.Y) : Vector2.zero;
+            if (_stickPlayer == c && c >= 0)
+                Debug.Log($"[LFC] stick {(_stickOn ? "held" : "untouched")} {Time.unscaledTime - _stickSince:F1} s: controlled player moved {Vector2.Distance(_stickFrom, p):F1} m");
+            _stickOn = on; _stickPlayer = c; _stickSince = Time.unscaledTime; _stickFrom = p;
         }
 
         // ------------------------------------------------------------------ loop
