@@ -65,7 +65,7 @@ namespace LegendsFC.App
                 int copied = CopyOldWorlds(Application.persistentDataPath);
                 if (copied > 0) Debug.Log($"[LFC] copied {copied} save files from the old LegendsFC folder");
                 Store = new SaveStore(Application.persistentDataPath, Data.Saves);
-                Debug.Log($"[LFC] data loaded from {dataDir}; saves in {Application.persistentDataPath}");
+                Debug.Log($"[LFC] data loaded from {dataDir}; saves in {Application.persistentDataPath}; screen {Screen.width}x{Screen.height}");
                 Busy(null);
                 Show(new TitleScreen());
             }

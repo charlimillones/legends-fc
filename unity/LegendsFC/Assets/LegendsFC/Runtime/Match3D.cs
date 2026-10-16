@@ -77,6 +77,11 @@ namespace LegendsFC.App
 
         // ------------------------------------------------------------------ world
 
+        // The grey boxes' material (URP Lit, same look as the default one). Builds only include shaders that some asset uses, and
+        // nothing referenced URP Lit, so the web build drew everything magenta (Oct 15). Loading it from Resources keeps it in.
+        private static Material _litBase;
+        private static bool _litLoaded;
+
         private static GameObject Prim(PrimitiveType type, Transform parent, Vector3 pos, Vector3 scale, Color color, string name)
         {
             var g = GameObject.CreatePrimitive(type);
@@ -85,7 +90,10 @@ namespace LegendsFC.App
             g.transform.SetParent(parent, false);
             g.transform.localPosition = pos;
             g.transform.localScale = scale;
-            g.GetComponent<Renderer>().material.color = color;
+            if (!_litLoaded) { _litBase = Resources.Load<Material>("LfcMatchLit"); _litLoaded = true; }
+            var r = g.GetComponent<Renderer>();
+            if (_litBase != null) r.sharedMaterial = _litBase;
+            r.material.color = color;
             return g;
         }
 
